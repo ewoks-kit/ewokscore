@@ -1,7 +1,7 @@
 import pytest
 import json
 from ewokscore.task import Task
-from tasklib.tasks import SumTask
+from .examples.tasks import SumTask
 
 
 def assert_storage(tmpdir, expected):
