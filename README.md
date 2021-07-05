@@ -1,1 +1,1 @@
-# EwoksCore: Core API for graphs and tasks in Ewoks
+# EwoksCore: API for graphs and tasks in Ewoks
