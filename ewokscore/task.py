@@ -115,7 +115,7 @@ class Task(Registered, hashing.UniversalHashable, register=False):
     def instantiate(cls, name, **kw):
         """Factory method for instantiating a derived class.
 
-        :param str name: for example "tasklib.tasks.SumTask" or "SumTask"
+        :param str name: for example "tasklib.tasks.MyTask" or "MyTask"
         :param **kw: `Task` constructor arguments
         :returns Task:
         """
