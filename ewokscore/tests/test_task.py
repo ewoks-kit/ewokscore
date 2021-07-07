@@ -1,6 +1,7 @@
 import pytest
 import json
 from ewokscore.task import Task
+from ewokscore.task import TaskInputError
 from .examples.tasks.sumtask import SumTask
 
 
@@ -22,7 +23,7 @@ def test_no_public_reserved_names():
 
 
 def test_task_missing_input():
-    with pytest.raises(ValueError):
+    with pytest.raises(TaskInputError):
         SumTask()
 
 
@@ -117,5 +118,5 @@ def test_task_required_positional_inputs():
     class MyTask(Task, n_required_positional_inputs=1):
         pass
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TaskInputError):
         MyTask()

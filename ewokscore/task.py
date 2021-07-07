@@ -6,7 +6,7 @@ from .variable import ReadOnlyVariableContainerNamespace
 from .registration import Registered
 
 
-class TaskInputError(AssertionError):
+class TaskInputError(ValueError):
     pass
 
 
@@ -38,13 +38,13 @@ class Task(Registered, hashing.UniversalHashable, register=False):
         # Check required inputs
         missing_required = set(self._INPUT_NAMES) - set(inputs.keys())
         if missing_required:
-            raise ValueError(f"Missing inputs for {type(self)}: {missing_required}")
+            raise TaskInputError(f"Missing inputs for {type(self)}: {missing_required}")
 
         # Check required positional inputs
         nrequiredargs = self._N_REQUIRED_POSITIONAL_INPUTS
         for i in range(nrequiredargs):
             if i not in inputs and str(i) not in inputs:
-                raise ValueError(
+                raise TaskInputError(
                     f"Missing inputs for {type(self)}: positional argument #{i}"
                 )
 
