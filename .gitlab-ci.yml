@@ -12,9 +12,11 @@ lint:
 
 test:
   stage: test
+  before_script:
+    - pip install pytest-cov
   script:
-  - pip install .[test]
-  - pytest
+    - pip install .[test]
+    - pytest --cov=./ .
   only:
     refs:
       - main
