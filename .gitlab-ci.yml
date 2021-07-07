@@ -2,8 +2,9 @@ image: python:3.6
 
 lint:
   stage: test
-  script:
+  before_script:
     - pip install flake8
+  script:
     - flake8
   only:
     refs:
