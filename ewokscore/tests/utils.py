@@ -5,31 +5,44 @@ from ewokscore import load_graph
 from ewokscore.variable import Variable
 
 
-def assert_taskgraph_result(taskgraph, expected, varinfo):
-    tasks = dict()
+def assert_taskgraph_result(taskgraph, expected, varinfo=None, tasks=None):
     taskgraph = load_graph(taskgraph)
     assert not taskgraph.is_cyclic, "Can only check DAG results"
 
+    if tasks is None:
+        tasks = dict()
+
     for node in taskgraph.graph.nodes:
-        task = taskgraph.instantiate_task_static(node, tasks=tasks, varinfo=varinfo)
-        value = expected.get(node)
-        if value is None:
-            assert not task.done, node
+        task = tasks.get(node, None)
+        if task is None:
+            assert varinfo, "Need 'varinfo' to load task output"
+            task = taskgraph.instantiate_task_static(node, tasks=tasks, varinfo=varinfo)
+        assert_task_result(task, node, expected)
+
+
+def assert_task_result(task, node, expected):
+    expected_value = expected.get(node)
+    if expected_value is None:
+        assert not task.done, node
+    else:
+        assert task.done, node
+        try:
+            assert task.output_values == expected_value, node
+        except AssertionError:
+            raise
+        except Exception as e:
+            raise RuntimeError(f"{node} does not have a result") from e
+
+
+def assert_taskgraph_result_output(result, expected, varinfo=None):
+    for output_name, expected_value in expected.items():
+        if varinfo:
+            uhash = result[output_name]
+            var = Variable(uhash=uhash, varinfo=varinfo)
+            assert var.value == expected_value
         else:
-            assert task.done, node
-            try:
-                assert task.output_values == value, node
-            except AssertionError:
-                raise
-            except Exception as e:
-                raise RuntimeError(f"{node} does not have a result") from e
-
-
-def assert_taskgraph_result_output(result, expected, varinfo):
-    for k, v in expected.items():
-        uhash = result[k]
-        var = Variable(uhash=uhash, varinfo=varinfo)
-        assert var.value == v
+            value = result[output_name]
+            assert value == expected_value
 
 
 def show_graph(graph, stdout=True, plot=True, show=True):
