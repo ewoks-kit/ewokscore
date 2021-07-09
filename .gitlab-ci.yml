@@ -12,3 +12,6 @@ test-3.8:
 
 test-3.9:
   extends: ".test-3.9"
+
+sphinx:
+  extends: ".sphinx"
