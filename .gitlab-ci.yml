@@ -1,35 +1,14 @@
-image: python:3.6
+include:
+  - remote: "https://gitlab.esrf.fr/workflow/ewoks/ewoks/raw/main/.gitlab-ci-template.yml"
 
-lint:
-  stage: test
-  before_script:
-    - pip install flake8
-  script:
-    - flake8
-  only:
-    refs:
-      - main
-      - merge_requests
+test-3.6:
+  extends: ".test-3.6"
 
-test:
-  stage: test
-  before_script:
-    - pip install pytest-cov
-  script:
-    - pip install .[test]
-    - pytest --cov=./ .
-  only:
-    refs:
-      - main
-      - merge_requests
+test-3.7:
+  extends: ".test-3.7"
 
-black-format:
-  stage: test
-  before_script:
-    - pip install black
-  script:
-    - LC_ALL=C.UTF-8 black --check --safe .
-  only:
-    refs:
-      - main
-      - merge_requests
+test-3.8:
+  extends: ".test-3.8"
+
+test-3.9:
+  extends: ".test-3.9"
