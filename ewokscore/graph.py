@@ -64,7 +64,9 @@ def flatten_multigraph(graph):
     for edge, attrs in graph.edges.items():
         key = edge[:2]
         mergedattrs = edgeattrs.setdefault(key, dict())
-        dict_merge(mergedattrs, attrs)
+        # mergedattrs["links"] and attrs["links"]
+        # could be two sequences that need to be concatenated
+        dict_merge(mergedattrs, attrs, contatenate_sequences=True)
 
     for name, attrs in graph.nodes.items():
         newgraph.add_node(name, **attrs)
@@ -169,9 +171,7 @@ class TaskGraph:
             raise TypeError(graph, type(graph))
 
         graph = flatten_multigraph(graph)
-
         subgraphs = get_subgraphs(graph)
-
         if subgraphs:
             # Extract
             edges, update_attrs = extract_subgraphs(graph, subgraphs)
