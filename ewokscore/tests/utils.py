@@ -3,6 +3,7 @@ from pprint import pprint
 import matplotlib.pyplot as plt
 from ewokscore import load_graph
 from ewokscore.variable import Variable
+from ewokscore.hashing import UniversalHash
 
 
 def assert_taskgraph_result(taskgraph, expected, varinfo=None, tasks=None):
@@ -36,13 +37,12 @@ def assert_task_result(task, node, expected):
 
 def assert_taskgraph_result_output(result, expected, varinfo=None):
     for output_name, expected_value in expected.items():
-        if varinfo:
-            uhash = result[output_name]
-            var = Variable(uhash=uhash, varinfo=varinfo)
-            assert var.value == expected_value
-        else:
-            value = result[output_name]
-            assert value == expected_value
+        value = result[output_name]
+        if isinstance(value, UniversalHash):
+            value = Variable(uhash=value, varinfo=varinfo)
+        if isinstance(value, Variable):
+            value = value.value
+        assert value == expected_value
 
 
 def show_graph(graph, stdout=True, plot=True, show=True):
