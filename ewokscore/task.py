@@ -190,6 +190,16 @@ class Task(Registered, hashing.UniversalHashable, register=False):
         return self._outputs.variable_values
 
     @property
+    def output_transfer_values(self):
+        """The values are either `UniversalHash` or a `Variable` value"""
+        return self._outputs.variable_transfer_values
+
+    @property
+    def output_transfer_data(self):
+        """The values are either `UniversalHash` or `Variable`"""
+        return self._outputs.variable_transfer_data
+
+    @property
     def done(self):
         """Completed (with or without exception)"""
         if self._OUTPUT_NAMES:

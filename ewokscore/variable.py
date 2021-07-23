@@ -340,6 +340,16 @@ class VariableContainer(Mapping, Variable):
         return {k: v.value for k, v in self.items()}
 
     @property
+    def variable_transfer_data(self):
+        return {k: v.uhash if v.has_persistent_value else v for k, v in self.items()}
+
+    @property
+    def variable_transfer_values(self):
+        return {
+            k: v.uhash if v.has_persistent_value else v.value for k, v in self.items()
+        }
+
+    @property
     def named_variable_values(self):
         return {k: v.value for k, v in self.items() if isinstance(k, str)}
 
