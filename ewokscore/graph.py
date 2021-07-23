@@ -20,6 +20,11 @@ def load_graph(source=None, representation=None, **load_options):
         return TaskGraph(source=source, representation=representation, **load_options)
 
 
+def execute_graph(source=None, representation=None, varinfo=None, **load_options):
+    graph = load_graph(source=source, representation=representation, **load_options)
+    return graph.execute(varinfo=varinfo)
+
+
 def set_graph_defaults(graph_as_dict):
     graph_as_dict.setdefault("directed", True)
     graph_as_dict.setdefault("nodes", list())
