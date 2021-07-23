@@ -1,3 +1,4 @@
+import os
 import enum
 import networkx
 import json
@@ -12,11 +13,11 @@ from .subgraph import node_name_from_json
 CONDITIONS_ELSE_VALUE = "__other__"
 
 
-def load_graph(source=None, representation=None):
+def load_graph(source=None, representation=None, **load_options):
     if isinstance(source, TaskGraph):
         return source
     else:
-        return TaskGraph(source=source, representation=representation)
+        return TaskGraph(source=source, representation=representation, **load_options)
 
 
 def set_graph_defaults(graph_as_dict):
@@ -36,21 +37,21 @@ def node_has_links(graph, node_name):
     return True
 
 
-def merge_graphs(graphs, name=None, rename_nodes=None):
+def merge_graphs(graphs, name=None, rename_nodes=None, **load_options):
     lst = list()
     if rename_nodes is None:
         rename_nodes = [True] * len(graphs)
     else:
         assert len(graphs) == len(rename_nodes)
     for g, rename in zip(graphs, rename_nodes):
-        g = load_graph(g)
+        g = load_graph(g, **load_options)
         gname = repr(g)
         g = g.graph
         if rename:
             mapping = {s: (gname, s) for s in g.nodes}
             g = networkx.relabel_nodes(g, mapping, copy=True)
         lst.append(g)
-    ret = load_graph(networkx.compose_all(lst))
+    ret = load_graph(networkx.compose_all(lst), **load_options)
     if name:
         ret.graph.graph["name"] = name
     return ret
@@ -76,14 +77,14 @@ def flatten_multigraph(graph):
     return newgraph
 
 
-def get_subgraphs(graph):
+def get_subgraphs(graph, **load_options):
     subgraphs = dict()
     for node_name, node_attrs in graph.nodes.items():
         name, value = inittask.task_executable_key(
             node_attrs, node_name=node_name, all=True
         )
         if name == "graph":
-            g = load_graph(value)
+            g = load_graph(value, **load_options)
             g.graph.graph["name"] = node_name
             subgraphs[node_name] = g
     return subgraphs
@@ -98,6 +99,14 @@ def _ewoks_jsonload_hook_pair(item):
 
 def ewoks_jsonload_hook(items):
     return dict(map(_ewoks_jsonload_hook_pair, items))
+
+
+def abs_path(path, root_dir=None):
+    if os.path.isabs(path):
+        return path
+    if root_dir:
+        path = os.path.join(root_dir, path)
+    return os.path.abspath(path)
 
 
 class TaskGraph:
@@ -135,8 +144,8 @@ class TaskGraph:
         "GraphRepresentation", "json_file json_dict json_string yaml"
     )
 
-    def __init__(self, source=None, representation=None):
-        self.load(source=source, representation=representation)
+    def __init__(self, source=None, representation=None, **load_options):
+        self.load(source=source, representation=representation, **load_options)
 
     def __repr__(self):
         return self.graph.graph.get("name", qualname(type(self)))
@@ -146,7 +155,7 @@ class TaskGraph:
             raise TypeError(other, type(other))
         return self.dump() == other.dump()
 
-    def load(self, source=None, representation=None):
+    def load(self, source=None, representation=None, root_dir=None):
         """From persistent to runtime representation"""
         if representation is None:
             if isinstance(source, Mapping):
@@ -166,6 +175,7 @@ class TaskGraph:
             set_graph_defaults(source)
             graph = networkx.readwrite.json_graph.node_link_graph(source)
         elif representation == self.GraphRepresentation.json_file:
+            source = abs_path(source, root_dir)
             with open(source, mode="r") as f:
                 source = json.load(f, object_pairs_hook=ewoks_jsonload_hook)
             set_graph_defaults(source)
@@ -175,6 +185,7 @@ class TaskGraph:
             set_graph_defaults(source)
             graph = networkx.readwrite.json_graph.node_link_graph(source)
         elif representation == self.GraphRepresentation.yaml:
+            source = abs_path(source, root_dir)
             graph = networkx.readwrite.read_yaml(source)
         else:
             raise TypeError(representation, type(representation))
@@ -183,7 +194,7 @@ class TaskGraph:
             raise TypeError(graph, type(graph))
 
         graph = flatten_multigraph(graph)
-        subgraphs = get_subgraphs(graph)
+        subgraphs = get_subgraphs(graph, root_dir=root_dir)
         if subgraphs:
             # Extract
             edges, update_attrs = extract_subgraphs(graph, subgraphs)
@@ -193,7 +204,10 @@ class TaskGraph:
             graphs = [self] + list(subgraphs.values())
             rename_nodes = [False] + [True] * len(subgraphs)
             graph = merge_graphs(
-                graphs, name=graph.graph.get("name"), rename_nodes=rename_nodes
+                graphs,
+                name=graph.graph.get("name"),
+                rename_nodes=rename_nodes,
+                root_dir=root_dir,
             ).graph
 
             # Re-link
