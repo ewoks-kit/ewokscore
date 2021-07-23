@@ -35,14 +35,29 @@ def assert_task_result(task, node, expected):
             raise RuntimeError(f"{node} does not have a result") from e
 
 
-def assert_taskgraph_result_output(result, expected, varinfo=None):
+def assert_workflow_result(results, expected, varinfo=None):
+    for node_name, expected_result in expected.items():
+        if expected_result is None:
+            assert node_name not in results
+            continue
+        result = results[node_name]
+        for output_name, expected_value in expected_result.items():
+            value = result[output_name]
+            assert_result(value, expected_value, varinfo=varinfo)
+
+
+def assert_workflow_merged_result(result, expected, varinfo=None):
     for output_name, expected_value in expected.items():
         value = result[output_name]
-        if isinstance(value, UniversalHash):
-            value = Variable(uhash=value, varinfo=varinfo)
-        if isinstance(value, Variable):
-            value = value.value
-        assert value == expected_value
+        assert_result(value, expected_value, varinfo=varinfo)
+
+
+def assert_result(value, expected_value, varinfo=None):
+    if isinstance(value, UniversalHash):
+        value = Variable(uhash=value, varinfo=varinfo)
+    if isinstance(value, Variable):
+        value = value.value
+    assert value == expected_value
 
 
 def show_graph(graph, stdout=True, plot=True, show=True):
