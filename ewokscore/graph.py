@@ -268,9 +268,9 @@ class TaskGraph:
             nodeattrs, node_name=node_name, varinfo=varinfo, inputs=inputs
         )
 
-    def instantiate_task_static(self, node_name, tasks=None, varinfo=None, inputs=None):
-        """Instantiate destination task while no or partial access to the dynamic
-        inputs or their identifiers. Side effect: `tasks` will contain all predecessors.
+    def instantiate_task_static(self, node_name, tasks=None, varinfo=None):
+        """Instantiate destination task while no access to the dynamic inputs.
+        Side effect: `tasks` will contain all predecessors.
 
         Remark: Only works for DAGs.
 
@@ -291,25 +291,9 @@ class TaskGraph:
                     inputnode, tasks=tasks, varinfo=varinfo
                 )
             link_attrs = self.graph[inputnode][node_name]
-            all_arguments = link_attrs.get("all_arguments", False)
-            arguments = link_attrs.get("arguments", dict())
-            if all_arguments and arguments:
-                raise ValueError(
-                    "'arguments' and 'all_arguments' cannot be used together"
-                )
-            if all_arguments:
-                arguments = {s: s for s in inputtask.output_variables}
-                for from_arg in inputtask.output_variables:
-                    to_arg = from_arg
-                    dynamic_inputs[to_arg] = inputtask.output_variables[from_arg]
-
-            for to_arg, from_arg in arguments.items():
-                if from_arg:
-                    dynamic_inputs[to_arg] = inputtask.output_variables[from_arg]
-                else:
-                    dynamic_inputs[to_arg] = inputtask.output_variables
-        if inputs:
-            dynamic_inputs.update(inputs)
+            inittask.add_dynamic_inputs(
+                dynamic_inputs, link_attrs, inputtask.output_variables
+            )
         task = self.instantiate_task(node_name, varinfo=varinfo, inputs=dynamic_inputs)
         tasks[node_name] = task
         return task
