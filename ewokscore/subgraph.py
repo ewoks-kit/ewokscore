@@ -11,6 +11,12 @@ def flatten_node_name(node_name):
         return (node_name[0],) + flatten_node_name(node_name[1])
 
 
+def node_name_from_json(node_name):
+    if isinstance(node_name, list):
+        return tuple(map(node_name_from_json, node_name))
+    return node_name
+
+
 def _pop_subgraph_node_name(subgraph_name, link_attrs, source=True):
     if source:
         key = "source"

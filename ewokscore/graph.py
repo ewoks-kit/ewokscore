@@ -7,6 +7,7 @@ from .utils import qualname
 from .utils import dict_merge
 from .subgraph import extract_subgraphs
 from .subgraph import add_subgraph_links
+from .subgraph import node_name_from_json
 
 CONDITIONS_ELSE_VALUE = "__other__"
 
@@ -88,6 +89,17 @@ def get_subgraphs(graph):
     return subgraphs
 
 
+def _ewoks_jsonload_hook_pair(item):
+    key, value = item
+    if key in ("source", "target"):
+        value = node_name_from_json(value)
+    return key, value
+
+
+def ewoks_jsonload_hook(items):
+    return dict(map(_ewoks_jsonload_hook_pair, items))
+
+
 class TaskGraph:
     """The API for graph analysis is provided by `networkx`.
     Any directed graph is supported (cyclic or acyclic).
@@ -155,11 +167,11 @@ class TaskGraph:
             graph = networkx.readwrite.json_graph.node_link_graph(source)
         elif representation == self.GraphRepresentation.json_file:
             with open(source, mode="r") as f:
-                source = json.load(f)
+                source = json.load(f, object_pairs_hook=ewoks_jsonload_hook)
             set_graph_defaults(source)
             graph = networkx.readwrite.json_graph.node_link_graph(source)
         elif representation == self.GraphRepresentation.json_string:
-            source = json.loads(source)
+            source = json.loads(source, object_pairs_hook=ewoks_jsonload_hook)
             set_graph_defaults(source)
             graph = networkx.readwrite.json_graph.node_link_graph(source)
         elif representation == self.GraphRepresentation.yaml:

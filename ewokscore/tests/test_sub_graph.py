@@ -1,30 +1,48 @@
-from ewokscore.utils import qualname
+import json
+import pytest
 from ewokscore import load_graph
 
 
-def add(*args):
-    return sum(args) + 1
+def savegraph(graph, tmpdir, name):
+    filename = tmpdir / name + ".json"
+    with open(filename, mode="w") as f:
+        json.dump(graph, f, indent=2)
+    return str(filename)
 
 
-def append(*args):
-    return args
-
-
-def test_sub_graph():
-    subsubsubgraph = {
+@pytest.fixture
+def subsubsubgraph(tmpdir):
+    graph = {
         "nodes": [
-            {"id": "task1", "method": qualname(add)},
-            {"id": "task2", "method": qualname(add)},
+            {
+                "id": "task1",
+                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+            },
+            {
+                "id": "task2",
+                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+            },
         ],
         "links": [
             {"source": "task1", "target": "task2", "arguments": {0: "return_value"}},
         ],
     }
 
-    subsubgraph = {
+    return savegraph(graph, tmpdir, "subsubsubgraph")
+
+
+@pytest.fixture
+def subsubgraph(tmpdir, subsubsubgraph):
+    graph = {
         "nodes": [
-            {"id": "task1", "method": qualname(add)},
-            {"id": "task2", "method": qualname(add)},
+            {
+                "id": "task1",
+                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+            },
+            {
+                "id": "task2",
+                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+            },
             {"id": "subsubsubgraph", "graph": subsubsubgraph},
         ],
         "links": [
@@ -36,11 +54,21 @@ def test_sub_graph():
             },
         ],
     }
+    return savegraph(graph, tmpdir, "subsubgraph")
 
-    subgraph = {
+
+@pytest.fixture
+def subgraph(tmpdir, subsubgraph):
+    graph = {
         "nodes": [
-            {"id": "task1", "method": qualname(add)},
-            {"id": "task2", "method": qualname(add)},
+            {
+                "id": "task1",
+                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+            },
+            {
+                "id": "task2",
+                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+            },
             {"id": "subsubgraph", "graph": subsubgraph},
         ],
         "links": [
@@ -52,12 +80,19 @@ def test_sub_graph():
             },
         ],
     }
+    return savegraph(graph, tmpdir, "subgraph")
 
+
+@pytest.fixture
+def graph(tmpdir, subgraph):
     graph = {
         "nodes": [
             {"id": "subgraph1", "graph": subgraph},
             {"id": "subgraph2", "graph": subgraph},
-            {"id": "append", "method": qualname(append)},
+            {
+                "id": "append",
+                "method": "ewokscore.tests.examples.tasks.simplemethods.append",
+            },
         ],
         "links": [
             {
@@ -137,7 +172,10 @@ def test_sub_graph():
             },
         ],
     }
+    return savegraph(graph, tmpdir, "graph")
 
+
+def test_load_from_json(graph):
     taskgraph = load_graph(graph)
     tasks = taskgraph.execute()
 
