@@ -4,10 +4,10 @@ from ewokscore import load_graph
 
 
 def savegraph(graph, tmpdir, name):
-    filename = tmpdir / name + ".json"
-    with open(filename, mode="w") as f:
+    filename = name + ".json"
+    with open(tmpdir / filename, mode="w") as f:
         json.dump(graph, f, indent=2)
-    return str(filename)
+    return filename
 
 
 @pytest.fixture
@@ -175,8 +175,8 @@ def graph(tmpdir, subgraph):
     return savegraph(graph, tmpdir, "graph")
 
 
-def test_load_from_json(graph):
-    taskgraph = load_graph(graph)
+def test_load_from_json(tmpdir, graph):
+    taskgraph = load_graph(graph, root_dir=str(tmpdir))
     tasks = taskgraph.execute()
 
     assert len(tasks) == 13
