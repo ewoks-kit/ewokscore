@@ -1,6 +1,6 @@
 import random
 import hashlib
-from collections.abc import Mapping, Iterable, Set
+from collections import Mapping, Iterable, Set
 import numpy
 from .utils import qualname
 

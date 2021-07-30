@@ -1,6 +1,6 @@
 import importlib
-from collections.abc import Mapping
-from collections.abc import Sequence
+from collections import Mapping
+from collections import Sequence
 
 
 def qualname(obj):

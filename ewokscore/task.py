@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections import Mapping
 from . import hashing
 from .variable import VariableContainer
 from .variable import VariableContainerNamespace
