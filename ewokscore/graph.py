@@ -2,7 +2,7 @@ import os
 import enum
 import networkx
 import json
-from collections.abc import Mapping
+from collections import Mapping
 from . import inittask
 from .utils import qualname
 from .utils import dict_merge

@@ -3,7 +3,7 @@ import string
 import random
 import json
 from numbers import Integral
-from collections.abc import Mapping, MutableMapping, Iterable, Sequence
+from collections import Mapping, MutableMapping, Iterable, Sequence
 from contextlib import contextmanager
 from . import hashing
 
