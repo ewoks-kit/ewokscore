@@ -69,6 +69,9 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
     """
     # Static inputs
     task_inputs = dict(node_attrs.get("inputs", dict()))
+    if varinfo is None:
+        varinfo = dict()
+    varinfo.update(node_attrs.get("varinfo", dict()))
     # Dynamic inputs (from other tasks)
     if inputs:
         task_inputs.update(inputs)
