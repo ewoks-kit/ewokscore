@@ -1,4 +1,4 @@
-from ewokscore.task import TaskWithProgress
+from ewokscore.taskwithprogress import TaskWithProgress
 
 
 class SumList(TaskWithProgress, input_names=["list"], output_names=["sum"]):
