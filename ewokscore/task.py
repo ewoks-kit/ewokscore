@@ -1,5 +1,7 @@
 from collections.abc import Mapping
-from . import hashing
+from typing import Union
+
+from .hashing import UniversalHashable
 from .variable import VariableContainer
 from .variable import VariableContainerNamespace
 from .variable import ReadOnlyVariableContainerNamespace
@@ -10,7 +12,7 @@ class TaskInputError(ValueError):
     pass
 
 
-class Task(Registered, hashing.UniversalHashable, register=False):
+class Task(Registered, UniversalHashable, register=False):
     """Node in a task Graph with named inputs and outputs.
 
     The universal hash of the task is equal to the universal
@@ -28,7 +30,7 @@ class Task(Registered, hashing.UniversalHashable, register=False):
     _OUTPUT_NAMES = set()
     _N_REQUIRED_POSITIONAL_INPUTS = 0
 
-    def __init__(self, inputs=None, varinfo=None):
+    def __init__(self, inputs=None, varinfo=None, name=None):
         """The named arguments are inputs and Variable configuration"""
         if inputs is None:
             inputs = dict()
@@ -50,15 +52,16 @@ class Task(Registered, hashing.UniversalHashable, register=False):
 
         # Init missing optional inputs
         missing_optional = set(self._OPTIONAL_INPUT_NAMES) - set(inputs.keys())
-        for name in missing_optional:
-            inputs[name] = self.MISSING_DATA
+        for varname in missing_optional:
+            inputs[varname] = self.MISSING_DATA
 
         # Required outputs for the task to be "done"
-        ovars = {name: self.MISSING_DATA for name in self._OUTPUT_NAMES}
+        ovars = {varname: self.MISSING_DATA for varname in self._OUTPUT_NAMES}
 
         # Misc
         self._exception = None
         self._done = None
+        self.__name = name
 
         # The output hash will update dynamically if any of the input
         # variables change
@@ -112,14 +115,14 @@ class Task(Registered, hashing.UniversalHashable, register=False):
         return VariableContainerNamespace._reserved_variable_names()
 
     @classmethod
-    def instantiate(cls, name, **kw):
+    def instantiate(cls, reg_name: str, **kw):
         """Factory method for instantiating a derived class.
 
-        :param str name: for example "tasklib.tasks.MyTask" or "MyTask"
+        :param str reg_name: for example "tasklib.tasks.MyTask" or "MyTask"
         :param **kw: `Task` constructor arguments
         :returns Task:
         """
-        return cls.get_subclass(name)(**kw)
+        return cls.get_subclass(reg_name)(**kw)
 
     @classmethod
     def required_input_names(cls):
@@ -190,14 +193,20 @@ class Task(Registered, hashing.UniversalHashable, register=False):
         return self._outputs.variable_values
 
     @property
-    def output_transfer_values(self):
-        """The values are either `UniversalHash` or a `Variable` value"""
-        return self._outputs.variable_transfer_values
+    def output_transfer_data(self):
+        """The values are either `DataUri` or `Variable`"""
+        return self._outputs.variable_transfer_data
 
     @property
-    def output_transfer_data(self):
-        """The values are either `UniversalHash` or `Variable`"""
-        return self._outputs.variable_transfer_data
+    def output_metadata(self) -> Union[dict, None]:
+        return self._outputs.metadata
+
+    def _update_output_metadata(self):
+        metadata = self.output_metadata
+        if metadata is None:
+            return
+        if self.__name and self._outputs.metadata_proxy.SCHEME == "nexus":
+            metadata["title"] = self.__name
 
     @property
     def done(self):
@@ -241,6 +250,7 @@ class Task(Registered, hashing.UniversalHashable, register=False):
                 return
             self.assert_ready_to_execute()
             self.run()
+            self._update_output_metadata()
             self._outputs.dump()
         except Exception as e:
             self._exception = e

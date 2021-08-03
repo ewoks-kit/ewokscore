@@ -5,6 +5,10 @@ from ewokscore.task import TaskInputError
 from .examples.tasks.sumtask import SumTask
 
 
+def task_container_storage(task):
+    return {k: v.data_proxy.uri.serialize() for k, v in task.output_variables.items()}
+
+
 def assert_storage(tmpdir, expected):
     lst = []
     for fileobj in tmpdir.listdir():
@@ -39,7 +43,7 @@ def test_task_optional_input(tmpdir, varinfo):
     task.execute()
     assert task.done
     assert task.outputs.result == 10
-    expected = [{"result": str(task.output_variables["result"].uhash)}, 10]
+    expected = [task_container_storage(task), 10]
     assert_storage(tmpdir, expected)
 
 
@@ -79,7 +83,7 @@ def test_task_storage(tmpdir, varinfo):
     task.execute()
     assert task.done
     assert task.outputs.result == 12
-    expected = [{"result": str(task.output_variables["result"].uhash)}, 12]
+    expected = [task_container_storage(task), 12]
     assert_storage(tmpdir, expected)
 
     task = SumTask(inputs={"a": 10, "b": 2}, varinfo=varinfo)
@@ -92,7 +96,7 @@ def test_task_storage(tmpdir, varinfo):
     task.execute()
     assert task.done
     assert task.outputs.result == 12
-    expected += [{"result": str(task.output_variables["result"].uhash)}, 12]
+    expected += [task_container_storage(task), 12]
     assert_storage(tmpdir, expected)
 
     task = SumTask({"a": task.output_variables["result"], "b": 0}, varinfo=varinfo)
@@ -100,7 +104,7 @@ def test_task_storage(tmpdir, varinfo):
     task.execute()
     assert task.done
     assert task.outputs.result == 12
-    expected += [{"result": str(task.output_variables["result"].uhash)}, 12]
+    expected += [task_container_storage(task), 12]
     assert_storage(tmpdir, expected)
 
     task = SumTask(
@@ -110,7 +114,7 @@ def test_task_storage(tmpdir, varinfo):
     task.execute()
     assert task.done
     assert task.outputs.result == 13
-    expected += [{"result": str(task.output_variables["result"].uhash)}, 13]
+    expected += [task_container_storage(task), 13]
     assert_storage(tmpdir, expected)
 
 

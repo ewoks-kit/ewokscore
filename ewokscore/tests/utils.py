@@ -2,8 +2,7 @@ import networkx
 from pprint import pprint
 import matplotlib.pyplot as plt
 from ewokscore import load_graph
-from ewokscore.variable import Variable
-from ewokscore.hashing import UniversalHash
+from ewokscore.variable import value_from_transfer
 
 
 def assert_taskgraph_result(taskgraph, expected, varinfo=None, tasks=None):
@@ -53,10 +52,7 @@ def assert_workflow_merged_result(result, expected, varinfo=None):
 
 
 def assert_result(value, expected_value, varinfo=None):
-    if isinstance(value, UniversalHash):
-        value = Variable(uhash=value, varinfo=varinfo)
-    if isinstance(value, Variable):
-        value = value.value
+    value = value_from_transfer(value, varinfo=varinfo)
     assert value == expected_value
 
 
