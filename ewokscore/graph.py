@@ -8,7 +8,7 @@ from .utils import qualname
 from .utils import dict_merge
 from .subgraph import extract_subgraphs
 from .subgraph import add_subgraph_links
-from .subgraph import node_name_from_json
+from .node import node_name_from_json
 
 CONDITIONS_ELSE_VALUE = "__other__"
 
