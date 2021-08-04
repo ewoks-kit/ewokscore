@@ -9,6 +9,7 @@
 *.py[cod]
 __pycache__/
 *.so
+/doc/_generated
 
 # Distribution / packaging
 /build/
