@@ -1,12 +1,18 @@
 ewoskcore |release|
 ===================
 
-API for graphs and tasks in Ewoks
+ewoskcore provides an API for defining workflows in Ewoks.
+
+ewoskcore has been developed by the `Software group <http://www.esrf.eu/Instrumentation/software>`_ of the `European Synchrotron <https://www.esrf.eu/>`_.
 
 .. toctree::
-   :hidden:
+    :hidden:
 
-   api
+    definitions
+    api
+
+:doc:`definitions`
+    Getting started
 
 :doc:`api`
     API documentation
