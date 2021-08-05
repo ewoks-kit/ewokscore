@@ -8,10 +8,8 @@ class TaskWithProgress(Task):
     Task within a progress to display task advancement
     """
 
-    def __init__(
-        self, inputs=None, varinfo=None, progress: Union[None, BaseProgress] = None
-    ):
-        super().__init__(inputs=inputs, varinfo=varinfo)
+    def __init__(self, progress: Union[None, BaseProgress] = None, **kw):
+        super().__init__(**kw)
         self._task_progress = progress
 
     @property
