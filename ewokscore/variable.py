@@ -279,10 +279,7 @@ class VariableContainer(Mapping, Variable):
     def _dump_metadata(self):
         if self.metadata_proxy is None:
             return not bool(self.__metadata)
-        metadata = self.__metadata
-        if not metadata:
-            return
-        return self.metadata_proxy.dump(metadata, update_mode="modify")
+        return self.metadata_proxy.dump(self.__metadata, update_mode="modify")
 
     def __iter__(self):
         adict = self.value
