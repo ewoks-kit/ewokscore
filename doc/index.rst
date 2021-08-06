@@ -1,9 +1,9 @@
-ewoskcore |release|
+ewokscore |release|
 ===================
 
-ewoskcore provides an API for defining workflows in Ewoks.
+ewokscore provides an API for defining workflows in Ewoks.
 
-ewoskcore has been developed by the `Software group <http://www.esrf.eu/Instrumentation/software>`_ of the `European Synchrotron <https://www.esrf.eu/>`_.
+ewokscore has been developed by the `Software group <http://www.esrf.eu/Instrumentation/software>`_ of the `European Synchrotron <https://www.esrf.eu/>`_.
 
 .. toctree::
     :maxdepth: 2
