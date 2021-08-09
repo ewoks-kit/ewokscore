@@ -13,8 +13,14 @@ test-3.8:
 test-3.9:
   extends: ".test-3.9"
 
-deploy_docs:
-  extends: ".sphinx_and_artifacts"
+build_sdist:
+  extends: ".build_sdist"
+
+test_sdist-3.6:
+  extends: ".test_sdist-3.6"
+
+build_doc:
+  extends: ".build_doc"
 
 pages:
   extends: ".pages"
