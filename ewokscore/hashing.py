@@ -1,5 +1,6 @@
 import random
 import hashlib
+from typing import Union
 from collections.abc import Mapping, Iterable, Set
 import numpy
 from .utils import qualname
@@ -40,7 +41,7 @@ def uhash(value, _hash=None):
 
     :param value:
     :param _hash: for internal recursive calls
-    :returns Identifier:
+    :returns UniversalHash:
     """
     # Avoid using python's hash!
     bdigest = _hash is None
@@ -181,10 +182,7 @@ class UniversalHashable:
         self.__uhash = self.__original_uhash
 
     @property
-    def uhash(self):
-        """
-        :returns UniversalHash:
-        """
+    def uhash(self) -> Union[None, UniversalHash]:
         _uhash = self.__uhash
         if _uhash is None:
             data = self._uhash_data()

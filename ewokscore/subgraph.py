@@ -1,20 +1,6 @@
 import itertools
 from .utils import dict_merge
-
-
-def flatten_node_name(node_name):
-    if isinstance(node_name, str):
-        return (node_name,)
-    elif len(node_name) == 1:
-        return (node_name[0],)
-    else:
-        return (node_name[0],) + flatten_node_name(node_name[1])
-
-
-def node_name_from_json(node_name):
-    if isinstance(node_name, list):
-        return tuple(map(node_name_from_json, node_name))
-    return node_name
+from .node import flatten_node_name
 
 
 def _pop_subgraph_node_name(subgraph_name, link_attrs, source=True):

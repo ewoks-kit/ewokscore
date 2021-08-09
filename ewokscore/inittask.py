@@ -59,6 +59,14 @@ def validate_task_executable(node_attrs, node_name="", all=False):
     task_executable_key(node_attrs, node_name=node_name, all=all)
 
 
+def get_varinfo(node_attrs, varinfo=None) -> dict:
+    if varinfo is None:
+        varinfo = dict()
+    if node_attrs:
+        varinfo.update(node_attrs.get("varinfo", dict()))
+    return varinfo
+
+
 def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
     """
     :param dict node_attrs: node attributes of the graph representation
@@ -72,23 +80,32 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
     # Dynamic inputs (from other tasks)
     if inputs:
         task_inputs.update(inputs)
+    # Variable persistence
+    varinfo = get_varinfo(node_attrs, varinfo=varinfo)
 
     # Instantiate task
     key, value = task_executable_key(node_attrs, node_name=node_name)
+    metadata = dict()
+    if node_name:
+        metadata["description"] = node_name
     if key == "class":
-        return Task.instantiate(value, inputs=task_inputs, varinfo=varinfo)
+        return Task.instantiate(
+            value, inputs=task_inputs, varinfo=varinfo, name=node_name
+        )
     elif key == "method":
         task_inputs["method"] = value
-        return MethodExecutorTask(inputs=task_inputs, varinfo=varinfo)
+        return MethodExecutorTask(inputs=task_inputs, varinfo=varinfo, name=node_name)
     elif key == "ppfmethod":
         task_inputs["method"] = value
-        return PpfMethodExecutorTask(inputs=task_inputs, varinfo=varinfo)
+        return PpfMethodExecutorTask(
+            inputs=task_inputs, varinfo=varinfo, name=node_name
+        )
     elif key == "ppfport":
         task_inputs["ppfport"] = value
-        return PpfPortTask(inputs=task_inputs, varinfo=varinfo)
+        return PpfPortTask(inputs=task_inputs, varinfo=varinfo, name=node_name)
     elif key == "script":
         task_inputs["script"] = value
-        return ScriptExecutorTask(inputs=task_inputs, varinfo=varinfo)
+        return ScriptExecutorTask(inputs=task_inputs, varinfo=varinfo, name=node_name)
     else:
         raise_task_error(node_name, all=False)
 
