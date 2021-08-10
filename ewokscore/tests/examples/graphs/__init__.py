@@ -8,7 +8,6 @@ ALL_GRAPHS = None
 def _discover_graphs():
     if ALL_GRAPHS is None:
         for pkginfo in pkgutil.walk_packages(__path__, __name__ + "."):
-            print(pkginfo.name)
             importlib.import_module(pkginfo.name)
 
 
