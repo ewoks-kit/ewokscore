@@ -1,5 +1,7 @@
 import os
 import enum
+import warnings
+
 import networkx
 import json
 from collections.abc import Mapping
@@ -514,8 +516,7 @@ class TaskGraph:
             and not self._has_required_predecessors(node_name)
         )
 
-    def result_nodes(self):
-        """The outputs of these nodes are considered to be the "output of the graph" """
+    def end_nodes(self):
         nodes = set(
             node_name
             for node_name in self.graph.nodes
@@ -528,6 +529,13 @@ class TaskGraph:
             for node_name in self.graph.nodes
             if self._node_has_noncovered_conditions(node_name)
         )
+
+    def result_nodes(self):
+        """The outputs of these nodes are considered to be the "output of the graph" """
+        warnings.warn(
+            "result_nodes has been deprecated. Use end_nodes instead", FutureWarning
+        )
+        return self.end_nodes()
 
     def _node_has_noncovered_conditions(self, source_name) -> bool:
         links = self._get_node_explanded_conditions(source_name)
