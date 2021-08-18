@@ -211,13 +211,19 @@ class Task(Registered, UniversalHashable, register=False):
     @property
     def done(self):
         """Completed (with or without exception)"""
+        return self.failed or self.succeeded
+
+    @property
+    def succeeded(self):
+        """Completed without exception and with output values"""
         if self._OUTPUT_NAMES:
-            return self.failed or self._outputs.has_value
+            return self._outputs.has_value
         else:
-            return self._done or self.failed
+            return self._done
 
     @property
     def failed(self):
+        """Completed with exception"""
         return self._exception is not None
 
     def _iter_missing_input_values(self):
