@@ -1,10 +1,11 @@
+from typing import Optional, List
 from . import utils
 
 
 class Registered:
     _SUBCLASS_REGISTRY = None
 
-    def __init_subclass__(cls, register=True, **kwargs):
+    def __init_subclass__(cls, register=True, registry_name=None, **kwargs):
         super().__init_subclass__(**kwargs)
 
         # Ensures that not all subclasses share the same registry
@@ -16,20 +17,24 @@ class Registered:
             return
 
         # Register the subclass
-        reg_name = cls.__REGISTRY_NAME = utils.qualname(cls)
+        if registry_name:
+            reg_name = registry_name
+        else:
+            reg_name = utils.qualname(cls)
         ecls = cls._SUBCLASS_REGISTRY.get(reg_name)
         if ecls is not None:
             raise NotImplementedError(
                 f"Registry name {reg_name} is already taken by {repr(ecls)}"
             )
+        cls.__REGISTRY_NAME = reg_name
         cls._SUBCLASS_REGISTRY[reg_name] = cls
 
     @classmethod
-    def class_registry_name(cls):
+    def class_registry_name(cls) -> Optional[str]:
         return cls.__REGISTRY_NAME
 
     @classmethod
-    def get_subclass_names(cls):
+    def get_subclass_names(cls) -> List[str]:
         return list(cls._SUBCLASS_REGISTRY.keys())
 
     @classmethod
