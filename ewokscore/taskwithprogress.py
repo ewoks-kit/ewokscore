@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 from .task import Task
 from .progress import BaseProgress
 
@@ -8,7 +8,7 @@ class TaskWithProgress(Task):
     Task within a progress to display task advancement
     """
 
-    def __init__(self, progress: Union[None, BaseProgress] = None, **kw):
+    def __init__(self, progress: Optional[BaseProgress] = None, **kw):
         super().__init__(**kw)
         self._task_progress = progress
 
