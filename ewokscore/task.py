@@ -115,14 +115,14 @@ class Task(Registered, UniversalHashable, register=False):
         return VariableContainerNamespace._reserved_variable_names()
 
     @classmethod
-    def instantiate(cls, reg_name: str, **kw):
+    def instantiate(cls, registry_name: str, **kw):
         """Factory method for instantiating a derived class.
 
-        :param str reg_name: for example "tasklib.tasks.MyTask" or "MyTask"
+        :param str registry_name: for example "tasklib.tasks.MyTask" or "MyTask"
         :param **kw: `Task` constructor arguments
         :returns Task:
         """
-        return cls.get_subclass(reg_name)(**kw)
+        return cls.get_subclass(registry_name)(**kw)
 
     @classmethod
     def required_input_names(cls):

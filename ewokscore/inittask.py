@@ -1,10 +1,13 @@
+from functools import partial
 from .task import Task
 from .methodtask import MethodExecutorTask
 from .scripttask import ScriptExecutorTask
 from .ppftasks import PpfMethodExecutorTask
 from .ppftasks import PpfPortTask
+from .dynamictask import get_dynamically_task_class
 from .utils import import_method
 from .utils import import_qualname
+
 
 TASK_EXECUTABLE_ATTRIBUTE = (
     "class",
@@ -12,6 +15,7 @@ TASK_EXECUTABLE_ATTRIBUTE = (
     "ppfmethod",
     "ppfport",
     "script",
+    "task",
 )
 
 TASK_EXECUTABLE_ATTRIBUTE_ALL = TASK_EXECUTABLE_ATTRIBUTE + ("graph",)
@@ -106,6 +110,9 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
     elif key == "script":
         task_inputs["script"] = value
         return ScriptExecutorTask(inputs=task_inputs, varinfo=varinfo, name=node_name)
+    elif key == "task":
+        task_class = get_dynamically_task_class(node_attrs.get("task_generator"), value)
+        return task_class(inputs=task_inputs, varinfo=varinfo, name=node_name)
     else:
         raise_task_error(node_name, all=False)
 
@@ -140,6 +147,10 @@ def task_executable(node_attrs, node_name=""):
         return value, None
     elif key == "script":
         return value, None
+    elif key == "task":
+        return value, partial(
+            get_dynamically_task_class, node_attrs.get("task_generator")
+        )
     else:
         raise_task_error(node_name, all=False)
 
@@ -156,5 +167,7 @@ def get_task_class(node_attrs, node_name=""):
         return PpfPortTask
     elif key == "script":
         return ScriptExecutorTask
+    elif key == "task":
+        return get_dynamically_task_class(node_attrs.get("task_generator"), value)
     else:
         raise_task_error(node_name, all=False)
