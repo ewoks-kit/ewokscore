@@ -3,7 +3,7 @@ from .task import Task
 from .progress import BaseProgress
 
 
-class TaskWithProgress(Task):
+class TaskWithProgress(Task, register=False):
     """
     Task within a progress to display task advancement
     """
