@@ -17,17 +17,15 @@ class Registered:
             return
 
         # Register the subclass
-        if registry_name:
-            reg_name = registry_name
-        else:
-            reg_name = utils.qualname(cls)
-        ecls = cls._SUBCLASS_REGISTRY.get(reg_name)
+        if not registry_name:
+            registry_name = utils.qualname(cls)
+        ecls = cls._SUBCLASS_REGISTRY.get(registry_name)
         if ecls is not None:
             raise NotImplementedError(
-                f"Registry name {reg_name} is already taken by {repr(ecls)}"
+                f"Registry name {registry_name} is already taken by {repr(ecls)}"
             )
-        cls.__REGISTRY_NAME = reg_name
-        cls._SUBCLASS_REGISTRY[reg_name] = cls
+        cls.__REGISTRY_NAME = registry_name
+        cls._SUBCLASS_REGISTRY[registry_name] = cls
 
     @classmethod
     def class_registry_name(cls) -> Optional[str]:
@@ -42,13 +40,13 @@ class Registered:
         return list(cls._SUBCLASS_REGISTRY.values())
 
     @classmethod
-    def get_subclass(cls, reg_name, _second_attempt=False):
+    def get_subclass(cls, registry_name, _second_attempt=False):
         """Retrieving a derived class"""
-        subclass = cls._SUBCLASS_REGISTRY.get(reg_name)
+        subclass = cls._SUBCLASS_REGISTRY.get(registry_name)
         if subclass is None:
             candidates = []
             for name, value in cls._SUBCLASS_REGISTRY.items():
-                if name.endswith("." + reg_name):
+                if name.endswith("." + registry_name):
                     candidates.append(name)
             if len(candidates) == 1:
                 subclass = cls._SUBCLASS_REGISTRY.get(candidates[0])
@@ -56,9 +54,9 @@ class Registered:
             if _second_attempt:
                 lst = cls.get_subclass_names()
                 raise RuntimeError(
-                    f"Class {repr(reg_name)} is not imported. Imported classes are {repr(lst)}"
+                    f"Class {repr(registry_name)} is not imported. Imported classes are {repr(lst)}"
                 )
             else:
-                utils.import_qualname(reg_name)
-                subclass = cls.get_subclass(reg_name, _second_attempt=True)
+                utils.import_qualname(registry_name)
+                subclass = cls.get_subclass(registry_name, _second_attempt=True)
         return subclass

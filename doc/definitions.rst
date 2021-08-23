@@ -52,13 +52,15 @@ Node attributes
 ^^^^^^^^^^^^^^^
  * *id*: node identifier unique to the graph
  * Only **one** of these attributes to specify the unit of execution:
-    * *class*: the full qualifier name of a task class
+    * *class*: the full qualifier name of a task class (statically defined)
+    * *task*: the full qualifier name of a task class (statically defined or created at runtime)
     * *method*: the full qualifier name of a function
     * *ppfmethod*: the full qualifier name of a pypushflow function (special input/output convention)
     * *script*: the full qualifier name of a python or shell script
     * *graph*: the representation of another graph (e.g. json file name)
  * *inputs* (optional): static input arguments (for example `{"a": 1}`)
  * *inputs_complete* (optional): set to `True` when the static input covers all required input (used for method and script as the required inputs are unknown)
+ * *task_generator* (optional): the full qualifier name of the task class generator to be used when *task* does not refer to a statically defined class
 
 Link attributes
 ^^^^^^^^^^^^^^^
