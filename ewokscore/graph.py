@@ -1,6 +1,5 @@
 import os
 import enum
-import warnings
 
 import networkx
 import json
@@ -529,13 +528,6 @@ class TaskGraph:
             for node_name in self.graph.nodes
             if self._node_has_noncovered_conditions(node_name)
         )
-
-    def result_nodes(self):
-        """The outputs of these nodes are considered to be the "output of the graph" """
-        warnings.warn(
-            "result_nodes has been deprecated. Use end_nodes instead", FutureWarning
-        )
-        return self.end_nodes()
 
     def _node_has_noncovered_conditions(self, source_name) -> bool:
         links = self._get_node_explanded_conditions(source_name)
