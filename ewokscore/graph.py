@@ -86,11 +86,11 @@ def flatten_multigraph(graph):
 def get_subgraphs(graph, **load_options):
     subgraphs = dict()
     for node_name, node_attrs in graph.nodes.items():
-        name, value = inittask.task_executable_key(
+        task_type, task_info = inittask.task_executable_info(
             node_attrs, node_name=node_name, all=True
         )
-        if name == "graph":
-            g = load_graph(value, **load_options)
+        if task_type == "graph":
+            g = load_graph(task_info["task_identifier"], **load_options)
             g.graph.graph["name"] = node_name
             subgraphs[node_name] = g
     return subgraphs
