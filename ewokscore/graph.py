@@ -1,13 +1,12 @@
 import os
 import enum
-
-import networkx
 import json
 from collections.abc import Mapping
+import networkx
 from . import inittask
 from .utils import qualname
 from .utils import dict_merge
-from .subgraph import extract_subgraphs
+from .subgraph import extract_graph_nodes
 from .subgraph import add_subgraph_links
 from .node import node_name_from_json
 
@@ -63,7 +62,8 @@ def merge_graphs(graphs, name=None, rename_nodes=None, **load_options):
     return ret
 
 
-def flatten_multigraph(graph):
+def flatten_multigraph(graph: networkx.DiGraph) -> networkx.DiGraph:
+    """The attributes of links between the same two nodes are merged."""
     if not graph.is_multigraph():
         return graph
     newgraph = networkx.DiGraph(**graph.graph)
@@ -83,7 +83,7 @@ def flatten_multigraph(graph):
     return newgraph
 
 
-def get_subgraphs(graph, **load_options):
+def get_subgraphs(graph: networkx.DiGraph, **load_options):
     subgraphs = dict()
     for node_name, node_attrs in graph.nodes.items():
         name, value = inittask.task_executable_key(
@@ -98,7 +98,7 @@ def get_subgraphs(graph, **load_options):
 
 def _ewoks_jsonload_hook_pair(item):
     key, value = item
-    if key in ("source", "target"):
+    if key in ("source", "target", "sub_source", "sub_target"):
         value = node_name_from_json(value)
     return key, value
 
@@ -199,11 +199,11 @@ class TaskGraph:
         if not networkx.is_directed(graph):
             raise TypeError(graph, type(graph))
 
-        graph = flatten_multigraph(graph)
         subgraphs = get_subgraphs(graph, root_dir=root_dir)
         if subgraphs:
             # Extract
-            edges, update_attrs = extract_subgraphs(graph, subgraphs)
+            edges, update_attrs = extract_graph_nodes(graph, subgraphs)
+            graph = flatten_multigraph(graph)
 
             # Merged
             self.graph = graph
@@ -219,7 +219,7 @@ class TaskGraph:
             # Re-link
             add_subgraph_links(graph, edges, update_attrs)
 
-        self.graph = graph
+        self.graph = flatten_multigraph(graph)
         self.validate_graph()
 
     def dump(self, destination=None, representation=None, **kw):
