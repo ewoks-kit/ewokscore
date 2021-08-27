@@ -1,3 +1,4 @@
+import warnings
 from .task import Task
 from .utils import import_method
 
@@ -34,7 +35,11 @@ class PpfPortTask(
 
     def run(self):
         method_kwargs = self.input_values
-        method_kwargs.pop("ppfport")  # not used
+        ppfport = method_kwargs.pop("ppfport", None)
+        if ppfport:
+            warnings.warn(
+                "node attribute 'ppfport' is unused and deprecated", FutureWarning
+            )
         ppfdict = method_kwargs.pop("ppfdict", None)
         if ppfdict:
             method_kwargs.update(ppfdict)
