@@ -64,16 +64,17 @@ Node attributes
 
 Link attributes
 ^^^^^^^^^^^^^^^
-* *source*: the id of the source node 
-* *target*: the id of the target node
+* *source*: the *id* of the source node
+* *target*: the *id* of the target node
 * *arguments* (optional): a dictionary that maps output names to input names. If the input name is `None` the output name receives the complete output of the source.
 * *all_arguments* (optional): setting this to `True` is equivalent to *arguments* being the identity mapping for all input names. Cannot be used in combination with *arguments*.
 * *conditions* (optional): a dictionary that maps output names to expected values
 * *on_error* (optional): a special condition: task raises an exception. Cannot be used in combination with *conditions*.
-* *links*: when source and/or target is a graph, this list of dictionaries specifies the links between the super-graph and the sub-graph. The dictionary keys are
-   * *source*: the id of the source node in the sub-graph (ignored when the source is not a graph)
-   * *target*: the id of the target node in the sub-graph (ignored when the source is not a graph)
-   * *node_attributes* (optional): overwrite the node attributes of the target when the target is a graph
+* *sub_graph_nodes*: when the *task_type* of source and/or target is *graph*, this specifies the nodes of the source and/or target sub-graph that are to be linked. The dictionary keys are
+   * *sub_source*: specify the *id* of the node in *source* when *source* is a *graph*
+   * *sub_target*: specify the *id* of the node in *target* when *target* is a *graph*
+   * *sub_graph_nodes* (optional): required in case *sub_source* and/or *sub_target* are graphs themselves . So *sub_graph_nodes* must be nested until both *sub_source* and *sub_target* are not graphs.
+   * *sub_target_attributes* (optional): can be used when *target* is a *graph*. It allows changing the node attributes of *sub_target* in the sub-graph.
 
 Task implementation
 -------------------
