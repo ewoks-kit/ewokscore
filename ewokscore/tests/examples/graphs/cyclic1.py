@@ -5,13 +5,48 @@ from . import graph
 def cyclic1():
     task = "ewokscore.tests.examples.tasks.condsumtask.CondSumTask"
     nodes = [
-        {"id": "task1", "inputs": {"a": 1}, "class": task},
-        {"id": "task2", "inputs": {"b": 1}, "class": task},
-        {"id": "task3", "inputs": {"b": 3}, "class": task},
-        {"id": "task4", "inputs": {"b": -1}, "class": task},
-        {"id": "task5", "inputs": {"b": -1}, "class": task},
-        {"id": "task6", "inputs": {"b": 0}, "class": task},
-        {"id": "task7", "inputs": {"b": 1}, "class": task},
+        {
+            "id": "task1",
+            "inputs": {"a": 1},
+            "task_type": "class",
+            "task_identifier": task,
+        },
+        {
+            "id": "task2",
+            "inputs": {"b": 1},
+            "task_type": "class",
+            "task_identifier": task,
+        },
+        {
+            "id": "task3",
+            "inputs": {"b": 3},
+            "task_type": "class",
+            "task_identifier": task,
+        },
+        {
+            "id": "task4",
+            "inputs": {"b": -1},
+            "task_type": "class",
+            "task_identifier": task,
+        },
+        {
+            "id": "task5",
+            "inputs": {"b": -1},
+            "task_type": "class",
+            "task_identifier": task,
+        },
+        {
+            "id": "task6",
+            "inputs": {"b": 0},
+            "task_type": "class",
+            "task_identifier": task,
+        },
+        {
+            "id": "task7",
+            "inputs": {"b": 1},
+            "task_type": "class",
+            "task_identifier": task,
+        },
     ]
 
     links = [

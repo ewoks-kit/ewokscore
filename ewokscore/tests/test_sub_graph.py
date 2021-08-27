@@ -16,11 +16,13 @@ def subsubsubgraph(tmpdir):
         "nodes": [
             {
                 "id": "task1",
-                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+                "task_type": "method",
+                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
             },
             {
                 "id": "task2",
-                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+                "task_type": "method",
+                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
             },
         ],
         "links": [
@@ -37,13 +39,19 @@ def subsubgraph(tmpdir, subsubsubgraph):
         "nodes": [
             {
                 "id": "task1",
-                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+                "task_type": "method",
+                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
             },
             {
                 "id": "task2",
-                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+                "task_type": "method",
+                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
             },
-            {"id": "subsubsubgraph", "graph": subsubsubgraph},
+            {
+                "id": "subsubsubgraph",
+                "task_type": "graph",
+                "task_identifier": subsubsubgraph,
+            },
         ],
         "links": [
             {"source": "task1", "target": "task2", "arguments": {0: "return_value"}},
@@ -63,13 +71,15 @@ def subgraph(tmpdir, subsubgraph):
         "nodes": [
             {
                 "id": "task1",
-                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+                "task_type": "method",
+                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
             },
             {
                 "id": "task2",
-                "method": "ewokscore.tests.examples.tasks.simplemethods.add",
+                "task_type": "method",
+                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
             },
-            {"id": "subsubgraph", "graph": subsubgraph},
+            {"id": "subsubgraph", "task_type": "graph", "task_identifier": subsubgraph},
         ],
         "links": [
             {"source": "task1", "target": "task2", "arguments": {0: "return_value"}},
@@ -87,11 +97,12 @@ def subgraph(tmpdir, subsubgraph):
 def graph(tmpdir, subgraph):
     graph = {
         "nodes": [
-            {"id": "subgraph1", "graph": subgraph},
-            {"id": "subgraph2", "graph": subgraph},
+            {"id": "subgraph1", "task_type": "graph", "task_identifier": subgraph},
+            {"id": "subgraph2", "task_type": "graph", "task_identifier": subgraph},
             {
                 "id": "append",
-                "method": "ewokscore.tests.examples.tasks.simplemethods.append",
+                "task_type": "method",
+                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.append",
             },
         ],
         "links": [
