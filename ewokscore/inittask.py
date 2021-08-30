@@ -1,4 +1,6 @@
 from functools import partial
+from typing import Tuple
+import warnings
 from .task import Task
 from .methodtask import MethodExecutorTask
 from .scripttask import ScriptExecutorTask
@@ -16,6 +18,7 @@ TASK_EXECUTABLE_ATTRIBUTE = (
     "ppfport",
     "script",
     "task",
+    "task_type",
 )
 
 TASK_EXECUTABLE_ATTRIBUTE_ALL = TASK_EXECUTABLE_ATTRIBUTE + ("graph",)
@@ -47,7 +50,9 @@ def raise_task_error(node_name, all=True):
     raise ValueError(error_fmt.format(node_name))
 
 
-def task_executable_key(node_attrs, node_name="", all=False):
+def task_executable_info(
+    node_attrs: dict, node_name: str = "", all: bool = False
+) -> Tuple[str, dict]:
     if all:
         keys = TASK_EXECUTABLE_ATTRIBUTE_ALL
     else:
@@ -56,11 +61,49 @@ def task_executable_key(node_attrs, node_name="", all=False):
     if len(key) != 1:
         raise_task_error(node_name, all=all)
     key = key.pop()
-    return key, node_attrs[key]
+
+    if key == "task_type":
+        task_type = node_attrs[key]
+    else:
+        warnings.warn(
+            f"'{key}' is deprecated in favor of 'task_type' with 'task_identifier'",
+            FutureWarning,
+        )
+        value = node_attrs.pop(key)
+        if key != "ppfport":
+            node_attrs["task_identifier"] = value
+        if key == "task":
+            task_type = "generated"
+        else:
+            task_type = key
+        node_attrs["task_type"] = task_type
+    if task_type == "generated":
+        if "task_generator" not in node_attrs:
+            raise ValueError("node attribute 'task_generator' is missing")
+    else:
+        if "task_generator" in node_attrs:
+            raise ValueError(
+                "node attribute 'task_generator' should only be specified when 'task_type' is 'generated'"
+            )
+    if task_type == "ppfport":
+        if "task_identifier" in node_attrs:
+            raise ValueError(
+                "node attribute 'task_identifier' should not be used when 'task_type' is 'ppfport'"
+            )
+    else:
+        if "task_identifier" not in node_attrs:
+            raise ValueError("node attribute 'task_identifier' is missing")
+
+    info = dict()
+    if task_type != "ppfport":
+        info["task_identifier"] = node_attrs["task_identifier"]
+    if task_type == "generated":
+        info["task_generator"] = node_attrs["task_generator"]
+    return task_type, info
 
 
 def validate_task_executable(node_attrs, node_name="", all=False):
-    task_executable_key(node_attrs, node_name=node_name, all=all)
+    task_executable_info(node_attrs, node_name=node_name, all=all)
 
 
 def get_varinfo(node_attrs, varinfo=None) -> dict:
@@ -88,30 +131,34 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
     varinfo = get_varinfo(node_attrs, varinfo=varinfo)
 
     # Instantiate task
-    key, value = task_executable_key(node_attrs, node_name=node_name)
+    task_type, task_info = task_executable_info(node_attrs, node_name=node_name)
     metadata = dict()
     if node_name:
         metadata["description"] = node_name
-    if key == "class":
+    if task_type == "class":
         return Task.instantiate(
-            value, inputs=task_inputs, varinfo=varinfo, name=node_name
+            task_info["task_identifier"],
+            inputs=task_inputs,
+            varinfo=varinfo,
+            name=node_name,
         )
-    elif key == "method":
-        task_inputs["method"] = value
+    elif task_type == "method":
+        task_inputs["method"] = task_info["task_identifier"]
         return MethodExecutorTask(inputs=task_inputs, varinfo=varinfo, name=node_name)
-    elif key == "ppfmethod":
-        task_inputs["method"] = value
+    elif task_type == "ppfmethod":
+        task_inputs["method"] = task_info["task_identifier"]
         return PpfMethodExecutorTask(
             inputs=task_inputs, varinfo=varinfo, name=node_name
         )
-    elif key == "ppfport":
-        task_inputs["ppfport"] = value
+    elif task_type == "ppfport":
         return PpfPortTask(inputs=task_inputs, varinfo=varinfo, name=node_name)
-    elif key == "script":
-        task_inputs["script"] = value
+    elif task_type == "script":
+        task_inputs["script"] = task_info["task_identifier"]
         return ScriptExecutorTask(inputs=task_inputs, varinfo=varinfo, name=node_name)
-    elif key == "task":
-        task_class = get_dynamically_task_class(node_attrs.get("task_generator"), value)
+    elif task_type == "generated":
+        task_class = get_dynamically_task_class(
+            node_attrs.get("task_generator"), task_info["task_identifier"]
+        )
         return task_class(inputs=task_inputs, varinfo=varinfo, name=node_name)
     else:
         raise_task_error(node_name, all=False)
@@ -136,19 +183,19 @@ def add_dynamic_inputs(dynamic_inputs, link_attrs, source_results):
 
 
 def task_executable(node_attrs, node_name=""):
-    key, value = task_executable_key(node_attrs, node_name=node_name)
-    if key == "class":
-        return value, import_qualname
-    elif key == "method":
-        return value, import_method
-    elif key == "ppfmethod":
-        return value, import_method
-    elif key == "ppfport":
-        return value, None
-    elif key == "script":
-        return value, None
-    elif key == "task":
-        return value, partial(
+    task_type, task_info = task_executable_info(node_attrs, node_name=node_name)
+    if task_type == "class":
+        return task_info["task_identifier"], import_qualname
+    elif task_type == "method":
+        return task_info["task_identifier"], import_method
+    elif task_type == "ppfmethod":
+        return task_info["task_identifier"], import_method
+    elif task_type == "ppfport":
+        return None, None
+    elif task_type == "script":
+        return task_info["task_identifier"], None
+    elif task_type == "generated":
+        return task_info["task_identifier"], partial(
             get_dynamically_task_class, node_attrs.get("task_generator")
         )
     else:
@@ -156,18 +203,20 @@ def task_executable(node_attrs, node_name=""):
 
 
 def get_task_class(node_attrs, node_name=""):
-    key, value = task_executable_key(node_attrs, node_name=node_name)
-    if key == "class":
-        return Task.get_subclass(value)
-    elif key == "method":
+    task_type, task_info = task_executable_info(node_attrs, node_name=node_name)
+    if task_type == "class":
+        return Task.get_subclass(task_info["task_identifier"])
+    elif task_type == "method":
         return MethodExecutorTask
-    elif key == "ppfmethod":
+    elif task_type == "ppfmethod":
         return PpfMethodExecutorTask
-    elif key == "ppfport":
+    elif task_type == "ppfport":
         return PpfPortTask
-    elif key == "script":
+    elif task_type == "script":
         return ScriptExecutorTask
-    elif key == "task":
-        return get_dynamically_task_class(node_attrs.get("task_generator"), value)
+    elif task_type == "task":
+        return get_dynamically_task_class(
+            node_attrs.get("task_generator"), task_info["task_identifier"]
+        )
     else:
         raise_task_error(node_name, all=False)

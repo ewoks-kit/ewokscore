@@ -5,20 +5,42 @@ from . import graph
 def acyclic2():
     task = "ewokscore.tests.examples.tasks.errorsumtask.ErrorSumTask"
     nodes = [
-        {"id": "task1", "inputs": {"a": 1}, "class": task},
+        {
+            "id": "task1",
+            "inputs": {"a": 1},
+            "task_type": "class",
+            "task_identifier": task,
+        },
         {
             "id": "task2",
             "inputs": {"b": 2, "raise_error": True},
-            "class": task,
+            "task_type": "class",
+            "task_identifier": task,
         },
-        {"id": "task3", "inputs": {"b": 3}, "class": task},
+        {
+            "id": "task3",
+            "inputs": {"b": 3},
+            "task_type": "class",
+            "task_identifier": task,
+        },
         {
             "id": "task4",
             "inputs": {"a": 3, "b": 4},
-            "class": task,
+            "task_type": "class",
+            "task_identifier": task,
         },
-        {"id": "task5", "inputs": {"b": 5}, "class": task},
-        {"id": "task6", "inputs": {"b": 6}, "class": task},
+        {
+            "id": "task5",
+            "inputs": {"b": 5},
+            "task_type": "class",
+            "task_identifier": task,
+        },
+        {
+            "id": "task6",
+            "inputs": {"b": 6},
+            "task_type": "class",
+            "task_identifier": task,
+        },
     ]
 
     links = [

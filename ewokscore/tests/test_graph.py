@@ -4,10 +4,10 @@ from ewokscore.graph import load_graph
 
 def test_required_links():
     nodes = [
-        {"id": "source1", "method": "dummy"},
-        {"id": "source2a", "method": "dummy"},
-        {"id": "source2b", "method": "dummy"},
-        {"id": "target", "method": "dummy"},
+        {"id": "source1", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "source2a", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "source2b", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "target", "task_type": "method", "task_identifier": "dummy"},
     ]
     links = [
         {"source": "source1", "target": "target"},
@@ -59,9 +59,9 @@ def test_required_links():
 
 def test_wrong_argument_definitions():
     nodes = [
-        {"id": "source1", "method": "dummy"},
-        {"id": "source2", "method": "dummy"},
-        {"id": "target", "method": "dummy"},
+        {"id": "source1", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "source2", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "target", "task_type": "method", "task_identifier": "dummy"},
     ]
     links = [
         {"source": "source1", "target": "target", "arguments": {"a", "a"}},

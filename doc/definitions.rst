@@ -51,16 +51,18 @@ Graph attributes
 Node attributes
 ^^^^^^^^^^^^^^^
  * *id*: node identifier unique to the graph
- * Only **one** of these attributes to specify the unit of execution:
-    * *class*: the full qualifier name of a task class (statically defined)
-    * *task*: the full qualifier name of a task class (statically defined or created at runtime)
-    * *method*: the full qualifier name of a function
-    * *ppfmethod*: the full qualifier name of a pypushflow function (special input/output convention)
-    * *script*: the full qualifier name of a python or shell script
-    * *graph*: the representation of another graph (e.g. json file name)
+ * *task_identifier*: specifies the unit of execution
+ * *task_type*: defines the meaning of *task_identifier* and can have of these values:
+    * *class*: *task_identifier* is the full qualifier name of a task class (statically defined)
+    * *generated*: *task_identifier* is the full qualifier name that is used by *task_generator* to generate a task at runtime
+    * *method*: *task_identifier* is the full qualifier name of a function
+    * *graph*: *task_identifier* is the representation of another graph (e.g. json file name)
+    * *ppfmethod*: *task_identifier* is the full qualifier name of a *pypushflow* function (special input/output convention)
+    * *ppfport*: special *ppfmethod* which is the *identify mapping*. *task_identifier* should not be specified.
+    * *script*: *task_identifier* is the absolute path of a python or shell script
+ * *task_generator* (optional): the full qualifier name of the task generator to generate a task at runtime. Only used when *task_type* is *generated*.
  * *inputs* (optional): static input arguments (for example `{"a": 1}`)
  * *inputs_complete* (optional): set to `True` when the static input covers all required input (used for method and script as the required inputs are unknown)
- * *task_generator* (optional): the full qualifier name of the task class generator to be used when *task* does not refer to a statically defined class
 
 Link attributes
 ^^^^^^^^^^^^^^^
