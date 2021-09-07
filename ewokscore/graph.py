@@ -42,7 +42,9 @@ def node_has_links(graph, node_name):
     return True
 
 
-def merge_graphs(graphs, name=None, rename_nodes=None, **load_options):
+def merge_graphs(
+    graphs, graph_attrs=None, name=None, rename_nodes=None, **load_options
+):
     lst = list()
     if rename_nodes is None:
         rename_nodes = [True] * len(graphs)
@@ -57,8 +59,8 @@ def merge_graphs(graphs, name=None, rename_nodes=None, **load_options):
             g = networkx.relabel_nodes(g, mapping, copy=True)
         lst.append(g)
     ret = load_graph(networkx.compose_all(lst), **load_options)
-    if name:
-        ret.graph.graph["name"] = name
+    if graph_attrs:
+        ret.graph.graph.update(graph_attrs)
     return ret
 
 
@@ -98,7 +100,7 @@ def get_subgraphs(graph: networkx.DiGraph, **load_options):
 
 def _ewoks_jsonload_hook_pair(item):
     key, value = item
-    if key in ("source", "target", "sub_source", "sub_target"):
+    if key in ("source", "target", "sub_source", "sub_target", "id", "sub_node"):
         value = node_name_from_json(value)
     return key, value
 
@@ -211,7 +213,7 @@ class TaskGraph:
             rename_nodes = [False] + [True] * len(subgraphs)
             graph = merge_graphs(
                 graphs,
-                name=graph.graph.get("name"),
+                graph_attrs=graph.graph,
                 rename_nodes=rename_nodes,
                 root_dir=root_dir,
             ).graph
