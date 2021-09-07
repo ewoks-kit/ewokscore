@@ -13,6 +13,10 @@ def savegraph(graph, tmpdir, name):
 @pytest.fixture
 def subsubsubgraph(tmpdir):
     graph = {
+        "graph": {
+            "input_nodes": [{"alias": "in", "id": "task1"}],
+            "output_nodes": [{"alias": "out", "id": "task2"}],
+        },
         "nodes": [
             {
                 "id": "task1",
@@ -40,6 +44,12 @@ def subsubsubgraph(tmpdir):
 @pytest.fixture
 def subsubgraph(tmpdir, subsubsubgraph):
     graph = {
+        "graph": {
+            "input_nodes": [{"alias": "in", "id": "task1"}],
+            "output_nodes": [
+                {"alias": "out", "id": "subsubsubgraph", "sub_node": "out"}
+            ],
+        },
         "nodes": [
             {
                 "id": "task1",
@@ -67,7 +77,7 @@ def subsubgraph(tmpdir, subsubsubgraph):
                 "source": "task2",
                 "target": "subsubsubgraph",
                 "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_target": "task1"},
+                "sub_graph_nodes": {"sub_target": "in"},
             },
         ],
     }
@@ -77,6 +87,10 @@ def subsubgraph(tmpdir, subsubsubgraph):
 @pytest.fixture
 def subgraph(tmpdir, subsubgraph):
     graph = {
+        "graph": {
+            "input_nodes": [{"alias": "in", "id": "task1"}],
+            "output_nodes": [{"alias": "out", "id": "subsubgraph", "sub_node": "out"}],
+        },
         "nodes": [
             {
                 "id": "task1",
@@ -100,7 +114,7 @@ def subgraph(tmpdir, subsubgraph):
                 "source": "task2",
                 "target": "subsubgraph",
                 "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_target": "task1"},
+                "sub_graph_nodes": {"sub_target": "in"},
             },
         ],
     }
@@ -125,15 +139,11 @@ def graph(tmpdir, subgraph):
                 "target": "subgraph2",
                 "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
                 "sub_graph_nodes": {
-                    "sub_source": "subsubgraph",
-                    "sub_target": "task1",
-                    "sub_graph_nodes": {
-                        "sub_source": "subsubsubgraph",
-                        "sub_graph_nodes": {"sub_source": "task2"},
-                    },
+                    "sub_target": "in",
+                    "sub_source": "out",
                 },
             },
-            # Expanded sub-links
+            # Link all nodes from "subgraph1" to "append"
             {
                 "source": "subgraph1",
                 "target": "append",
@@ -150,30 +160,20 @@ def graph(tmpdir, subgraph):
                 "source": "subgraph1",
                 "target": "append",
                 "data_mapping": [{"target_input": 2, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": "subsubgraph",
-                    "sub_graph_nodes": {"sub_source": "task1"},
-                },
+                "sub_graph_nodes": {"sub_source": ("subsubgraph", "task1")},
             },
             {
                 "source": "subgraph1",
                 "target": "append",
                 "data_mapping": [{"target_input": 3, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": "subsubgraph",
-                    "sub_graph_nodes": {"sub_source": "task2"},
-                },
+                "sub_graph_nodes": {"sub_source": ("subsubgraph", "task2")},
             },
             {
                 "source": "subgraph1",
                 "target": "append",
                 "data_mapping": [{"target_input": 4, "source_output": "return_value"}],
                 "sub_graph_nodes": {
-                    "sub_source": "subsubgraph",
-                    "sub_graph_nodes": {
-                        "sub_source": "subsubsubgraph",
-                        "sub_graph_nodes": {"sub_source": "task1"},
-                    },
+                    "sub_source": ("subsubgraph", ("subsubsubgraph", "task1"))
                 },
             },
             {
@@ -181,14 +181,10 @@ def graph(tmpdir, subgraph):
                 "target": "append",
                 "data_mapping": [{"target_input": 5, "source_output": "return_value"}],
                 "sub_graph_nodes": {
-                    "sub_source": "subsubgraph",
-                    "sub_graph_nodes": {
-                        "sub_source": "subsubsubgraph",
-                        "sub_graph_nodes": {"sub_source": "task2"},
-                    },
+                    "sub_source": ("subsubgraph", ("subsubsubgraph", "task2"))
                 },
             },
-            # Flat sub-links (1 level deep because the source and target need to be a valid node id)
+            # Link all nodes from "subgraph2" to "append"
             {
                 "source": "subgraph2",
                 "target": "append",
