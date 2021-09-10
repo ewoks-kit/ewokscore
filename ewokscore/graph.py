@@ -497,8 +497,8 @@ class TaskGraph:
             # manually indicate that all required inputs are statically provided.
             return inputs_complete
         taskclass = inittask.get_task_class(node_attrs, node_name=node_name)
-        static_inputs = node_attrs.get("inputs", dict())
-        return not (set(taskclass.required_input_names()) - set(static_inputs.keys()))
+        static_inputs = {d["name"] for d in node_attrs.get("inputs", list())}
+        return not (set(taskclass.required_input_names()) - static_inputs)
 
     def start_nodes(self):
         nodes = set(
@@ -590,8 +590,14 @@ class TaskGraph:
             inputs_from_required = dict()
             for source_name in self._required_predecessors(node_name):
                 link_attrs = self.graph[source_name][node_name]
-                node_outputs = link_attrs.get("arguments", set())
-                for name in node_outputs:
+                arguments = link_attrs.get("arguments", list())
+                for arg in arguments:
+                    try:
+                        name = arg["input"]
+                    except KeyError:
+                        raise KeyError(
+                            f"Argument '{arg}' of link '{source_name}' -> '{node_name}' is missing an 'input' key"
+                        ) from None
                     other_source_name = inputs_from_required.get(name)
                     if other_source_name:
                         raise ValueError(

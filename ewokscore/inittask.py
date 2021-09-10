@@ -123,7 +123,8 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
     :returns Task:
     """
     # Static inputs
-    task_inputs = dict(node_attrs.get("inputs", dict()))
+    task_inputs = node_attrs.get("inputs", list())
+    task_inputs = dict([(d["name"], d["value"]) for d in task_inputs])
     # Dynamic inputs (from other tasks)
     if inputs:
         task_inputs.update(inputs)
@@ -166,20 +167,24 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
 
 def add_dynamic_inputs(dynamic_inputs, link_attrs, source_results):
     all_arguments = link_attrs.get("all_arguments", False)
-    arguments = link_attrs.get("arguments", dict())
+    arguments = link_attrs.get("arguments", list())
     if all_arguments and arguments:
         raise ValueError("'arguments' and 'all_arguments' cannot be used together")
     if all_arguments:
-        arguments = {s: s for s in source_results}
+        arguments = [{"input": s, "output": s} for s in source_results]
         for from_arg in source_results:
             to_arg = from_arg
             dynamic_inputs[to_arg] = source_results[from_arg]
-
-    for to_arg, from_arg in arguments.items():
-        if from_arg:
-            dynamic_inputs[to_arg] = source_results[from_arg]
+    for arg in arguments:
+        output_arg = arg.get("output")
+        try:
+            input_arg = arg["input"]
+        except KeyError:
+            raise KeyError(f"Argument '{arg}' is missing an 'input' key") from None
+        if output_arg:
+            dynamic_inputs[input_arg] = source_results[output_arg]
         else:
-            dynamic_inputs[to_arg] = source_results
+            dynamic_inputs[input_arg] = source_results
 
 
 def task_executable(node_attrs, node_name=""):

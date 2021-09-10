@@ -7,19 +7,19 @@ def triangle1():
     nodes = [
         {
             "id": "task1",
-            "inputs": {"a": 1},
+            "inputs": [{"name": "a", "value": 1}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task2",
-            "inputs": {"b": 1},
+            "inputs": [{"name": "b", "value": 1}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task3",
-            "inputs": {"b": 1},
+            "inputs": [{"name": "b", "value": 1}],
             "task_type": "class",
             "task_identifier": task,
         },
@@ -28,19 +28,19 @@ def triangle1():
         {
             "source": "task1",
             "target": "task2",
-            "arguments": {"a": "result"},
+            "arguments": [{"input": "a", "output": "result"}],
             "conditions": {"too_small": True},
         },
         {
             "source": "task2",
             "target": "task3",
-            "arguments": {"a": "result"},
+            "arguments": [{"input": "a", "output": "result"}],
             "conditions": {"too_small": True},
         },
         {
             "source": "task3",
             "target": "task1",
-            "arguments": {"a": "result"},
+            "arguments": [{"input": "a", "output": "result"}],
             "conditions": {"too_small": True},
         },
     ]

@@ -19,21 +19,21 @@ def test_required_links():
     assert graph.link_is_required("source2a", "source2b")
     assert graph.link_is_required("source2b", "target")
 
-    links[0]["conditions"] = {"a": 1}
+    links[0]["conditions"] = [{"name": "a", "value": 1}]
     graph = load_graph({"nodes": nodes, "links": links})
     assert not graph.link_is_required("source1", "target")
     assert graph.link_is_required("source2a", "source2b")
     assert graph.link_is_required("source2b", "target")
     links[0].pop("conditions")
 
-    links[1]["conditions"] = {"a": 1}
+    links[1]["conditions"] = [{"name": "a", "value": 1}]
     graph = load_graph({"nodes": nodes, "links": links})
     assert graph.link_is_required("source1", "target")
     assert not graph.link_is_required("source2a", "source2b")
     assert not graph.link_is_required("source2b", "target")
     links[1].pop("conditions")
 
-    links[1]["conditions"] = {"a": 1}
+    links[1]["conditions"] = [{"name": "a", "value": 1}]
     links[1]["required"] = True
     graph = load_graph({"nodes": nodes, "links": links})
     assert graph.link_is_required("source1", "target")
@@ -41,14 +41,14 @@ def test_required_links():
     assert graph.link_is_required("source2b", "target")
     links[1].pop("conditions")
 
-    links[2]["conditions"] = {"a": 1}
+    links[2]["conditions"] = [{"name": "a", "value": 1}]
     graph = load_graph({"nodes": nodes, "links": links})
     assert graph.link_is_required("source1", "target")
     assert graph.link_is_required("source2a", "source2b")
     assert not graph.link_is_required("source2b", "target")
     links[2].pop("conditions")
 
-    links[2]["conditions"] = {"a": 1}
+    links[2]["conditions"] = [{"name": "a", "value": 1}]
     links[2]["required"] = True
     graph = load_graph({"nodes": nodes, "links": links})
     assert graph.link_is_required("source1", "target")
@@ -64,14 +64,22 @@ def test_wrong_argument_definitions():
         {"id": "target", "task_type": "method", "task_identifier": "dummy"},
     ]
     links = [
-        {"source": "source1", "target": "target", "arguments": {"a", "a"}},
-        {"source": "source2", "target": "target", "arguments": {"a", "a"}},
+        {
+            "source": "source1",
+            "target": "target",
+            "arguments": [{"input": "a", "output": "a"}],
+        },
+        {
+            "source": "source2",
+            "target": "target",
+            "arguments": [{"input": "a", "output": "a"}],
+        },
     ]
     graph = {"nodes": nodes, "links": links}
     with pytest.raises(ValueError):
         load_graph(graph)
 
-    links[0]["conditions"] = {"a": 1}
+    links[0]["conditions"] = [{"name": "a", "value": 1}]
     load_graph(graph)
 
     links[0]["required"] = True

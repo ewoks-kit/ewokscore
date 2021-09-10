@@ -28,15 +28,39 @@ class SumTask(
             result += self.inputs.b
         self.outputs.result = result
 
+
 # Define a workflow
 nodes = [
-    {"id": "task1", "class": "__main__.SumTask", "inputs": {"a": 1}},
-    {"id": "task2", "class": "__main__.SumTask", "inputs": {"b": 1}},
-    {"id": "task3", "class": "__main__.SumTask", "inputs": {"b": 1}},
+    {
+        "id": "task1",
+        "task_type": "class",
+        "task_identifier": "__main__.SumTask",
+        "inputs": [{"name": "a", "value": 1}],
+    },
+    {
+        "id": "task2",
+        "task_type": "class",
+        "task_identifier": "__main__.SumTask",
+        "inputs": [{"name": "b", "value": 1}],
+    },
+    {
+        "id": "task3",
+        "task_type": "class",
+        "task_identifier": "__main__.SumTask",
+        "inputs": [{"name": "b", "value": 1}],
+    },
 ]
 links = [
-    {"source": "task1", "target": "task2", "arguments": {"a": "result"}},
-    {"source": "task2", "target": "task3", "arguments": {"a": "result"}},
+    {
+        "source": "task1",
+        "target": "task2",
+        "arguments": [{"input": "a", "output": "result"}],
+    },
+    {
+        "source": "task2",
+        "target": "task3",
+        "arguments": [{"input": "a", "output": "result"}],
+    },
 ]
 workflow = {"nodes": nodes, "links": links}
 
