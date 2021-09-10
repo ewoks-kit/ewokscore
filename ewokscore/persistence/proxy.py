@@ -7,11 +7,11 @@ from ..hashing import UniversalHashable
 from ..hashing import UniversalHash
 
 
-class PersistencyError(RuntimeError):
+class PersistenceError(RuntimeError):
     pass
 
 
-class UriNotFoundError(PersistencyError):
+class UriNotFoundError(PersistenceError):
     pass
 
 
