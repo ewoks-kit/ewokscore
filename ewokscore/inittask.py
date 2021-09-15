@@ -122,8 +122,8 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
     :param str node_name:
     :returns Task:
     """
-    # Static inputs
-    task_inputs = node_attrs.get("inputs", list())
+    # Default inputs
+    task_inputs = node_attrs.get("default_inputs", list())
     task_inputs = dict([(d["name"], d["value"]) for d in task_inputs])
     # Dynamic inputs (from other tasks)
     if inputs:
@@ -166,16 +166,16 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
 
 
 def add_dynamic_inputs(dynamic_inputs, link_attrs, source_results):
-    all_arguments = link_attrs.get("all_arguments", False)
-    arguments = link_attrs.get("data_mapping", list())
-    if all_arguments and arguments:
-        raise ValueError("'arguments' and 'all_arguments' cannot be used together")
-    if all_arguments:
-        arguments = [{"target_input": s, "source_output": s} for s in source_results]
+    map_all_data = link_attrs.get("map_all_data", False)
+    data_mapping = link_attrs.get("data_mapping", list())
+    if map_all_data and data_mapping:
+        raise ValueError("'data_mapping' and 'map_all_data' cannot be used together")
+    if map_all_data:
+        data_mapping = [{"target_input": s, "source_output": s} for s in source_results]
         for from_arg in source_results:
             to_arg = from_arg
             dynamic_inputs[to_arg] = source_results[from_arg]
-    for arg in arguments:
+    for arg in data_mapping:
         output_arg = arg.get("source_output")
         try:
             input_arg = arg["target_input"]

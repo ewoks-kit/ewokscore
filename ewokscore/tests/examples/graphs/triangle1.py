@@ -7,19 +7,19 @@ def triangle1():
     nodes = [
         {
             "id": "task1",
-            "inputs": [{"name": "a", "value": 1}],
+            "default_inputs": [{"name": "a", "value": 1}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task2",
-            "inputs": [{"name": "b", "value": 1}],
+            "default_inputs": [{"name": "b", "value": 1}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task3",
-            "inputs": [{"name": "b", "value": 1}],
+            "default_inputs": [{"name": "b", "value": 1}],
             "task_type": "class",
             "task_identifier": task,
         },
@@ -29,19 +29,19 @@ def triangle1():
             "source": "task1",
             "target": "task2",
             "data_mapping": [{"target_input": "a", "source_output": "result"}],
-            "conditions": {"too_small": True},
+            "conditions": [{"source_output": "too_small", "value": True}],
         },
         {
             "source": "task2",
             "target": "task3",
             "data_mapping": [{"target_input": "a", "source_output": "result"}],
-            "conditions": {"too_small": True},
+            "conditions": [{"source_output": "too_small", "value": True}],
         },
         {
             "source": "task3",
             "target": "task1",
             "data_mapping": [{"target_input": "a", "source_output": "result"}],
-            "conditions": {"too_small": True},
+            "conditions": [{"source_output": "too_small", "value": True}],
         },
     ]
 

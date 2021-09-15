@@ -35,19 +35,19 @@ nodes = [
         "id": "task1",
         "task_type": "class",
         "task_identifier": "__main__.SumTask",
-        "inputs": [{"name": "a", "value": 1}],
+        "default_inputs": [{"name": "a", "value": 1}],
     },
     {
         "id": "task2",
         "task_type": "class",
         "task_identifier": "__main__.SumTask",
-        "inputs": [{"name": "b", "value": 1}],
+        "default_inputs": [{"name": "b", "value": 1}],
     },
     {
         "id": "task3",
         "task_type": "class",
         "task_identifier": "__main__.SumTask",
-        "inputs": [{"name": "b", "value": 1}],
+        "default_inputs": [{"name": "b", "value": 1}],
     },
 ]
 links = [

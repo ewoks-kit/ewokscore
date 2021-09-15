@@ -7,37 +7,37 @@ def acyclic1():
     nodes = [
         {
             "id": "task1",
-            "inputs": [{"name": "a", "value": 1}],
+            "default_inputs": [{"name": "a", "value": 1}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task2",
-            "inputs": [{"name": "a", "value": 2}],
+            "default_inputs": [{"name": "a", "value": 2}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task3",
-            "inputs": [{"name": "b", "value": 3}],
+            "default_inputs": [{"name": "b", "value": 3}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task4",
-            "inputs": [{"name": "b", "value": 4}],
+            "default_inputs": [{"name": "b", "value": 4}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task5",
-            "inputs": [{"name": "b", "value": 5}],
+            "default_inputs": [{"name": "b", "value": 5}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task6",
-            "inputs": [{"name": "b", "value": 6}],
+            "default_inputs": [{"name": "b", "value": 6}],
             "task_type": "class",
             "task_identifier": task,
         },

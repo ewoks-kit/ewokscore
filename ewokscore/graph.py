@@ -260,7 +260,7 @@ class TaskGraph:
 
     def instantiate_task(self, node_name, varinfo=None, inputs=None):
         """Named arguments are dynamic input and Variable config.
-        Static input from the persistent representation are
+        Default input from the persistent representation are
         added internally.
 
         :param str node_name:
@@ -268,7 +268,7 @@ class TaskGraph:
         :param **inputs: dynamic inputs
         :returns Task:
         """
-        # Dynamic input has priority over static input
+        # Dynamic input has priority over default input
         nodeattrs = self.graph.nodes[node_name]
         return inittask.instantiate_task(
             nodeattrs, node_name=node_name, varinfo=varinfo, inputs=inputs
@@ -488,7 +488,7 @@ class TaskGraph:
         return self._iterator_has_items(self._required_predecessors(node_name))
 
     def _has_required_static_inputs(self, node_name):
-        """Returns True when the static inputs cover all required inputs."""
+        """Returns True when the default inputs cover all required inputs."""
         node_attrs = self.graph.nodes[node_name]
         inputs_complete = node_attrs.get("inputs_complete", None)
         if isinstance(inputs_complete, bool):
@@ -497,7 +497,7 @@ class TaskGraph:
             # manually indicate that all required inputs are statically provided.
             return inputs_complete
         taskclass = inittask.get_task_class(node_attrs, node_name=node_name)
-        static_inputs = {d["name"] for d in node_attrs.get("inputs", list())}
+        static_inputs = {d["name"] for d in node_attrs.get("default_inputs", list())}
         return not (set(taskclass.required_input_names()) - static_inputs)
 
     def start_nodes(self):
@@ -573,10 +573,14 @@ class TaskGraph:
             self.graph[source_name][target_name]["conditions"]
             for target_name in self.successors(source_name, link_has_conditions=True)
         ]
-        all_names = {name for conditions in links for name in conditions}
+        all_names = {
+            item["source_output"] for conditions in links for item in conditions
+        }
         for conditions in links:
             for name in all_names:
-                conditions.setdefault(name, CONDITIONS_ELSE_VALUE)
+                conditions.append(
+                    {"source_output": name, "value": CONDITIONS_ELSE_VALUE}
+                )
         return links
 
     def validate_graph(self):
@@ -609,8 +613,8 @@ class TaskGraph:
             err_msg = (
                 f"Link {source}->{target}: '{{}}' and '{{}}' cannot be used together"
             )
-            if linkattrs.get("all_arguments") and linkattrs.get("data_mapping"):
-                raise ValueError(err_msg.format("all_arguments", "data_mapping"))
+            if linkattrs.get("map_all_data") and linkattrs.get("data_mapping"):
+                raise ValueError(err_msg.format("map_all_data", "data_mapping"))
             if linkattrs.get("on_error") and linkattrs.get("conditions"):
                 raise ValueError(err_msg.format("on_error", "conditions"))
 
