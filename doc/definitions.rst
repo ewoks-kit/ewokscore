@@ -5,7 +5,7 @@ A **workflow** is a directed graph of tasks. A directed graph consists of nodes 
 
 A **node** describes an opaque unit of execution with a signature. It can have positional and named arguments which can be required or optional. It can have zero, one or more named outputs.
 
-A **task** is an opaque unit of execution with input arguments defined by links and static values in the graph representation. (OOP analogy: a task is a node instance).
+A **task** is an opaque unit of execution with input arguments defined by links and default values in the graph representation. (OOP analogy: a task is a node instance).
 
 A **link** connects a source node to a target node. A link can have the following properties:
   * **conditional**: has a set of statements that combined are either True or False
@@ -22,7 +22,7 @@ Task scheduling starts by executing all **start tasks**. When a graph has nodes 
 The input arguments of a task are defined in the following order of priority:
  * Input from non-required predecessors (we allow maximum one of those)
  * Input from all unconditional links (argument collisions raise an exception)
- * Input from the graph representation (static input)
+ * Input from the graph representation (default input)
 
 Workflow description
 --------------------
@@ -35,7 +35,7 @@ Ewoks describes workflows as a list of nodes and a list of links with specific a
         "nodes": [{"id": "name1",
                    "task_type": "class",
                    "task_identifier": "package.module.task.SumTask",
-                   "inputs": [{"name":"a", "value":1}]},
+                   "default_inputs": [{"name":"a", "value":1}]},
                   {"id": "name2",
                    "task_type": "class",
                    "task_identifier": "package.module.task.SumTask"}]
@@ -63,30 +63,35 @@ Node attributes
     * *ppfport*: special *ppfmethod* which is the *identify mapping*. *task_identifier* should not be specified.
     * *script*: *task_identifier* is the absolute path of a python or shell script
  * *task_generator* (optional): the full qualifier name of the task generator to generate a task at runtime. Only used when *task_type* is *generated*.
- * *inputs* (optional): static input arguments. For example:
+ * *default_inputs* (optional): default input arguments (used not provided by the output of other tasks). For example:
     .. code-block:: json
 
         {
-            "inputs": [{"name":"a", "value":1}]
+            "default_inputs": [{"name":"a", "value":1}]
         }
 
- * *inputs_complete* (optional): set to `True` when the static input covers all required input (used for method and script as the required inputs are unknown)
+ * *inputs_complete* (optional): set to `True` when the default input covers all required input (used for method and script as the required inputs are unknown)
 
 Link attributes
 ^^^^^^^^^^^^^^^
 * *source*: the *id* of the source node
 * *target*: the *id* of the target node
-* *arguments* (optional): describe data transfer of source outputs to target input arguments. For example
+* *data_mapping* (optional): describe data transfer of source outputs to target input arguments. For example
     .. code-block:: json
 
         {
-            "data_mapping":[{"source_output": "result",
-                          "target_input": "a"}]
+            "data_mapping": [{"source_output": "result",
+                              "target_input": "a"}]
         }
 
     If `"source_output"` is `None` or missing, the complete output of the source will be passed to the corresponding `"target_input"` or the target.
-* *all_arguments* (optional): setting this to `True` is equivalent to *arguments* being the identity mapping for all input names. Cannot be used in combination with *arguments*.
-* *conditions* (optional): a dictionary that maps output names to expected values
+* *map_all_data* (optional): setting this to `True` is equivalent to *arguments* being the identity mapping for all input names. Cannot be used in combination with *arguments*.
+* *conditions* (optional): provides a list of expected values for source outputs
+    .. code-block:: json
+
+        {
+            "conditions": [{"source_output": "result", "value": 10}]
+        }
 * *on_error* (optional): a special condition: task raises an exception. Cannot be used in combination with *conditions*.
 * *sub_graph_nodes*: when the *task_type* of source and/or target is *graph*, this specifies the nodes of the source and/or target sub-graph that are to be linked. The dictionary keys are
    * *sub_source*: specify the *id* of the node in *source* when *source* is a *graph*
@@ -98,7 +103,7 @@ Task implementation
 -------------------
 All tasks can be described by deriving a class from the `Task` class.
 
-* required input names: an exception is raised when these inputs are not provided in the graph definition (output from previous tasks or static input values)
+* required input names: an exception is raised when these inputs are not provided in the graph definition (output from previous tasks or default input values)
 * optional input names: no default values provided (need to be done in the `process` method)
 * output names: can be connected to downstream input names
 * required positional inputs: a positive number
@@ -137,7 +142,7 @@ The task graph object in `ewokscore` provides additional functionality in top of
 * An output *Variable* has a universal hash which is the hash of the *Task* with the variable name as nonce.
 * An input *Variable* can be
 
-  * static:
+  * default:
 
     * provided by the persistent *Graph* representation
     * universal hash of the data
@@ -150,7 +155,7 @@ The actual output data of a *Task* is never hashed. So we assume that if you pro
 
 Hash linking of tasks serves the following purpose:
 
-* Changing static input upstream in the graph will effectively create new tasks.
+* Changing default input upstream in the graph will effectively create new tasks.
 * The hashes provide a unique ID to create a *URI* for persistent storage.
 * Variables can be provided with universal hashes to replace the hashing of the actual inputs.
 * As data can be passed by passing hashes, serialization for distibuted task scheduling can be done efficiently (not much data to serialize) and no special serializer is required to serialize hashes (as they are just strings).
