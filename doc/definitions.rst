@@ -33,13 +33,15 @@ Ewoks describes workflows as a list of nodes and a list of links with specific a
 
     {
         "nodes": [{"id": "name1",
-                   "class": "package.module.task.SumTask",
-                   "inputs": {"a":1}},
+                   "task_type": "class",
+                   "task_identifier": "package.module.task.SumTask",
+                   "inputs": [{"name":"a", "value":1}]},
                   {"id": "name2",
-                   "class": "package.module.task.SumTask"}]
+                   "task_type": "class",
+                   "task_identifier": "package.module.task.SumTask"}]
         "links": [{"source": "name1",
                    "target": "name2",
-                   "arguments":{"a": "result"}}],
+                   "data_mapping":[{"source_output":"result", "target_input":"a"}]}],
     }
 
 Graph attributes
@@ -61,14 +63,28 @@ Node attributes
     * *ppfport*: special *ppfmethod* which is the *identify mapping*. *task_identifier* should not be specified.
     * *script*: *task_identifier* is the absolute path of a python or shell script
  * *task_generator* (optional): the full qualifier name of the task generator to generate a task at runtime. Only used when *task_type* is *generated*.
- * *inputs* (optional): static input arguments (for example `{"a": 1}`)
+ * *inputs* (optional): static input arguments. For example:
+    .. code-block:: json
+
+        {
+            "inputs": [{"name":"a", "value":1}]
+        }
+
  * *inputs_complete* (optional): set to `True` when the static input covers all required input (used for method and script as the required inputs are unknown)
 
 Link attributes
 ^^^^^^^^^^^^^^^
 * *source*: the *id* of the source node
 * *target*: the *id* of the target node
-* *arguments* (optional): a dictionary that maps output names to input names. If the input name is `None` the output name receives the complete output of the source.
+* *arguments* (optional): describe data transfer of source outputs to target input arguments. For example
+    .. code-block:: json
+
+        {
+            "data_mapping":[{"source_output": "result",
+                          "target_input": "a"}]
+        }
+
+    If `"source_output"` is `None` or missing, the complete output of the source will be passed to the corresponding `"target_input"` or the target.
 * *all_arguments* (optional): setting this to `True` is equivalent to *arguments* being the identity mapping for all input names. Cannot be used in combination with *arguments*.
 * *conditions* (optional): a dictionary that maps output names to expected values
 * *on_error* (optional): a special condition: task raises an exception. Cannot be used in combination with *conditions*.

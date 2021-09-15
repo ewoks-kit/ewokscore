@@ -7,48 +7,68 @@ def acyclic1():
     nodes = [
         {
             "id": "task1",
-            "inputs": {"a": 1},
+            "inputs": [{"name": "a", "value": 1}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task2",
-            "inputs": {"a": 2},
+            "inputs": [{"name": "a", "value": 2}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task3",
-            "inputs": {"b": 3},
+            "inputs": [{"name": "b", "value": 3}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task4",
-            "inputs": {"b": 4},
+            "inputs": [{"name": "b", "value": 4}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task5",
-            "inputs": {"b": 5},
+            "inputs": [{"name": "b", "value": 5}],
             "task_type": "class",
             "task_identifier": task,
         },
         {
             "id": "task6",
-            "inputs": {"b": 6},
+            "inputs": [{"name": "b", "value": 6}],
             "task_type": "class",
             "task_identifier": task,
         },
     ]
 
     links = [
-        {"source": "task1", "target": "task3", "arguments": {"a": "result"}},
-        {"source": "task2", "target": "task4", "arguments": {"a": "result"}},
-        {"source": "task3", "target": "task5", "arguments": {"a": "result"}},
-        {"source": "task4", "target": "task5", "arguments": {"b": "result"}},
-        {"source": "task5", "target": "task6", "arguments": {"a": "result"}},
+        {
+            "source": "task1",
+            "target": "task3",
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
+        },
+        {
+            "source": "task2",
+            "target": "task4",
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
+        },
+        {
+            "source": "task3",
+            "target": "task5",
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
+        },
+        {
+            "source": "task4",
+            "target": "task5",
+            "data_mapping": [{"target_input": "b", "source_output": "result"}],
+        },
+        {
+            "source": "task5",
+            "target": "task6",
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
+        },
     ]
 
     graph = {

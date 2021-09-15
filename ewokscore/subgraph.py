@@ -172,7 +172,7 @@ def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]
         link_attrs = {
             "source": "subgraph1",
             "target": "subgraph2",
-            "arguments": {0: "return_value"},
+            "data_mapping": [{"target_input": 0, "source_output":"return_value"}],
             "sub_graph_nodes": {
                 "sub_source": "subsubgraph",
                 "sub_target": "task1",
