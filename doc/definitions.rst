@@ -33,10 +33,12 @@ Ewoks describes workflows as a list of nodes and a list of links with specific a
 
     {
         "nodes": [{"id": "name1",
-                   "class": "package.module.task.SumTask",
+                   "task_type": "class",
+                   "task_identifier": "package.module.task.SumTask",
                    "inputs": [{"name":"a", "value":1}]},
                   {"id": "name2",
-                   "class": "package.module.task.SumTask"}]
+                   "task_type": "class",
+                   "task_identifier": "package.module.task.SumTask"}]
         "links": [{"source": "name1",
                    "target": "name2",
                    "data_mapping":[{"source_output":"result", "target_input":"a"}]}],
