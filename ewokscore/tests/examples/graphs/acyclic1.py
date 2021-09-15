@@ -47,27 +47,27 @@ def acyclic1():
         {
             "source": "task1",
             "target": "task3",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
         },
         {
             "source": "task2",
             "target": "task4",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
         },
         {
             "source": "task3",
             "target": "task5",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
         },
         {
             "source": "task4",
             "target": "task5",
-            "arguments": [{"input": "b", "output": "result"}],
+            "data_mapping": [{"target_input": "b", "source_output": "result"}],
         },
         {
             "source": "task5",
             "target": "task6",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
         },
     ]
 

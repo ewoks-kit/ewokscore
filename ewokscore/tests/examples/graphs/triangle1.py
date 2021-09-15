@@ -28,19 +28,19 @@ def triangle1():
         {
             "source": "task1",
             "target": "task2",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
             "conditions": {"too_small": True},
         },
         {
             "source": "task2",
             "target": "task3",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
             "conditions": {"too_small": True},
         },
         {
             "source": "task3",
             "target": "task1",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
             "conditions": {"too_small": True},
         },
     ]

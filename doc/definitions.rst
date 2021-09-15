@@ -39,7 +39,7 @@ Ewoks describes workflows as a list of nodes and a list of links with specific a
                    "class": "package.module.task.SumTask"}]
         "links": [{"source": "name1",
                    "target": "name2",
-                   "arguments":[{"output":"result", "input":"a"}]}],
+                   "data_mapping":[{"source_output":"result", "target_input":"a"}]}],
     }
 
 Graph attributes
@@ -78,11 +78,11 @@ Link attributes
     .. code-block:: json
 
         {
-            "arguments":[{"output": "result",
-                          "input": "a"}]
+            "data_mapping":[{"source_output": "result",
+                          "target_input": "a"}]
         }
 
-    If `"output"` is `None` or missing, the complete output of the source will be passed to the corresponding `"input"` or the target.
+    If `"source_output"` is `None` or missing, the complete output of the source will be passed to the corresponding `"target_input"` or the target.
 * *all_arguments* (optional): setting this to `True` is equivalent to *arguments* being the identity mapping for all input names. Cannot be used in combination with *arguments*.
 * *conditions* (optional): a dictionary that maps output names to expected values
 * *on_error* (optional): a special condition: task raises an exception. Cannot be used in combination with *conditions*.

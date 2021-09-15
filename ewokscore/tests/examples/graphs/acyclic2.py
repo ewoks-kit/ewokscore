@@ -47,12 +47,12 @@ def acyclic2():
         {
             "source": "task1",
             "target": "task2",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
         },
         {
             "source": "task2",
             "target": "task3",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
         },
         {
             "source": "task2",
@@ -62,12 +62,12 @@ def acyclic2():
         {
             "source": "task3",
             "target": "task5",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
         },
         {
             "source": "task4",
             "target": "task6",
-            "arguments": [{"input": "a", "output": "result"}],
+            "data_mapping": [{"target_input": "a", "source_output": "result"}],
         },
     ]
 

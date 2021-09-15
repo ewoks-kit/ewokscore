@@ -29,7 +29,7 @@ def subsubsubgraph(tmpdir):
             {
                 "source": "task1",
                 "target": "task2",
-                "arguments": [{"input": 0, "output": "return_value"}],
+                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
             },
         ],
     }
@@ -61,12 +61,12 @@ def subsubgraph(tmpdir, subsubsubgraph):
             {
                 "source": "task1",
                 "target": "task2",
-                "arguments": [{"input": 0, "output": "return_value"}],
+                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
             },
             {
                 "source": "task2",
                 "target": "subsubsubgraph",
-                "arguments": [{"input": 0, "output": "return_value"}],
+                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
                 "sub_graph_nodes": {"sub_target": "task1"},
             },
         ],
@@ -94,12 +94,12 @@ def subgraph(tmpdir, subsubgraph):
             {
                 "source": "task1",
                 "target": "task2",
-                "arguments": [{"input": 0, "output": "return_value"}],
+                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
             },
             {
                 "source": "task2",
                 "target": "subsubgraph",
-                "arguments": [{"input": 0, "output": "return_value"}],
+                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
                 "sub_graph_nodes": {"sub_target": "task1"},
             },
         ],
@@ -123,7 +123,7 @@ def graph(tmpdir, subgraph):
             {
                 "source": "subgraph1",
                 "target": "subgraph2",
-                "arguments": [{"input": 0, "output": "return_value"}],
+                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
                 "sub_graph_nodes": {
                     "sub_source": "subsubgraph",
                     "sub_target": "task1",
@@ -137,19 +137,19 @@ def graph(tmpdir, subgraph):
             {
                 "source": "subgraph1",
                 "target": "append",
-                "arguments": [{"input": 0, "output": "return_value"}],
+                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
                 "sub_graph_nodes": {"sub_source": "task1"},
             },
             {
                 "source": "subgraph1",
                 "target": "append",
-                "arguments": [{"input": 1, "output": "return_value"}],
+                "data_mapping": [{"target_input": 1, "source_output": "return_value"}],
                 "sub_graph_nodes": {"sub_source": "task2"},
             },
             {
                 "source": "subgraph1",
                 "target": "append",
-                "arguments": [{"input": 2, "output": "return_value"}],
+                "data_mapping": [{"target_input": 2, "source_output": "return_value"}],
                 "sub_graph_nodes": {
                     "sub_source": "subsubgraph",
                     "sub_graph_nodes": {"sub_source": "task1"},
@@ -158,7 +158,7 @@ def graph(tmpdir, subgraph):
             {
                 "source": "subgraph1",
                 "target": "append",
-                "arguments": [{"input": 3, "output": "return_value"}],
+                "data_mapping": [{"target_input": 3, "source_output": "return_value"}],
                 "sub_graph_nodes": {
                     "sub_source": "subsubgraph",
                     "sub_graph_nodes": {"sub_source": "task2"},
@@ -167,7 +167,7 @@ def graph(tmpdir, subgraph):
             {
                 "source": "subgraph1",
                 "target": "append",
-                "arguments": [{"input": 4, "output": "return_value"}],
+                "data_mapping": [{"target_input": 4, "source_output": "return_value"}],
                 "sub_graph_nodes": {
                     "sub_source": "subsubgraph",
                     "sub_graph_nodes": {
@@ -179,7 +179,7 @@ def graph(tmpdir, subgraph):
             {
                 "source": "subgraph1",
                 "target": "append",
-                "arguments": [{"input": 5, "output": "return_value"}],
+                "data_mapping": [{"target_input": 5, "source_output": "return_value"}],
                 "sub_graph_nodes": {
                     "sub_source": "subsubgraph",
                     "sub_graph_nodes": {
@@ -192,19 +192,19 @@ def graph(tmpdir, subgraph):
             {
                 "source": "subgraph2",
                 "target": "append",
-                "arguments": [{"input": 6, "output": "return_value"}],
+                "data_mapping": [{"target_input": 6, "source_output": "return_value"}],
                 "sub_graph_nodes": {"sub_source": "task1"},
             },
             {
                 "source": "subgraph2",
                 "target": "append",
-                "arguments": [{"input": 7, "output": "return_value"}],
+                "data_mapping": [{"target_input": 7, "source_output": "return_value"}],
                 "sub_graph_nodes": {"sub_source": "task2"},
             },
             {
                 "source": "subgraph2",
                 "target": "append",
-                "arguments": [{"input": 8, "output": "return_value"}],
+                "data_mapping": [{"target_input": 8, "source_output": "return_value"}],
                 "sub_graph_nodes": {
                     "sub_source": ("subsubgraph", "task1"),
                 },
@@ -212,13 +212,13 @@ def graph(tmpdir, subgraph):
             {
                 "source": "subgraph2",
                 "target": "append",
-                "arguments": [{"input": 9, "output": "return_value"}],
+                "data_mapping": [{"target_input": 9, "source_output": "return_value"}],
                 "sub_graph_nodes": {"sub_source": ("subsubgraph", "task2")},
             },
             {
                 "source": "subgraph2",
                 "target": "append",
-                "arguments": [{"input": 10, "output": "return_value"}],
+                "data_mapping": [{"target_input": 10, "source_output": "return_value"}],
                 "sub_graph_nodes": {
                     "sub_source": ("subsubgraph", ("subsubsubgraph", "task1"))
                 },
@@ -226,7 +226,7 @@ def graph(tmpdir, subgraph):
             {
                 "source": "subgraph2",
                 "target": "append",
-                "arguments": [{"input": 11, "output": "return_value"}],
+                "data_mapping": [{"target_input": 11, "source_output": "return_value"}],
                 "sub_graph_nodes": {
                     "sub_source": ("subsubgraph", ("subsubsubgraph", "task2"))
                 },

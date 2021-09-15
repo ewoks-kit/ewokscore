@@ -590,10 +590,10 @@ class TaskGraph:
             inputs_from_required = dict()
             for source_name in self._required_predecessors(node_name):
                 link_attrs = self.graph[source_name][node_name]
-                arguments = link_attrs.get("arguments", list())
+                arguments = link_attrs.get("data_mapping", list())
                 for arg in arguments:
                     try:
-                        name = arg["input"]
+                        name = arg["target_input"]
                     except KeyError:
                         raise KeyError(
                             f"Argument '{arg}' of link '{source_name}' -> '{node_name}' is missing an 'input' key"
@@ -609,8 +609,8 @@ class TaskGraph:
             err_msg = (
                 f"Link {source}->{target}: '{{}}' and '{{}}' cannot be used together"
             )
-            if linkattrs.get("all_arguments") and linkattrs.get("arguments"):
-                raise ValueError(err_msg.format("all_arguments", "arguments"))
+            if linkattrs.get("all_arguments") and linkattrs.get("data_mapping"):
+                raise ValueError(err_msg.format("all_arguments", "data_mapping"))
             if linkattrs.get("on_error") and linkattrs.get("conditions"):
                 raise ValueError(err_msg.format("on_error", "conditions"))
 
