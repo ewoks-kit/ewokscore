@@ -92,7 +92,7 @@ def cyclic1():
             "source": "task6",
             "target": "task7",
             "data_mapping": [{"target_input": "a", "source_output": "result"}],
-            "conditions": {"too_small": False},
+            "conditions": [{"source_output": "too_small", "value": False}],
         },
     ]
 

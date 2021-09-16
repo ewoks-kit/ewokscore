@@ -13,7 +13,10 @@ def acyclic2():
         },
         {
             "id": "task2",
-            "default_inputs": {"b": 2, "raise_error": True},
+            "default_inputs": [
+                {"name": "b", "value": 2},
+                {"name": "raise_error", "value": True},
+            ],
             "task_type": "class",
             "task_identifier": task,
         },
