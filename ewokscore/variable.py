@@ -56,9 +56,20 @@ class Variable(UniversalHashable):
         super().__init__(**kw)
         self.value = value
 
+    def copy(self):
+        """The uhash of the copy is fixed thereby remove references to other uhasable objects."""
+        varcp = self.__class__(value=self.value, uhash=self.uhash)
+        varcp._data_proxy = self.data_proxy
+        varcp._hashing_enabled = self.hashing_enabled
+        return varcp
+
     @property
     def data_proxy(self):
         return self._data_proxy
+
+    @property
+    def hashing_enabled(self):
+        return self._hashing_enabled
 
     def _uhash_data(self):
         """The runtime value is used."""
@@ -369,10 +380,15 @@ class VariableContainer(Mapping, Variable):
     @property
     def variable_transfer_data(self):
         """Transfer data by variable or URI"""
-        return {
-            k: v.data_proxy.uri if v.has_persistent_value else v
-            for k, v in self.items()
-        }
+        data = dict()
+        for name, var in self.items():
+            if var.has_persistent_value:
+                data[name] = var.data_proxy.uri
+            elif var.hashing_enabled:
+                data[name] = var.copy()
+            else:
+                data[name] = var.value
+        return data
 
     @property
     def named_variable_values(self):

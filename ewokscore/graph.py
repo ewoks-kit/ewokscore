@@ -530,7 +530,7 @@ class TaskGraph:
         )
 
     def _node_has_noncovered_conditions(self, source_name) -> bool:
-        links = self._get_node_explanded_conditions(source_name)
+        links = self._get_node_expanded_conditions(source_name)
         has_complement = [False] * len(links)
 
         default_complements = {CONDITIONS_ELSE_VALUE}
@@ -568,16 +568,20 @@ class TaskGraph:
                 return False
         return True
 
-    def _get_node_explanded_conditions(self, source_name):
+    def _get_node_expanded_conditions(self, source_name):
+        """Ensure that conditional link starting from a source node has
+        the same set of output names.
+        """
         links = [
             self.graph[source_name][target_name]["conditions"]
             for target_name in self.successors(source_name, link_has_conditions=True)
         ]
-        all_names = {
+        all_condition_names = {
             item["source_output"] for conditions in links for item in conditions
         }
         for conditions in links:
-            for name in all_names:
+            link_condition_names = {item["source_output"] for item in conditions}
+            for name in all_condition_names - link_condition_names:
                 conditions.append(
                     {"source_output": name, "value": CONDITIONS_ELSE_VALUE}
                 )
