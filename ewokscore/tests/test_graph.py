@@ -79,7 +79,7 @@ def test_wrong_argument_definitions():
     with pytest.raises(ValueError):
         load_graph(graph)
 
-    links[0]["conditions"] = [{"name": "a", "value": 1}]
+    links[0]["conditions"] = [{"source_output": "a", "value": 1}]
     load_graph(graph)
 
     links[0]["required"] = True
