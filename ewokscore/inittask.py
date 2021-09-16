@@ -124,7 +124,7 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
     """
     # Default inputs
     task_inputs = node_attrs.get("default_inputs", list())
-    task_inputs = dict([(d["name"], d["value"]) for d in task_inputs])
+    task_inputs = {d["name"]: d["value"] for d in task_inputs}
     # Dynamic inputs (from other tasks)
     if inputs:
         task_inputs.update(inputs)
