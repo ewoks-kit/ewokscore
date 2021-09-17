@@ -76,8 +76,8 @@ def subsubgraph(tmpdir, subsubsubgraph):
             {
                 "source": "task2",
                 "target": "subsubsubgraph",
+                "sub_target": "in",
                 "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_target": "in"},
             },
         ],
     }
@@ -113,8 +113,8 @@ def subgraph(tmpdir, subsubgraph):
             {
                 "source": "task2",
                 "target": "subsubgraph",
+                "sub_target": "in",
                 "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_target": "in"},
             },
         ],
     }
@@ -136,96 +136,84 @@ def graph(tmpdir, subgraph):
         "links": [
             {
                 "source": "subgraph1",
+                "sub_source": "out",
                 "target": "subgraph2",
+                "sub_target": "in",
                 "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_target": "in",
-                    "sub_source": "out",
-                },
             },
             # Link all nodes from "subgraph1" to "append"
             {
                 "source": "subgraph1",
+                "sub_source": "task1",
                 "target": "append",
                 "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": "task1"},
             },
             {
                 "source": "subgraph1",
+                "sub_source": "task2",
                 "target": "append",
                 "data_mapping": [{"target_input": 1, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": "task2"},
             },
             {
                 "source": "subgraph1",
+                "sub_source": ("subsubgraph", "task1"),
                 "target": "append",
                 "data_mapping": [{"target_input": 2, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": ("subsubgraph", "task1")},
             },
             {
                 "source": "subgraph1",
+                "sub_source": ("subsubgraph", "task2"),
                 "target": "append",
                 "data_mapping": [{"target_input": 3, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": ("subsubgraph", "task2")},
             },
             {
                 "source": "subgraph1",
+                "sub_source": ("subsubgraph", ("subsubsubgraph", "task1")),
                 "target": "append",
                 "data_mapping": [{"target_input": 4, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": ("subsubgraph", ("subsubsubgraph", "task1"))
-                },
             },
             {
                 "source": "subgraph1",
+                "sub_source": ("subsubgraph", ("subsubsubgraph", "task2")),
                 "target": "append",
                 "data_mapping": [{"target_input": 5, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": ("subsubgraph", ("subsubsubgraph", "task2"))
-                },
             },
             # Link all nodes from "subgraph2" to "append"
             {
                 "source": "subgraph2",
+                "sub_source": "task1",
                 "target": "append",
                 "data_mapping": [{"target_input": 6, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": "task1"},
             },
             {
                 "source": "subgraph2",
+                "sub_source": "task2",
                 "target": "append",
                 "data_mapping": [{"target_input": 7, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": "task2"},
             },
             {
                 "source": "subgraph2",
+                "sub_source": ("subsubgraph", "task1"),
                 "target": "append",
                 "data_mapping": [{"target_input": 8, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": ("subsubgraph", "task1"),
-                },
             },
             {
                 "source": "subgraph2",
+                "sub_source": ("subsubgraph", "task2"),
                 "target": "append",
                 "data_mapping": [{"target_input": 9, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": ("subsubgraph", "task2")},
             },
             {
                 "source": "subgraph2",
+                "sub_source": ("subsubgraph", ("subsubsubgraph", "task1")),
                 "target": "append",
                 "data_mapping": [{"target_input": 10, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": ("subsubgraph", ("subsubsubgraph", "task1"))
-                },
             },
             {
                 "source": "subgraph2",
+                "sub_source": ("subsubgraph", ("subsubsubgraph", "task2")),
                 "target": "append",
                 "data_mapping": [{"target_input": 11, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": ("subsubgraph", ("subsubsubgraph", "task2"))
-                },
             },
         ],
     }

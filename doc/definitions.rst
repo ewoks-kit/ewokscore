@@ -103,7 +103,10 @@ Node attributes
 Link attributes
 ^^^^^^^^^^^^^^^
 * *source*: the *id* of the source node
+* *sub_source*: when *source* is a *graph*, specify the *id* or `output_nodes` alias of the node in *source*
 * *target*: the *id* of the target node
+* *sub_target*: when *target* is a *graph*, specify the *id* of `input_nodes` alias of the node in *target*
+* *sub_target_attributes* (optional): can be used when *target* is a *graph*. It allows changing the node attributes of *sub_target* in the sub-graph.
 * *data_mapping* (optional): describe data transfer of source outputs to target input arguments. For example
     .. code-block:: json
 
@@ -121,10 +124,6 @@ Link attributes
             "conditions": [{"source_output": "result", "value": 10}]
         }
 * *on_error* (optional): a special condition: task raises an exception. Cannot be used in combination with *conditions*.
-* *sub_graph_nodes*: when the *task_type* of source and/or target is *graph*, this specifies the nodes of the source and/or target sub-graph that are to be linked. The dictionary keys are
-   * *sub_source*: when *source* is a *graph*, specify the *id* or `output_nodes` alias of the node in *source*
-   * *sub_target*: when *target* is a *graph*, specify the *id* of `input_nodes` alias of the node in *target*
-   * *sub_target_attributes* (optional): can be used when *target* is a *graph*. It allows changing the node attributes of *sub_target* in the sub-graph.
 
 Task implementation
 -------------------

@@ -162,25 +162,6 @@ def _get_subnode_info(
     return sub_source, sub_target, target_is_graph
 
 
-def _get_nested_subnode_info(
-    source_name: NodeIdType,
-    target_name: NodeIdType,
-    sub_graph_nodes: dict,
-    subgraphs: dict,
-) -> Tuple[NodeIdType, NodeIdType, bool]:
-    sub_source, sub_target, target_is_graph = _get_subnode_info(
-        source_name, target_name, sub_graph_nodes, subgraphs
-    )
-    sub_graph_nodes = sub_graph_nodes.pop("sub_graph_nodes", None)
-    while sub_graph_nodes:
-        warnings.warn("nested 'sub_graph_nodes' is deprecated", FutureWarning)
-        sub_source, sub_target, _ = _get_subnode_info(
-            sub_source, sub_target, sub_graph_nodes, subgraphs
-        )
-        sub_graph_nodes = sub_graph_nodes.pop("sub_graph_nodes", None)
-    return sub_source, sub_target, target_is_graph
-
-
 def _replace_aliases(
     graph: networkx.DiGraph, subgraphs: dict, input_nodes: bool
 ) -> dict:
@@ -247,16 +228,20 @@ def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]
                 all_link_attrs = [all_link_attrs]
             for link_attrs in all_link_attrs:
                 links = link_attrs.pop("links", None)
-                sub_graph_nodes = link_attrs.pop("sub_graph_nodes", None)
+                sub_graph_nodes = {
+                    key: link_attrs.pop(key)
+                    for key in ["sub_source", "sub_target", "sub_target_attributes"]
+                    if key in link_attrs
+                }
                 if not links and not sub_graph_nodes:
                     continue
                 if links and sub_graph_nodes:
                     raise ValueError(
-                        "cannot use link attributes 'links' and 'sub_graph_nodes' at the same time. 'links' is a deprecated link attribute."
+                        "cannot use link attributes 'links' and 'sub_source'/'sub_target' at the same time. 'links' is a deprecated link attribute."
                     )
                 if links:
                     warnings.warn(
-                        "'links' is a deprecated link attribute. Use 'sub_graph_nodes' instead (link attributes need to be moved up)."
+                        "'links' is a deprecated link attribute. Use 'sub_source' and 'sub_target' instead."
                     )
                     itlinks = _extract_subgraph_links_deprecated(
                         source_name, target_name, links, subgraphs
@@ -266,10 +251,11 @@ def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]
                             update_attrs[target] = target_attributes
                         edges.append((source, target, link_attrs))
                 else:
-                    source, target, target_is_graph = _get_nested_subnode_info(
+                    source, target, target_is_graph = _get_subnode_info(
                         source_name, target_name, sub_graph_nodes, subgraphs
                     )
-                    sub_target_attributes = link_attrs.pop(
+
+                    sub_target_attributes = sub_graph_nodes.get(
                         "sub_target_attributes", None
                     )
                     if sub_target_attributes:
