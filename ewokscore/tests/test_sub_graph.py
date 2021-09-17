@@ -1,272 +1,67 @@
-import json
-import pytest
 from ewokscore import load_graph
+from ewokscore.utils import qualname
+from .utils import assert_taskgraph_result
 
 
-def savegraph(graph, tmpdir, name):
-    filename = name + ".json"
-    with open(tmpdir / filename, mode="w") as f:
-        json.dump(graph, f, indent=2)
-    return filename
+def myfunc(name=None, value=0):
+    print("name:", name, "value:", value)
+    return value + 1
 
 
-@pytest.fixture
-def subsubsubgraph(tmpdir):
-    graph = {
+def test_sub_graph():
+    subsubgraph = {
+        "graph": {"input_nodes": [{"alias": "in", "id": "subsubnode1"}]},
         "nodes": [
             {
-                "id": "task1",
+                "id": "subsubnode1",
                 "task_type": "method",
-                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
-            },
-            {
-                "id": "task2",
-                "task_type": "method",
-                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
-            },
-        ],
-        "links": [
-            {
-                "source": "task1",
-                "target": "task2",
-                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-            },
+                "task_identifier": qualname(myfunc),
+                "default_inputs": [
+                    {"name": "name", "value": "subsubnode1"},
+                    {"name": "value", "value": 0},
+                ],
+            }
         ],
     }
 
-    return savegraph(graph, tmpdir, "subsubsubgraph")
+    subgraph = {
+        "graph": {"input_nodes": [{"alias": "in", "id": "subnode1", "sub_node": "in"}]},
+        "nodes": [
+            {"id": "subnode1", "task_type": "graph", "task_identifier": subsubgraph}
+        ],
+    }
 
-
-@pytest.fixture
-def subsubgraph(tmpdir, subsubsubgraph):
     graph = {
         "nodes": [
             {
-                "id": "task1",
+                "id": "node1",
                 "task_type": "method",
-                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
+                "task_identifier": qualname(myfunc),
+                "default_inputs": [
+                    {"name": "name", "value": "node1"},
+                    {"name": "value", "value": 0},
+                ],
             },
-            {
-                "id": "task2",
-                "task_type": "method",
-                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
-            },
-            {
-                "id": "subsubsubgraph",
-                "task_type": "graph",
-                "task_identifier": subsubsubgraph,
-            },
+            {"id": "node2", "task_type": "graph", "task_identifier": subgraph},
         ],
         "links": [
             {
-                "source": "task1",
-                "target": "task2",
-                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-            },
-            {
-                "source": "task2",
-                "target": "subsubsubgraph",
-                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_target": "task1"},
-            },
+                "source": "node1",
+                "target": "node2",
+                "sub_graph_nodes": {
+                    "sub_target": "in",
+                },
+                "data_mapping": [
+                    {"target_input": "value", "source_output": "return_value"}
+                ],
+            }
         ],
     }
-    return savegraph(graph, tmpdir, "subsubgraph")
 
-
-@pytest.fixture
-def subgraph(tmpdir, subsubgraph):
-    graph = {
-        "nodes": [
-            {
-                "id": "task1",
-                "task_type": "method",
-                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
-            },
-            {
-                "id": "task2",
-                "task_type": "method",
-                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
-            },
-            {"id": "subsubgraph", "task_type": "graph", "task_identifier": subsubgraph},
-        ],
-        "links": [
-            {
-                "source": "task1",
-                "target": "task2",
-                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-            },
-            {
-                "source": "task2",
-                "target": "subsubgraph",
-                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_target": "task1"},
-            },
-        ],
+    ewoksgraph = load_graph(graph)
+    tasks = ewoksgraph.execute()
+    expected = {
+        "node1": {"return_value": 1},
+        ("node2", ("subnode1", "subsubnode1")): {"return_value": 2},
     }
-    return savegraph(graph, tmpdir, "subgraph")
-
-
-@pytest.fixture
-def graph(tmpdir, subgraph):
-    graph = {
-        "nodes": [
-            {"id": "subgraph1", "task_type": "graph", "task_identifier": subgraph},
-            {"id": "subgraph2", "task_type": "graph", "task_identifier": subgraph},
-            {
-                "id": "append",
-                "task_type": "method",
-                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.append",
-            },
-        ],
-        "links": [
-            {
-                "source": "subgraph1",
-                "target": "subgraph2",
-                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": "subsubgraph",
-                    "sub_target": "task1",
-                    "sub_graph_nodes": {
-                        "sub_source": "subsubsubgraph",
-                        "sub_graph_nodes": {"sub_source": "task2"},
-                    },
-                },
-            },
-            # Expanded sub-links
-            {
-                "source": "subgraph1",
-                "target": "append",
-                "data_mapping": [{"target_input": 0, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": "task1"},
-            },
-            {
-                "source": "subgraph1",
-                "target": "append",
-                "data_mapping": [{"target_input": 1, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": "task2"},
-            },
-            {
-                "source": "subgraph1",
-                "target": "append",
-                "data_mapping": [{"target_input": 2, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": "subsubgraph",
-                    "sub_graph_nodes": {"sub_source": "task1"},
-                },
-            },
-            {
-                "source": "subgraph1",
-                "target": "append",
-                "data_mapping": [{"target_input": 3, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": "subsubgraph",
-                    "sub_graph_nodes": {"sub_source": "task2"},
-                },
-            },
-            {
-                "source": "subgraph1",
-                "target": "append",
-                "data_mapping": [{"target_input": 4, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": "subsubgraph",
-                    "sub_graph_nodes": {
-                        "sub_source": "subsubsubgraph",
-                        "sub_graph_nodes": {"sub_source": "task1"},
-                    },
-                },
-            },
-            {
-                "source": "subgraph1",
-                "target": "append",
-                "data_mapping": [{"target_input": 5, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": "subsubgraph",
-                    "sub_graph_nodes": {
-                        "sub_source": "subsubsubgraph",
-                        "sub_graph_nodes": {"sub_source": "task2"},
-                    },
-                },
-            },
-            # Flat sub-links (1 level deep because the source and target need to be a valid node id)
-            {
-                "source": "subgraph2",
-                "target": "append",
-                "data_mapping": [{"target_input": 6, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": "task1"},
-            },
-            {
-                "source": "subgraph2",
-                "target": "append",
-                "data_mapping": [{"target_input": 7, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": "task2"},
-            },
-            {
-                "source": "subgraph2",
-                "target": "append",
-                "data_mapping": [{"target_input": 8, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": ("subsubgraph", "task1"),
-                },
-            },
-            {
-                "source": "subgraph2",
-                "target": "append",
-                "data_mapping": [{"target_input": 9, "source_output": "return_value"}],
-                "sub_graph_nodes": {"sub_source": ("subsubgraph", "task2")},
-            },
-            {
-                "source": "subgraph2",
-                "target": "append",
-                "data_mapping": [{"target_input": 10, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": ("subsubgraph", ("subsubsubgraph", "task1"))
-                },
-            },
-            {
-                "source": "subgraph2",
-                "target": "append",
-                "data_mapping": [{"target_input": 11, "source_output": "return_value"}],
-                "sub_graph_nodes": {
-                    "sub_source": ("subsubgraph", ("subsubsubgraph", "task2"))
-                },
-            },
-        ],
-    }
-    return savegraph(graph, tmpdir, "graph")
-
-
-def test_load_from_json(tmpdir, graph):
-    taskgraph = load_graph(graph, root_dir=str(tmpdir))
-    tasks = taskgraph.execute()
-
-    assert len(tasks) == 13
-
-    task = tasks[("subgraph1", "task1")]
-    assert task.outputs.return_value == 1
-    task = tasks[("subgraph1", "task2")]
-    assert task.outputs.return_value == 2
-    task = tasks[("subgraph1", ("subsubgraph", "task1"))]
-    assert task.outputs.return_value == 3
-    task = tasks[("subgraph1", ("subsubgraph", "task2"))]
-    assert task.outputs.return_value == 4
-    task = tasks[("subgraph1", ("subsubgraph", ("subsubsubgraph", "task1")))]
-    assert task.outputs.return_value == 5
-    task = tasks[("subgraph1", ("subsubgraph", ("subsubsubgraph", "task2")))]
-    assert task.outputs.return_value == 6
-
-    task = tasks[("subgraph2", "task1")]
-    assert task.outputs.return_value == 7
-    task = tasks[("subgraph2", "task2")]
-    assert task.outputs.return_value == 8
-    task = tasks[("subgraph2", ("subsubgraph", "task1"))]
-    assert task.outputs.return_value == 9
-    task = tasks[("subgraph2", ("subsubgraph", "task2"))]
-    assert task.outputs.return_value == 10
-    task = tasks[("subgraph2", ("subsubgraph", ("subsubsubgraph", "task1")))]
-    assert task.outputs.return_value == 11
-    task = tasks[("subgraph2", ("subsubgraph", ("subsubsubgraph", "task2")))]
-    assert task.outputs.return_value == 12
-
-    task = tasks["append"]
-    assert task.outputs.return_value == tuple(range(1, 13))
+    assert_taskgraph_result(ewoksgraph, expected, tasks=tasks)

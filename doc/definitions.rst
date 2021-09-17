@@ -32,6 +32,7 @@ Ewoks describes workflows as a list of nodes and a list of links with specific a
 .. code-block:: json
 
     {
+        "graph": {"name": "mygraph"}
         "nodes": [{"id": "name1",
                    "task_type": "class",
                    "task_identifier": "package.module.task.SumTask",
@@ -46,9 +47,36 @@ Ewoks describes workflows as a list of nodes and a list of links with specific a
 
 Graph attributes
 ^^^^^^^^^^^^^^^^
-* *nodes*: a list of nodes
-* *links*: a list of links
 * *name* (optional): the name of the task graph
+* *input_nodes* (optional): dictionary of aliases for nodes that are expected to be used as link targets when the graph is used as a subgraph.
+* *output_nodes* (optional): dictionary of aliases for nodes that are expected to be used as link sources when the graph is used as a subgraph.
+
+The two dictionaries of aliases (*input_nodes* and *output_nodes*) map alias name to node *id*. For example
+
+.. code-block:: json
+
+    {
+        "graph": {
+            "input_nodes": [
+                {"alias": "alias1", "id": "name1"},
+                {"alias": "alias2", "id": "name2"},
+            ]
+        }
+    }
+
+
+In case the nodes are graphs, the node inside that graph needs to be references with the `sub_node` key, refering to a node *id* or alias in the sub-graph. For example
+
+.. code-block:: json
+
+    {
+        "graph": {
+            "input_nodes": [
+                {"alias": "alias1", "id": "name1", "sub_node": "name3"},
+                {"alias": "alias2", "id": "name2", "sub_node": "name4"},
+            ]
+        }
+    }
 
 Node attributes
 ^^^^^^^^^^^^^^^
@@ -94,9 +122,8 @@ Link attributes
         }
 * *on_error* (optional): a special condition: task raises an exception. Cannot be used in combination with *conditions*.
 * *sub_graph_nodes*: when the *task_type* of source and/or target is *graph*, this specifies the nodes of the source and/or target sub-graph that are to be linked. The dictionary keys are
-   * *sub_source*: specify the *id* of the node in *source* when *source* is a *graph*
-   * *sub_target*: specify the *id* of the node in *target* when *target* is a *graph*
-   * *sub_graph_nodes* (optional): required in case *sub_source* and/or *sub_target* are graphs themselves . So *sub_graph_nodes* must be nested until both *sub_source* and *sub_target* are not graphs.
+   * *sub_source*: when *source* is a *graph*, specify the *id* or `output_nodes` alias of the node in *source*
+   * *sub_target*: when *target* is a *graph*, specify the *id* of `input_nodes` alias of the node in *target*
    * *sub_target_attributes* (optional): can be used when *target* is a *graph*. It allows changing the node attributes of *sub_target* in the sub-graph.
 
 Task implementation

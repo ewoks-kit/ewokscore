@@ -53,7 +53,7 @@ class FileProxy(proxy.DataProxy, register=False):
                 raise proxy.UriNotFoundError(path) from e
         except Exception as e:
             if raise_error:
-                raise proxy.PersistencyError(path) from e
+                raise proxy.PersistenceError(path) from e
         return UniversalHashable.MISSING_DATA
 
     def _dump(self, path: Path, data: Any) -> None:
