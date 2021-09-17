@@ -48,9 +48,7 @@ def test_sub_graph():
             {
                 "source": "node1",
                 "target": "node2",
-                "sub_graph_nodes": {
-                    "sub_target": "in",
-                },
+                "sub_target": "in",
                 "data_mapping": [
                     {"target_input": "value", "source_output": "return_value"}
                 ],
