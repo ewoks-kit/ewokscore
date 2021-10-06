@@ -10,7 +10,7 @@ A **task** is an opaque unit of execution with input arguments defined by links 
 A **link** connects a source node to a target node. A link can have the following properties:
   * **conditional**: has a set of statements that combined are either True or False
   * **required**: either marked as “required” in the graph representation or “unconditional and all ancestors of the source node are required”
-  * **arguments**: a mapping from input arguments of the target to output arguments of the source.
+  * **data_mapping**: describes data transfer from source to target.
 
 Task scheduling
 ---------------
@@ -107,7 +107,7 @@ Link attributes
 * *target*: the *id* of the target node
 * *sub_target*: when *target* is a *graph*, specify the *id* of `input_nodes` alias of the node in *target*
 * *sub_target_attributes* (optional): can be used when *target* is a *graph*. It allows changing the node attributes of *sub_target* in the sub-graph.
-* *data_mapping* (optional): describe data transfer of source outputs to target input arguments. For example
+* *data_mapping* (optional): describe data transfer from source outputs to target input arguments. For example
     .. code-block:: json
 
         {
@@ -116,7 +116,7 @@ Link attributes
         }
 
     If `"source_output"` is `None` or missing, the complete output of the source will be passed to the corresponding `"target_input"` or the target.
-* *map_all_data* (optional): setting this to `True` is equivalent to *arguments* being the identity mapping for all input names. Cannot be used in combination with *arguments*.
+* *map_all_data* (optional): setting this to `True` is equivalent to *data_mapping* being the identity mapping for all input names. Cannot be used in combination with *data_mapping*.
 * *conditions* (optional): provides a list of expected values for source outputs
     .. code-block:: json
 
