@@ -133,9 +133,6 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
 
     # Instantiate task
     task_type, task_info = task_executable_info(node_attrs, node_name=node_name)
-    metadata = dict()
-    if node_name:
-        metadata["description"] = node_name
     if task_type == "class":
         return Task.instantiate(
             task_info["task_identifier"],
