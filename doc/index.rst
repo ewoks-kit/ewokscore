@@ -9,4 +9,5 @@ ewokscore has been developed by the `Software group <http://www.esrf.eu/Instrume
     :maxdepth: 2
 
     definitions
+    implementation
     api

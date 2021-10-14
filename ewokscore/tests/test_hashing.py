@@ -40,6 +40,28 @@ def test_hashing_unique():
     assert hashing.uhash(adict) == hashing.uhash(dict(sorted(adict.items())))
 
 
+def test_pre_uhash():
+    class Test(hashing.UniversalHashable, version=1):
+        def __init__(self, data, **kw):
+            self.data = data
+            super().__init__(**kw)
+
+        def _uhash_data(self):
+            return self.data
+
+    a = Test(1, pre_uhash=None, instance_nonce=10)
+    b = Test(2, pre_uhash=a)  # keeps a reference
+    c = Test(3, pre_uhash=a.uhash)  # no reference
+
+    assert a.uhash == b.uhash
+    assert a.uhash == c.uhash
+
+    a.data = 3
+
+    assert a.uhash == b.uhash
+    assert a.uhash != c.uhash
+
+
 def test_versioning():
     def create_classes(vparent=None, vchild=None):
         class Mixin1:
