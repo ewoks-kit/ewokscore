@@ -14,8 +14,8 @@ def savegraph(graph, tmpdir, name):
 def subsubsubgraph(tmpdir):
     graph = {
         "graph": {
-            "input_nodes": [{"alias": "in", "id": "task1"}],
-            "output_nodes": [{"alias": "out", "id": "task2"}],
+            "input_nodes": [{"id": "in", "node": "task1"}],
+            "output_nodes": [{"id": "out", "node": "task2"}],
         },
         "nodes": [
             {
@@ -45,9 +45,9 @@ def subsubsubgraph(tmpdir):
 def subsubgraph(tmpdir, subsubsubgraph):
     graph = {
         "graph": {
-            "input_nodes": [{"alias": "in", "id": "task1"}],
+            "input_nodes": [{"id": "in", "node": "task1"}],
             "output_nodes": [
-                {"alias": "out", "id": "subsubsubgraph", "sub_node": "out"}
+                {"id": "out", "node": "subsubsubgraph", "sub_node": "out"}
             ],
         },
         "nodes": [
@@ -88,8 +88,8 @@ def subsubgraph(tmpdir, subsubsubgraph):
 def subgraph(tmpdir, subsubgraph):
     graph = {
         "graph": {
-            "input_nodes": [{"alias": "in", "id": "task1"}],
-            "output_nodes": [{"alias": "out", "id": "subsubgraph", "sub_node": "out"}],
+            "input_nodes": [{"id": "in", "node": "task1"}],
+            "output_nodes": [{"id": "out", "node": "subsubgraph", "sub_node": "out"}],
         },
         "nodes": [
             {

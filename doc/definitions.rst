@@ -48,35 +48,40 @@ Ewoks describes workflows as a list of nodes and a list of links with specific a
 Graph attributes
 ^^^^^^^^^^^^^^^^
 * *name* (optional): the name of the task graph
-* *input_nodes* (optional): dictionary of aliases for nodes that are expected to be used as link targets when the graph is used as a subgraph.
-* *output_nodes* (optional): dictionary of aliases for nodes that are expected to be used as link sources when the graph is used as a subgraph.
+* *input_nodes* (optional): nodes that are expected to be used as link targets when the graph is used as a subgraph.
+* *output_nodes* (optional): nodes that are expected to be used as link sources when the graph is used as a subgraph.
 
-The two dictionaries of aliases (*input_nodes* and *output_nodes*) map alias name to node *id*. For example
-
-.. code-block:: json
-
-    {
-        "graph": {
-            "input_nodes": [
-                {"alias": "alias1", "id": "name1"},
-                {"alias": "alias2", "id": "name2"},
-            ]
-        }
-    }
-
-
-In case the nodes are graphs, the node inside that graph needs to be references with the `sub_node` key, refering to a node *id* or alias in the sub-graph. For example
+The *input_nodes* and *output_nodes* define nodes which refer to nodes from the node attributes. For example
 
 .. code-block:: json
 
     {
         "graph": {
             "input_nodes": [
-                {"alias": "alias1", "id": "name1", "sub_node": "name3"},
-                {"alias": "alias2", "id": "name2", "sub_node": "name4"},
+                {"id": "alias1", "node": "name1"},
+                {"id": "alias2", "node": "name2"},
             ]
         }
     }
+
+
+In case the referenced nodes are graphs, the node inside that graph needs to be references with the `"sub_node"` key.
+For example
+
+.. code-block:: json
+
+    {
+        "graph": {
+            "input_nodes": [
+                {"id": "alias1", "node": "name1", "sub_node": "name3"},
+                {"id": "alias2", "node": "name2", "sub_node": "name4"},
+            ]
+        }
+    }
+
+Note that `"alias1"`, `"name1"`, `"name3"`, ... are all node id's. The `"sub_node"` *id* could be an *id* in the
+node attributes of the sub-graph or it could be an *id* in the graph attributes *input_nodes* or *output_nodes*
+of the sub-graph.
 
 Node attributes
 ^^^^^^^^^^^^^^^
