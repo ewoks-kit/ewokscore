@@ -48,18 +48,18 @@ def _resolve_node_alias(
         aliases = graph_attrs.get("output_nodes", None)
     if not aliases:
         return node_name
-    node_info = None
-    for alias_attrs in aliases:
-        if alias_attrs["alias"] == node_name:
-            node_info = alias_attrs
+    alias_attrs = None
+    for alias_attrsi in aliases:
+        if alias_attrsi["id"] == node_name:
+            alias_attrs = alias_attrsi
             break
-    if not node_info:
+    if not alias_attrs:
         return node_name
-    sub_node = node_info.get("sub_node", None)
+    sub_node = alias_attrs.get("sub_node", None)
     if sub_node:
-        return node_info["id"], sub_node
+        return alias_attrs["node"], sub_node
     else:
-        return node_info["id"]
+        return alias_attrs["node"]
 
 
 def _get_subnode_name(
@@ -123,7 +123,7 @@ def _replace_aliases(
         key = "sub_source"
 
     for alias_attrs in aliases:
-        node_name = alias_attrs["id"]
+        node_name = alias_attrs["node"]
         sub_node = alias_attrs.pop("sub_node", None)
         if sub_node:
             node_name = node_name, sub_node
@@ -132,7 +132,7 @@ def _replace_aliases(
             node_name, _ = _get_subnode_name(
                 parent, {key: child}, subgraphs=subgraphs, source=source
             )
-        alias_attrs["id"] = node_name
+        alias_attrs["node"] = node_name
 
 
 def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]:

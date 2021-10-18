@@ -10,7 +10,7 @@ def myfunc(name=None, value=0):
 
 def test_sub_graph():
     subsubgraph = {
-        "graph": {"input_nodes": [{"alias": "in", "id": "subsubnode1"}]},
+        "graph": {"input_nodes": [{"id": "in", "node": "subsubnode1"}]},
         "nodes": [
             {
                 "id": "subsubnode1",
@@ -25,7 +25,7 @@ def test_sub_graph():
     }
 
     subgraph = {
-        "graph": {"input_nodes": [{"alias": "in", "id": "subnode1", "sub_node": "in"}]},
+        "graph": {"input_nodes": [{"id": "in", "node": "subnode1", "sub_node": "in"}]},
         "nodes": [
             {"id": "subnode1", "task_type": "graph", "task_identifier": subsubgraph}
         ],
