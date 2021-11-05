@@ -21,6 +21,8 @@ class Registered:
             registry_name = utils.qualname(cls)
         ecls = cls._SUBCLASS_REGISTRY.get(registry_name)
         if ecls is not None:
+            if utils.qualname(cls) == utils.qualname(ecls):
+                return
             raise NotImplementedError(
                 f"Registry name {registry_name} is already taken by {repr(ecls)}"
             )
