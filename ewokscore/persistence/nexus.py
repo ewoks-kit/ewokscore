@@ -6,6 +6,7 @@ from .file import FileProxy
 from . import atomic
 from silx.io.dictdump import dicttonx, nxtodict
 from silx.io import h5py_utils
+from silx.utils.proxy import docstring
 
 
 # @h5py_utils.retry(retry_period=1)
@@ -22,6 +23,7 @@ class NexusProxy(FileProxy):
     EXTENSIONS = [".nx", "nxs", ".h5", ".hdf5", ".nexus"]
     ALLOW_PATH_IN_FILE = True
 
+    @docstring(FileProxy)
     def exists(self) -> bool:
         if not super().exists():
             return False
