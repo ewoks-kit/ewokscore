@@ -31,7 +31,7 @@ The input arguments of a task are defined in the following order of priority:
 
 *Ewoskcore* has a native, sequential task scheduler which can be used like this
 
-..code-block:: python
+.. code-block:: python
 
   from ewokscore import execute_graph
 
