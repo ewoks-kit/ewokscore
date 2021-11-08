@@ -14,7 +14,7 @@ def h5_item_exists(path, item):
     try:
         with h5py_utils.File(path) as f:
             return item in f
-    except Exception:  # is this robust enought ? Maybe ony some OS error should be filtered
+    except Exception:
         return False
 
 

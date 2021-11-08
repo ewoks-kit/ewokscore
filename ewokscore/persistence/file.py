@@ -23,8 +23,8 @@ class FileProxy(proxy.DataProxy, register=False):
 
     @property
     def path(self) -> Optional[Path]:
-        """return 'authority path' from the foloowing URI representation:
-        URI = scheme ":" "//" authority path ["?" query] ["#" fragment]
+        """return 'path' from the following URI representation:
+        URI = scheme ":" "//" path ["?" query] ["#" fragment]
         """
         if self.is_fixed_uri:
             return path_from_uri(self.uri.parse())

@@ -165,16 +165,18 @@ class DataProxy(Registered, HasUhash, register=False):
         return dict()
 
     @property
-    def is_fixed_uri(self) -> bool:  # shuold be rename is_uri_fixed
+    def is_fixed_uri(self) -> bool:
         return self.__fixed_uri is not None
 
     @property
     def uri(self) -> Optional[DataUri]:
         """
-        Return a Unified Resource Identifier. Defined as:
-        URI = scheme ":" "//" authority path ["?" query] ["#" fragment]
+        Return an Unified Resource Identifier. Defined as:
+        URI = scheme ":" "//" path ["?" query] ["#" fragment]
 
-        https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
+        see https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
+
+        .. warning:: query can be ?path= which is different from path
         """
         if self.is_fixed_uri:
             return self.__fixed_uri
