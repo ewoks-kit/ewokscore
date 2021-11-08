@@ -163,7 +163,7 @@ class DataProxy(Registered, HasUhash, register=False):
         return dict()
 
     @property
-    def fixed_uri(self) -> bool:
+    def fixed_uri(self) -> bool:  # shuold be rename is_uri_fixed
         return self.__fixed_uri is not None
 
     @property
