@@ -32,7 +32,8 @@ in this class diagram:
 
   classDiagram
   UniversalHashable <|-- Variable
-  Variable <|--o VariableContainer
+  Variable <|-- VariableContainer
+  Variable --o VariableContainer
   UniversalHashable <|-- Task
   Task o-- VariableContainer
 
