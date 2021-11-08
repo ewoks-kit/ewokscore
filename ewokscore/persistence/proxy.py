@@ -68,6 +68,7 @@ class DataUri(HasUhash):
 
 class DataProxy(Registered, HasUhash, register=False):
     SCHEME = NotImplemented
+    """name of the DataProxy scheme like json or nexus"""
 
     def __init__(
         self,
@@ -146,6 +147,7 @@ class DataProxy(Registered, HasUhash, register=False):
 
     @property
     def identifier(self) -> Optional[str]:
+        """Return identifier DataProxy to be used as a string"""
         uhash = self.uhash
         if uhash is None:
             return None
