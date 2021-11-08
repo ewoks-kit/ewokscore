@@ -168,6 +168,12 @@ class DataProxy(Registered, HasUhash, register=False):
 
     @property
     def uri(self) -> Optional[DataUri]:
+        """
+        Return a Unified Resource Identifier. Defined as:
+        URI = scheme ":" "//" authority path ["?" query] ["#" fragment]
+
+        https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
+        """
         if self.fixed_uri:
             return self.__fixed_uri
         return self._generate_uri()
@@ -177,10 +183,13 @@ class DataProxy(Registered, HasUhash, register=False):
         raise NotImplementedError
 
     def exists(self) -> bool:
+        """return True if the data exists"""
         raise NotImplementedError
 
     def load(self, raise_error: bool = True) -> Any:
+        """Load data from the uri"""
         raise NotImplementedError
 
     def dump(self, data: Any) -> bool:
+        """Dump data to the uri"""
         raise NotImplementedError
