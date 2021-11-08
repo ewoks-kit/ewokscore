@@ -136,7 +136,7 @@ class DataProxy(Registered, HasUhash, register=False):
 
     @property
     def uhash(self) -> Optional[UniversalHash]:
-        if self.fixed_uri:
+        if self.is_fixed_uri:
             return self.__fixed_uri.uhash
         elif isinstance(self.__uhash_source, HasUhash):
             return self.__uhash_source.uhash
@@ -165,7 +165,7 @@ class DataProxy(Registered, HasUhash, register=False):
         return dict()
 
     @property
-    def fixed_uri(self) -> bool:  # shuold be rename is_uri_fixed
+    def is_fixed_uri(self) -> bool:  # shuold be rename is_uri_fixed
         return self.__fixed_uri is not None
 
     @property
@@ -176,7 +176,7 @@ class DataProxy(Registered, HasUhash, register=False):
 
         https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
         """
-        if self.fixed_uri:
+        if self.is_fixed_uri:
             return self.__fixed_uri
         return self._generate_uri()
 
