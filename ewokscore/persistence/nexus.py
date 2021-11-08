@@ -19,7 +19,7 @@ def h5_item_exists(path, item):
 
 class NexusProxy(FileProxy):
     SCHEME = "nexus"
-    EXTENSIONS = [".nx", ".h5", ".hdf5"]
+    EXTENSIONS = [".nx", "nxs", ".h5", ".hdf5", ".nexus"]
     ALLOW_PATH_IN_FILE = True
 
     def exists(self) -> bool:
