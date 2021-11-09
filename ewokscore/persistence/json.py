@@ -1,22 +1,27 @@
-from typing import Any
+from typing import Any, Mapping, MutableMapping
 from pathlib import Path
 import json
 
 from .file import FileProxy
-from .atomic import atomic_write
+from . import atomic
+
+
+def modify_dict(target: Mapping, source: MutableMapping):
+    for name, value in source.items():
+        if isinstance(value, dict):
+            new_target = target.setdefault(name, dict())
+            modify_dict(new_target, value)
+        else:
+            target[name] = value
 
 
 class JsonProxy(FileProxy):
-    """Example root URI's:
-    * "file://path/to/directory"
-    * "file://path/to/file.json"
-    """
-
     SCHEME = "json"
-    EXTENSION = ".json"
+    EXTENSIONS = [".json"]
+    ALLOW_PATH_IN_FILE = False
 
-    def _dump(self, path: Path, data: Any):
-        with atomic_write(path) as f:
+    def _dump(self, path: Path, data: Any, **_):
+        with atomic.atomic_write(path) as f:
             json.dump(data, f)
 
     def _load(self, path: Path):

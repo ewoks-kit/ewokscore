@@ -1,71 +1,95 @@
-from typing import Union, Optional
+from typing import Any, Dict, Optional
 from numbers import Integral
 from collections.abc import Mapping, MutableMapping, Iterable, Sequence
-import numpy
 
-from .hashing import UniversalHashable
-from .hashing import UniversalHash
+from . import hashing
 from .persistence import instantiate_data_proxy
 from .persistence.proxy import DataProxy
 from .persistence.proxy import DataUri
 
 
 def data_proxy_from_varinfo(
-    hashable: UniversalHashable, varinfo
-) -> Union[DataProxy, None]:
+    uhash_source: hashing.UniversalHashable, varinfo
+) -> Optional[DataProxy]:
     root_uri = varinfo.get("root_uri")
-    if not root_uri:
+    if not root_uri and not varinfo.get("has_data_proxy"):
         return
+    relative_uri = varinfo.get("relative_uri")
     scheme = varinfo.get("scheme", "json")
-    hashable = varinfo.get("__hashable", hashable)
-    return instantiate_data_proxy(scheme, hashable, root_uri=root_uri)
+    return instantiate_data_proxy(
+        scheme=scheme,
+        root_uri=root_uri,
+        relative_uri=relative_uri,
+        uhash_source=uhash_source,
+    )
 
 
-class Variable(UniversalHashable):
-    """Has a runtime value (python object) and a persistent value (disk or memory)."""
+CONTAINER_URI_NAME = "task_results"
+
+
+class Variable(hashing.UniversalHashable):
+    """Has a runtime value (python object) and a persistent value (disk or memory).
+    The location of the persistent value is either provided or derived from the
+    universal hash of the variable, which itself can be provided or derived from the
+    variable data.
+    """
 
     def __init__(
         self,
-        value=UniversalHashable.MISSING_DATA,
-        uri: Optional[DataUri] = None,
+        value=hashing.UniversalHashable.MISSING_DATA,
+        metadata=hashing.UniversalHashable.MISSING_DATA,
         varinfo: Optional[dict] = None,
-        **kw,
+        data_uri: Optional[DataUri] = None,
+        data_proxy: Optional[DataProxy] = None,
+        pre_uhash: Optional[hashing.PreUhashTypes] = None,
+        instance_nonce: Optional[Any] = None,
     ):
-        """
-        :param value: the runtime value
-        :param dict varinfo:
-        :param **kw: see `UniversalHashable`
-        """
         if varinfo is None:
             varinfo = dict()
         elif not isinstance(varinfo, Mapping):
             raise TypeError(varinfo, type(varinfo))
 
-        if uri:
-            self._data_proxy = instantiate_data_proxy(uri.parse().scheme, uri)
+        if data_proxy is not None:
+            pre_uhash = data_proxy.uri.uhash
+            instance_nonce = None
+            self._data_proxy = data_proxy
+        elif data_uri is not None:
+            pre_uhash = data_uri.uhash
+            instance_nonce = None
+            self._data_proxy = instantiate_data_proxy(uri=data_uri)
             if self._data_proxy is None:
-                raise ValueError("Invalid URI", uri)
+                raise ValueError("Invalid URI", data_uri)
         else:
-            self._data_proxy = data_proxy_from_varinfo(self, varinfo)
+            self._data_proxy = data_proxy_from_varinfo(
+                uhash_source=self, varinfo=varinfo
+            )
 
         self._hashing_enabled = bool(varinfo.get("enable_hashing", False))
         self._hashing_enabled |= self._data_proxy is not None
 
         self._runtime_value = self.MISSING_DATA
+        if metadata == self.MISSING_DATA:
+            metadata = dict()
+        self._runtime_metadata = metadata
 
-        super().__init__(**kw)
+        super().__init__(pre_uhash=pre_uhash, instance_nonce=instance_nonce)
         self.value = value
 
-    def copy(self):
-        """The uhash of the copy is fixed thereby remove references to other uhasable objects."""
-        varcp = self.__class__(value=self.value, uhash=self.uhash)
-        varcp._data_proxy = self.data_proxy
-        varcp._hashing_enabled = self.hashing_enabled
-        return varcp
+    def fixed_uhash_copy(self):
+        """The uhash of the copy is fixed thereby remove references to other uhashable objects."""
+        kwargs = self.get_uhash_init(serialize=True)
+        kwargs["data_proxy"] = self.data_proxy
+        return type(self)(value=self.value, **kwargs)
 
     @property
-    def data_proxy(self):
+    def data_proxy(self) -> Optional[DataProxy]:
         return self._data_proxy
+
+    @property
+    def data_uri(self) -> Optional[DataUri]:
+        if self._data_proxy is None:
+            return None
+        return self.data_proxy.uri
 
     @property
     def hashing_enabled(self):
@@ -79,7 +103,7 @@ class Variable(UniversalHashable):
             return super()._uhash_data()
 
     def __eq__(self, other):
-        if isinstance(other, UniversalHashable):
+        if isinstance(other, hashing.HasUhash):
             return super().__eq__(other)
         else:
             return self.value == other
@@ -93,6 +117,10 @@ class Variable(UniversalHashable):
     @value.setter
     def value(self, v):
         self._runtime_value = v
+
+    @property
+    def metadata(self) -> dict:
+        return self._runtime_metadata
 
     def dump(self) -> bool:
         """From runtime to persistent value (never overwrite).
@@ -109,7 +137,7 @@ class Variable(UniversalHashable):
             and not self.has_persistent_value
             and self.has_runtime_value
         ):
-            return self.data_proxy.dump(self._serialize(self.value))
+            return self.data_proxy.dump(self.serialize())
         return False
 
     def load(self, raise_error=True):
@@ -123,15 +151,19 @@ class Variable(UniversalHashable):
         """
         if self.data_proxy is not None:
             data = self.data_proxy.load(raise_error=raise_error)
-            self._runtime_value = self._deserialize(data)
+            if data is not self.MISSING_DATA:
+                self.deserialize(data)
 
-    def _serialize(self, value):
-        """Before runtime to persistent"""
-        return value
+    def serialize(self) -> dict:
+        """Serialize data before persistent storage"""
+        data = dict(self.metadata)
+        data["value"] = self.value
+        return data
 
-    def _deserialize(self, value):
-        """Before persistent to runtime"""
-        return value
+    def deserialize(self, data: dict):
+        """Deserialize data after loading from persistent storage"""
+        self._runtime_value = data.pop("value")
+        self._runtime_metadata = data
 
     @property
     def has_persistent_value(self):
@@ -156,19 +188,37 @@ class Variable(UniversalHashable):
             self.uhash_randomize()
 
 
-class VariableContainer(Mapping, Variable):
+class VariableContainer(Variable, Mapping):
     """An immutable mapping of variable identifiers (str or int) to variables (Variable)."""
 
-    def __init__(self, **kw):
-        value = kw.pop("value", None)
-        self.__varparams = dict(kw)
-        self.__update_root_uri(kw, "output_info")
+    def __init__(
+        self,
+        value=hashing.UniversalHashable.MISSING_DATA,
+        varinfo: Optional[dict] = None,
+        data_uri: Optional[DataUri] = None,
+        data_proxy: Optional[DataProxy] = None,
+        pre_uhash: Optional[hashing.PreUhashTypes] = None,
+        instance_nonce: Optional[Any] = None,
+    ):
+        varparams = {
+            "pre_uhash": pre_uhash,
+            "instance_nonce": instance_nonce,
+            "varinfo": varinfo,
+        }
+        self.__add_relative_uri(varparams, path=CONTAINER_URI_NAME)
+
+        self.__varparams = varparams
         self.__npositional_vars = 0
-        self.__metadata = dict()
-        self.__metadata_proxy = None
-        super().__init__(**kw)
+        super().__init__(data_uri=data_uri, data_proxy=data_proxy, **varparams)
         if value:
             self._update(value)
+
+    def fixed_uhash_copy(self):
+        """The uhash of the copy is fixed thereby remove references to other uhashable objects."""
+        return type(self)(
+            value={name: var.fixed_uhash_copy() for name, var in self.items()},
+            **self.__varparams,
+        )
 
     def __getitem__(self, key):
         return self.value[key]
@@ -225,25 +275,27 @@ class VariableContainer(Mapping, Variable):
     def n_positional_variables(self):
         return self.__npositional_vars
 
-    def _create_variable(self, key, value):
+    def _create_variable(self, name, value):
         if isinstance(value, Variable):
             return value
-        varparams = dict(self.__varparams)
-        if isinstance(value, UniversalHash):
-            varparams["uhash"] = value
-            varparams["instance_nonce"] = None
-        elif isinstance(value, DataUri):
-            varparams["uri"] = value
-            varparams["uhash"] = value.uhash
+        varparams = dict()
+        if isinstance(value, DataUri):
+            varparams["data_uri"] = value
+        elif isinstance(value, DataProxy):
+            varparams["data_proxy"] = value
+        elif isinstance(value, (hashing.UniversalHash, hashing.HasUhash)):
+            varparams.update(self.__varparams)
+            varparams["pre_uhash"] = value
             varparams["instance_nonce"] = None
         else:
+            varparams.update(self.__varparams)
             varparams["value"] = value
             instance_nonce = varparams.pop("instance_nonce", None)
-            varparams["instance_nonce"] = instance_nonce, key
-        self.__update_root_uri(varparams, "output_values/" + str(key))
+            varparams["instance_nonce"] = instance_nonce, name
+            self.__add_relative_uri(varparams, path=f"{name}")
         return Variable(**varparams)
 
-    def __copy_varinfo(self, varparams) -> bool:
+    def __copy_varinfo(self, varparams) -> Dict:
         varinfo = varparams.get("varinfo")
         if varinfo is None:
             varparams["varinfo"] = dict()
@@ -251,46 +303,18 @@ class VariableContainer(Mapping, Variable):
             varparams["varinfo"] = dict(varinfo)
         return varparams["varinfo"]
 
-    def __update_root_uri(self, varparams, name) -> bool:
-        """Update `root_uri` for formats that allows multiple
-        variables in 1 file.
-        """
+    def __add_relative_uri(self, varparams, path: Optional[str] = None) -> bool:
+        """Modify the general `root_uri` for a specific case."""
         varinfo = varparams.get("varinfo")
-        if not varinfo:
+        if not varinfo or not varinfo.get("root_uri"):
             return False
-        root_uri = varinfo.get("root_uri", None)
-        if not root_uri:
-            return False
-        if varinfo.get("scheme") != "nexus":
-            return False  # format cannot store multiple variables
-        if "name=" in root_uri:
-            raise RuntimeError(f"name already specified in {repr(root_uri)}")
         varinfo = self.__copy_varinfo(varparams)
-        if name:
-            root_uri = f"{root_uri}?name={name}"
-        varinfo["__hashable"] = self
-        varinfo["root_uri"] = root_uri
+        if path:
+            if varinfo.get("relative_uri"):
+                varinfo["relative_uri"] += f"&path={path}"
+            else:
+                varinfo["relative_uri"] = f"?path={path}"
         return True
-
-    @property
-    def metadata_proxy(self):
-        varparams = dict(self.__varparams)
-        if not self.__update_root_uri(varparams, None):
-            return
-        if self.__metadata_proxy is None:
-            self.__metadata_proxy = data_proxy_from_varinfo(self, varparams["varinfo"])
-        return self.__metadata_proxy
-
-    @property
-    def metadata(self) -> Union[dict, None]:
-        if self.metadata_proxy is None:
-            return None
-        return self.__metadata
-
-    def _dump_metadata(self):
-        if self.metadata_proxy is None:
-            return not bool(self.__metadata)
-        return self.metadata_proxy.dump(self.__metadata, update_mode="modify")
 
     def __iter__(self):
         adict = self.value
@@ -306,30 +330,33 @@ class VariableContainer(Mapping, Variable):
         else:
             return 0
 
-    def _serialize(self, value):
-        return {k: v.data_proxy.uri.serialize() for k, v in self.items()}
+    def serialize(self):
+        """Serialize data before persistent storage"""
+        data = dict(self.metadata)
+        data[CONTAINER_URI_NAME] = {
+            name: var.data_proxy.serialize()
+            for name, var in self.value.items()
+            if var.data_proxy is not None
+        }
+        return data
 
-    def _deserialize(self, value):
-        if not value:
-            return value
-        adict = dict()
-        for name, data in value.items():
-            if name == "@NX_class":
+    def deserialize(self, data: dict):
+        """Deserialize data after loading from persistent storage"""
+        variables = data.pop(CONTAINER_URI_NAME)
+        value = dict()
+        for name, data_proxy in variables.items():
+            data_proxy = DataProxy.deserialize(data_proxy)
+            if data_proxy is None:
                 continue
-            data = {
-                k: v.item() if isinstance(v, numpy.ndarray) else v
-                for k, v in data.items()
-            }
-            data = DataUri.deserialize(data)
-            adict[name] = self._create_variable(name, data)
-        return adict
+            value[name] = self._create_variable(name, data_proxy)
+        self._runtime_value = value
+        self._runtime_metadata = data
 
     def dump(self):
         b = True
         for v in self.values():
             b &= v.dump()
         b &= super().dump()
-        b &= self._dump_metadata()
         return b
 
     @property
@@ -363,7 +390,7 @@ class VariableContainer(Mapping, Variable):
 
     @property
     def variable_uhashes(self):
-        return self._serialize(self.value)
+        return {name: var.uhash for name, var in self.items()}
 
     @property
     def variable_values(self):
@@ -385,7 +412,8 @@ class VariableContainer(Mapping, Variable):
             if var.has_persistent_value:
                 data[name] = var.data_proxy.uri
             elif var.hashing_enabled:
-                data[name] = var.copy()
+                # Remove possible references to a uhashable
+                data[name] = var.fixed_uhash_copy()
             else:
                 data[name] = var.value
         return data
@@ -408,10 +436,12 @@ def variable_from_transfer(data, varinfo=None) -> Variable:
     if isinstance(data, Variable):
         return data
     kw = {"varinfo": varinfo}
-    if isinstance(data, UniversalHash):
-        kw["uhash"] = data
+    if isinstance(data, DataProxy):
+        kw["data_proxy"] = data
     elif isinstance(data, DataUri):
-        kw["uri"] = data
+        kw["data_uri"] = data
+    elif isinstance(data, (hashing.UniversalHash, hashing.HasUhash)):
+        kw["pre_uhash"] = data
     else:
         kw["value"] = data
     return Variable(**kw)
@@ -421,12 +451,13 @@ def value_from_transfer(data, varinfo=None):
     """Meant for task schedulers that pass data (see VariableContainer.variable_transfer_*)"""
     if isinstance(data, Variable):
         return data.value
-    if isinstance(data, UniversalHash):
-        kw = {"varinfo": varinfo}
-        kw["uhash"] = data
+    kw = {"varinfo": varinfo}
+    if isinstance(data, DataProxy):
+        kw["data_proxy"] = data
     elif isinstance(data, DataUri):
-        kw = {"varinfo": varinfo}
-        kw["uri"] = data
+        kw["data_uri"] = data
+    elif isinstance(data, (hashing.UniversalHash, hashing.HasUhash)):
+        kw["pre_uhash"] = data
     else:
         return data
     return Variable(**kw).value

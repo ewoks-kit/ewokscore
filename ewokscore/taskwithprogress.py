@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 from .task import Task
 from .progress import BaseProgress
 
@@ -13,7 +13,7 @@ class TaskWithProgress(Task, register=False):
         self._task_progress = progress
 
     @property
-    def progress(self) -> Union[None, int]:
+    def progress(self) -> Optional[int]:
         """Task advancement. If a task progress is not provided then return
         None"""
         if self._task_progress is not None:

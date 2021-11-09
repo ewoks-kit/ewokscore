@@ -1,7 +1,5 @@
 import os
 from pathlib import Path
-import pytest
-
 from ewokscore.persistence.uri import parse_uri
 from ewokscore.persistence.uri import path_from_uri
 from ewokscore.persistence.uri import parse_query
@@ -51,5 +49,6 @@ def test_file_uri():
     assert parse_query(parse_uri(uri)) == {"path": "/entry", "name": "abc"}
 
     uri = abspath + "::/entry?path=xyz&name=abc"
-    with pytest.raises(ValueError):
-        parse_uri(uri)
+    assert parse_uri(uri).geturl() == "file:///abspath/file.h5?path=/entry/xyz&name=abc"
+    assert str(path_from_uri(parse_uri(uri))) == abspath
+    assert parse_query(parse_uri(uri)) == {"path": "/entry/xyz", "name": "abc"}

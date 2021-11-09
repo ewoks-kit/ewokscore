@@ -1,18 +1,27 @@
 import pytest
 import json
+from glob import glob
+from pathlib import Path
 from ewokscore.task import Task
 from ewokscore.task import TaskInputError
 from .examples.tasks.sumtask import SumTask
 
 
-def task_container_storage(task):
-    return {k: v.data_proxy.uri.serialize() for k, v in task.output_variables.items()}
+def find_files(tmpdir: Path, extension):
+    return glob(str(tmpdir / "**" / "*" + extension), recursive=True)
+
+
+def expected_task_output_storage(task):
+    expected = [var.serialize() for var in task.output_variables.values()]
+    expected.append(task.output_variables.serialize())
+    return expected
 
 
 def assert_storage(tmpdir, expected):
     lst = []
-    for fileobj in tmpdir.listdir():
-        lst.append(json.load(fileobj))
+    for filename in find_files(tmpdir, ".json"):
+        with open(filename, "r") as fileobj:
+            lst.append(json.load(fileobj))
     for v in lst:
         if isinstance(v, dict):
             v.pop("__traceback__", None)
@@ -43,7 +52,7 @@ def test_task_optional_input(tmpdir, varinfo):
     task.execute()
     assert task.done
     assert task.outputs.result == 10
-    expected = [task_container_storage(task), 10]
+    expected = expected_task_output_storage(task)
     assert_storage(tmpdir, expected)
 
 
@@ -83,7 +92,7 @@ def test_task_storage(tmpdir, varinfo):
     task.execute()
     assert task.done
     assert task.outputs.result == 12
-    expected = [task_container_storage(task), 12]
+    expected = expected_task_output_storage(task)
     assert_storage(tmpdir, expected)
 
     task = SumTask(inputs={"a": 10, "b": 2}, varinfo=varinfo)
@@ -96,7 +105,7 @@ def test_task_storage(tmpdir, varinfo):
     task.execute()
     assert task.done
     assert task.outputs.result == 12
-    expected += [task_container_storage(task), 12]
+    expected += expected_task_output_storage(task)
     assert_storage(tmpdir, expected)
 
     task = SumTask({"a": task.output_variables["result"], "b": 0}, varinfo=varinfo)
@@ -104,17 +113,27 @@ def test_task_storage(tmpdir, varinfo):
     task.execute()
     assert task.done
     assert task.outputs.result == 12
-    expected += [task_container_storage(task), 12]
+    expected += expected_task_output_storage(task)
     assert_storage(tmpdir, expected)
 
     task = SumTask(
-        {"a": 1, "b": task.output_variables["result"].uhash}, varinfo=varinfo
+        {"a": 1, "b": task.output_variables["result"].data_proxy}, varinfo=varinfo
     )
     assert not task.done
     task.execute()
     assert task.done
     assert task.outputs.result == 13
-    expected += [task_container_storage(task), 13]
+    expected += expected_task_output_storage(task)
+    assert_storage(tmpdir, expected)
+
+    task = SumTask(
+        {"a": 1, "b": task.output_variables["result"].data_proxy.uri}, varinfo=varinfo
+    )
+    assert not task.done
+    task.execute()
+    assert task.done
+    assert task.outputs.result == 14
+    expected += expected_task_output_storage(task)
     assert_storage(tmpdir, expected)
 
 

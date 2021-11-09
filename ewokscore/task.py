@@ -68,16 +68,16 @@ class Task(Registered, UniversalHashable, register=False):
         self._inputs = VariableContainer(value=inputs, varinfo=varinfo)
         self._outputs = VariableContainer(
             value=ovars,
-            uhash=self._inputs,
+            pre_uhash=self._inputs,
             instance_nonce=self.class_nonce(),
             varinfo=varinfo,
         )
 
-        self._user_inputs = ReadOnlyVariableContainerNamespace(self._inputs)
-        self._user_outputs = VariableContainerNamespace(self._outputs)
+        self._public_inputs = ReadOnlyVariableContainerNamespace(self._inputs)
+        self._public_outputs = VariableContainerNamespace(self._outputs)
 
         # The task class has the same hash as its output
-        super().__init__(uhash=self._outputs)
+        super().__init__(pre_uhash=self._outputs)
 
     def __init_subclass__(
         subclass,
@@ -154,7 +154,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def inputs(self):
-        return self._user_inputs
+        return self._public_inputs
 
     @property
     def input_uhashes(self):
@@ -182,7 +182,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def outputs(self):
-        return self._user_outputs
+        return self._public_outputs
 
     @property
     def output_uhashes(self):
@@ -205,8 +205,8 @@ class Task(Registered, UniversalHashable, register=False):
         metadata = self.output_metadata
         if metadata is None:
             return
-        if self.__name and self._outputs.metadata_proxy.SCHEME == "nexus":
-            metadata["title"] = self.__name
+        if self.__name:
+            metadata.setdefault("title", self.__name)
 
     @property
     def done(self):
