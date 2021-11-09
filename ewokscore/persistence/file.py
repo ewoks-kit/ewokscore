@@ -26,7 +26,7 @@ class FileProxy(proxy.DataProxy, register=False):
         """return 'authority path' from the foloowing URI representation:
         URI = scheme ":" "//" authority path ["?" query] ["#" fragment]
         """
-        if self.fixed_uri:
+        if self.is_fixed_uri:
             return path_from_uri(self.uri.parse())
         parsed_root_uri = self.parsed_root_uri
         if parsed_root_uri is None:
@@ -63,7 +63,7 @@ class FileProxy(proxy.DataProxy, register=False):
 
     def _path_in_file_parts(self) -> List[str]:
         parts = [s for s in self.root_uri_path_in_file.split(self.SEP_IN_FILE) if s]
-        if self.fixed_uri:
+        if self.is_fixed_uri:
             return parts
         identifier = self.identifier
         if identifier is not None:
