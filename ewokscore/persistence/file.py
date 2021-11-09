@@ -62,7 +62,7 @@ class FileProxy(proxy.DataProxy, register=False):
         return path.with_suffix(extension)
 
     def _path_in_file_parts(self) -> List[str]:
-        parts = [s for s in self.root_uri_path_in_file.split(self.SEP_IN_FILE) if s]
+        parts = [s for s in self._root_uri_path_in_file.split(self.SEP_IN_FILE) if s]
         if self.is_fixed_uri:
             return parts
         identifier = self.identifier
@@ -71,7 +71,7 @@ class FileProxy(proxy.DataProxy, register=False):
         return parts
 
     @property
-    def root_uri_path_in_file(self) -> str:
+    def _root_uri_path_in_file(self) -> str:
         """
         return '**data root** path query' result
         for data at "file://path/to/name.ext?path=/path/in/file" return "/path/in"
