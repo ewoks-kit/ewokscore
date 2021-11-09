@@ -2,59 +2,58 @@ import itertools
 from typing import Tuple, Union, Any
 import networkx
 from .utils import dict_merge
-from .node import flatten_node_name
+from .node import flatten_node_id
 
 
 NodeIdType = Union[str, Tuple[str, Any]]  # Any is NodeIdType
 
 
-def _append_subnode_name(node_name: NodeIdType, sub_node_name: str) -> NodeIdType:
-    if isinstance(node_name, tuple):
-        parent, child = node_name
-        return parent, _append_subnode_name(child, sub_node_name)
+def _append_subnode_id(node_id: NodeIdType, sub_node_id: str) -> NodeIdType:
+    if isinstance(node_id, tuple):
+        parent, child = node_id
+        return parent, _append_subnode_id(child, sub_node_id)
     else:
-        return node_name, sub_node_name
+        return node_id, sub_node_id
 
 
-def _get_subgraph(node_name: NodeIdType, subgraphs: dict):
-    if isinstance(node_name, str):
-        return subgraphs.get(node_name)
-
-    subgraph_name, subnode_name = node_name
+def _get_subgraph(node_id: NodeIdType, subgraphs: dict):
+    if isinstance(node_id, str):
+        return subgraphs.get(node_id)
+    subgraph_id, subnode_id = node_id
     try:
-        subgraph = subgraphs[subgraph_name]
+        subgraph = subgraphs[subgraph_id]
     except KeyError:
-        raise ValueError(node_name, f"{repr(subgraph_name)} is not a subgraph")
-    flat_subnode_name = flatten_node_name(subnode_name)
-    n = len(flat_subnode_name)
-    for name in subgraph.graph.nodes:
-        flat_name = flatten_node_name(name)
-        nname = len(flat_name)
-        if flat_name == flat_subnode_name:
+        raise ValueError(node_id, f"{repr(subgraph_id)} is not a subgraph")
+    flat_subnode_id = flatten_node_id(subnode_id)
+    n = len(flat_subnode_id)
+    for node_id in subgraph.graph.nodes:
+        flat_node_id = flatten_node_id(node_id)
+        nflatid = len(flat_node_id)
+        if flat_node_id == flat_subnode_id:
             return None  # a task node
-        if nname > n and flat_name[:n] == flat_subnode_name:
+        if nflatid > n and flat_node_id[:n] == flat_subnode_id:
             return subgraph  # a graph node
     raise ValueError(
-        f"{subnode_name} is not a node or subgraph of subgraph {repr(subgraph_name)}",
+        f"{subnode_id} is not a node or subgraph of subgraph {repr(subgraph_id)}",
     )
 
 
 def _resolve_node_alias(
-    node_name: NodeIdType, graph_attrs: dict, input_nodes: bool
+    node_id: NodeIdType, graph_attrs: dict, input_nodes: bool
 ) -> NodeIdType:
     if input_nodes:
         aliases = graph_attrs.get("input_nodes", None)
     else:
         aliases = graph_attrs.get("output_nodes", None)
     if not aliases:
-        return node_name
+        return node_id
     alias_attrs = None
     for alias_attrsi in aliases:
-        if alias_attrsi["id"] == node_name:
+        if alias_attrsi["id"] == node_id:
             alias_attrs = alias_attrsi
             break
     if not alias_attrs:
-        return node_name
+        return node_id
     sub_node = alias_attrs.get("sub_node", None)
     if sub_node:
         return alias_attrs["node"], sub_node
@@ -62,46 +61,44 @@ def _resolve_node_alias(
         return alias_attrs["node"]
 
 
-def _get_subnode_name(
-    node_name: NodeIdType, sub_graph_nodes: dict, subgraphs: dict, source: bool
+def _get_subnode_id(
+    node_id: NodeIdType, sub_graph_nodes: dict, subgraphs: dict, source: bool
 ) -> Tuple[NodeIdType, bool]:
     if source:
         key = "sub_source"
     else:
         key = "sub_target"
 
-    subgraph = _get_subgraph(node_name, subgraphs)
+    subgraph = _get_subgraph(node_id, subgraphs)
     if subgraph is None:
         if key in sub_graph_nodes:
             raise ValueError(
-                f"'{node_name}' is not a graph so 'sub_source' should not be specified"
+                f"'{node_id}' is not a graph so 'sub_source' should not be specified"
             )
-        return node_name, False
+        return node_id, False
 
     try:
-        sub_node_name = sub_graph_nodes[key]
+        sub_node_id = sub_graph_nodes[key]
     except KeyError:
         raise ValueError(
-            f"The '{key}' attribute to specify a node in subgraph '{node_name}' is missing"
+            f"The '{key}' attribute to specify a node in subgraph '{node_id}' is missing"
         ) from None
-    sub_node_name = _resolve_node_alias(
-        sub_node_name, subgraph.graph.graph, input_nodes=not source
+    sub_node_id = _resolve_node_alias(
+        sub_node_id, subgraph.graph.graph, input_nodes=not source
     )
-    new_node_name = _append_subnode_name(node_name, sub_node_name)
-    return new_node_name, True
+    new_node_id = _append_subnode_id(node_id, sub_node_id)
+    return new_node_id, True
 
 
 def _get_subnode_info(
-    source_name: NodeIdType,
-    target_name: NodeIdType,
+    source_id: NodeIdType,
+    target_id: NodeIdType,
     sub_graph_nodes: dict,
     subgraphs: dict,
 ) -> Tuple[NodeIdType, NodeIdType, bool]:
-    sub_source, _ = _get_subnode_name(
-        source_name, sub_graph_nodes, subgraphs, source=True
-    )
-    sub_target, target_is_graph = _get_subnode_name(
-        target_name, sub_graph_nodes, subgraphs, source=False
+    sub_source, _ = _get_subnode_id(source_id, sub_graph_nodes, subgraphs, source=True)
+    sub_target, target_is_graph = _get_subnode_id(
+        target_id, sub_graph_nodes, subgraphs, source=False
     )
     return sub_source, sub_target, target_is_graph
 
@@ -123,16 +120,16 @@ def _replace_aliases(
         key = "sub_source"
 
     for alias_attrs in aliases:
-        node_name = alias_attrs["node"]
+        node_id = alias_attrs["node"]
         sub_node = alias_attrs.pop("sub_node", None)
         if sub_node:
-            node_name = node_name, sub_node
-        if isinstance(node_name, tuple):
-            parent, child = node_name
-            node_name, _ = _get_subnode_name(
+            node_id = node_id, sub_node
+        if isinstance(node_id, tuple):
+            parent, child = node_id
+            node_id, _ = _get_subnode_id(
                 parent, {key: child}, subgraphs=subgraphs, source=source
             )
-        alias_attrs["node"] = node_name
+        alias_attrs["node"] = node_id
 
 
 def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]:
@@ -155,17 +152,13 @@ def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]
     edges = list()
     update_attrs = dict()
     graph_is_multi = graph.is_multigraph()
-    for subgraph_name in subgraphs:
+    for subgraph_id in subgraphs:
         it1 = (
-            (source_name, subgraph_name)
-            for source_name in graph.predecessors(subgraph_name)
+            (source_id, subgraph_id) for source_id in graph.predecessors(subgraph_id)
         )
-        it2 = (
-            (subgraph_name, target_name)
-            for target_name in graph.successors(subgraph_name)
-        )
-        for source_name, target_name in itertools.chain(it1, it2):
-            all_link_attrs = graph[source_name][target_name]
+        it2 = ((subgraph_id, target_id) for target_id in graph.successors(subgraph_id))
+        for source_id, target_id in itertools.chain(it1, it2):
+            all_link_attrs = graph[source_id][target_id]
             if graph_is_multi:
                 all_link_attrs = all_link_attrs.values()
             else:
@@ -179,7 +172,7 @@ def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]
                 if not sub_graph_nodes:
                     continue
                 source, target, target_is_graph = _get_subnode_info(
-                    source_name, target_name, sub_graph_nodes, subgraphs
+                    source_id, target_id, sub_graph_nodes, subgraphs
                 )
                 sub_target_attributes = sub_graph_nodes.get(
                     "sub_target_attributes", None
@@ -187,7 +180,7 @@ def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]
                 if sub_target_attributes:
                     if not target_is_graph:
                         raise ValueError(
-                            f"'{target_name}' is not a graph so 'sub_target_attributes' should not be specified"
+                            f"'{target_id}' is not a graph so 'sub_target_attributes' should not be specified"
                         )
                     update_attrs[target] = sub_target_attributes
                 edges.append((source, target, link_attrs))

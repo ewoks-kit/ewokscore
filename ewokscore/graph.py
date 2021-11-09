@@ -2,13 +2,17 @@ import os
 import enum
 import json
 from collections.abc import Mapping
+from typing import Optional, Set
 import networkx
+
 from . import inittask
 from .utils import qualname
 from .utils import dict_merge
 from .subgraph import extract_graph_nodes
 from .subgraph import add_subgraph_links
-from .node import node_name_from_json
+from .task import Task
+from .node import NodeIdType
+from .node import node_id_from_json
 
 CONDITIONS_ELSE_VALUE = "__other__"
 
@@ -31,20 +35,18 @@ def set_graph_defaults(graph_as_dict):
     graph_as_dict.setdefault("links", list())
 
 
-def node_has_links(graph, node_name):
+def node_has_links(graph, node_id):
     try:
-        next(graph.successors(node_name))
+        next(graph.successors(node_id))
     except StopIteration:
         try:
-            next(graph.predecessors(node_name))
+            next(graph.predecessors(node_id))
         except StopIteration:
             return False
     return True
 
 
-def merge_graphs(
-    graphs, graph_attrs=None, name=None, rename_nodes=None, **load_options
-):
+def merge_graphs(graphs, graph_attrs=None, rename_nodes=None, **load_options):
     lst = list()
     if rename_nodes is None:
         rename_nodes = [True] * len(graphs)
@@ -87,21 +89,24 @@ def flatten_multigraph(graph: networkx.DiGraph) -> networkx.DiGraph:
 
 def get_subgraphs(graph: networkx.DiGraph, **load_options):
     subgraphs = dict()
-    for node_name, node_attrs in graph.nodes.items():
+    for node_id, node_attrs in graph.nodes.items():
         task_type, task_info = inittask.task_executable_info(
-            node_attrs, node_name=node_name, all=True
+            node_attrs, node_id=node_id, all=True
         )
         if task_type == "graph":
             g = load_graph(task_info["task_identifier"], **load_options)
-            g.graph.graph["name"] = node_name
-            subgraphs[node_name] = g
+            g.graph.graph["id"] = node_id
+            node_label = node_attrs.get("label")
+            if node_label:
+                g.graph.graph["label"] = node_label
+            subgraphs[node_id] = g
     return subgraphs
 
 
 def _ewoks_jsonload_hook_pair(item):
     key, value = item
     if key in ("source", "target", "sub_source", "sub_target", "id", "sub_node"):
-        value = node_name_from_json(value)
+        value = node_id_from_json(value)
     return key, value
 
 
@@ -156,7 +161,15 @@ class TaskGraph:
         self.load(source=source, representation=representation, **load_options)
 
     def __repr__(self):
-        return self.graph.graph.get("name", qualname(type(self)))
+        return self.graph_label
+
+    @property
+    def graph_id(self):
+        return self.graph.graph.get("id", qualname(type(self)))
+
+    @property
+    def graph_label(self):
+        return self.graph.graph.get("label", self.graph_id)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -260,83 +273,76 @@ class TaskGraph:
                 return True
         return False
 
-    def instantiate_task(self, node_name, varinfo=None, inputs=None):
+    def instantiate_task(
+        self,
+        node_id: NodeIdType,
+        varinfo: Optional[dict] = None,
+        inputs: Optional[dict] = None,
+    ) -> Task:
         """Named arguments are dynamic input and Variable config.
-        Default input from the persistent representation are
-        added internally.
-
-        :param str node_name:
-        :param dict or None tasks: keeps upstream tasks
-        :param **inputs: dynamic inputs
-        :returns Task:
+        Default input from the persistent representation are added internally.
         """
         # Dynamic input has priority over default input
-        nodeattrs = self.graph.nodes[node_name]
+        nodeattrs = self.graph.nodes[node_id]
         return inittask.instantiate_task(
-            nodeattrs, node_name=node_name, varinfo=varinfo, inputs=inputs
+            nodeattrs, node_id=node_id, varinfo=varinfo, inputs=inputs
         )
 
-    def instantiate_task_static(self, node_name, tasks=None, varinfo=None):
+    def instantiate_task_static(
+        self,
+        node_id: NodeIdType,
+        tasks: Optional[dict] = None,
+        varinfo: Optional[dict] = None,
+    ) -> Task:
         """Instantiate destination task while no access to the dynamic inputs.
         Side effect: `tasks` will contain all predecessors.
-
-        Remark: Only works for DAGs.
-
-        :param str node_name:
-        :param dict or None tasks: keeps upstream tasks
-        :param dict or None inputs: optional dynamic inputs
-        :returns Task:
         """
         if self.is_cyclic:
             raise RuntimeError(f"{self} is cyclic")
         if tasks is None:
             tasks = dict()
         dynamic_inputs = dict()
-        for inputnode in self.predecessors(node_name):
+        for inputnode in self.predecessors(node_id):
             inputtask = tasks.get(inputnode, None)
             if inputtask is None:
                 inputtask = self.instantiate_task_static(
                     inputnode, tasks=tasks, varinfo=varinfo
                 )
-            link_attrs = self.graph[inputnode][node_name]
+            link_attrs = self.graph[inputnode][node_id]
             inittask.add_dynamic_inputs(
                 dynamic_inputs, link_attrs, inputtask.output_variables
             )
-        task = self.instantiate_task(node_name, varinfo=varinfo, inputs=dynamic_inputs)
-        tasks[node_name] = task
+        task = self.instantiate_task(node_id, varinfo=varinfo, inputs=dynamic_inputs)
+        tasks[node_id] = task
         return task
 
-    def successors(self, node_name, **include_filter):
+    def successors(self, node_id: NodeIdType, **include_filter):
         yield from self._iter_downstream_nodes(
-            node_name, recursive=False, **include_filter
+            node_id, recursive=False, **include_filter
         )
 
-    def descendants(self, node_name, **include_filter):
+    def descendants(self, node_id: NodeIdType, **include_filter):
         yield from self._iter_downstream_nodes(
-            node_name, recursive=True, **include_filter
+            node_id, recursive=True, **include_filter
         )
 
-    def predecessors(self, node_name, **include_filter):
-        yield from self._iter_upstream_nodes(
-            node_name, recursive=False, **include_filter
-        )
+    def predecessors(self, node_id: NodeIdType, **include_filter):
+        yield from self._iter_upstream_nodes(node_id, recursive=False, **include_filter)
 
-    def ancestors(self, node_name, **include_filter):
-        yield from self._iter_upstream_nodes(
-            node_name, recursive=True, **include_filter
-        )
+    def ancestors(self, node_id: NodeIdType, **include_filter):
+        yield from self._iter_upstream_nodes(node_id, recursive=True, **include_filter)
 
-    def has_successors(self, node_name, **include_filter):
-        return self._iterator_has_items(self.successors(node_name, **include_filter))
+    def has_successors(self, node_id: NodeIdType, **include_filter):
+        return self._iterator_has_items(self.successors(node_id, **include_filter))
 
-    def has_descendants(self, node_name, **include_filter):
-        return self._iterator_has_items(self.descendants(node_name, **include_filter))
+    def has_descendants(self, node_id: NodeIdType, **include_filter):
+        return self._iterator_has_items(self.descendants(node_id, **include_filter))
 
-    def has_predecessors(self, node_name, **include_filter):
-        return self._iterator_has_items(self.predecessors(node_name, **include_filter))
+    def has_predecessors(self, node_id: NodeIdType, **include_filter):
+        return self._iterator_has_items(self.predecessors(node_id, **include_filter))
 
-    def has_ancestors(self, node_name, **include_filter):
-        return self._iterator_has_items(self.ancestors(node_name, **include_filter))
+    def has_ancestors(self, node_id: NodeIdType, **include_filter):
+        return self._iterator_has_items(self.ancestors(node_id, **include_filter))
 
     @staticmethod
     def _iterator_has_items(iterator):
@@ -346,15 +352,15 @@ class TaskGraph:
         except StopIteration:
             return False
 
-    def _iter_downstream_nodes(self, node_name, **kw):
-        yield from self._iter_nodes(node_name, upstream=False, **kw)
+    def _iter_downstream_nodes(self, node_id: NodeIdType, **kw):
+        yield from self._iter_nodes(node_id, upstream=False, **kw)
 
-    def _iter_upstream_nodes(self, node_name, **kw):
-        yield from self._iter_nodes(node_name, upstream=True, **kw)
+    def _iter_upstream_nodes(self, node_id: NodeIdType, **kw):
+        yield from self._iter_nodes(node_id, upstream=True, **kw)
 
     def _iter_nodes(
         self,
-        node_name,
+        node_id: NodeIdType,
         upstream=False,
         recursive=False,
         _visited=None,
@@ -368,28 +374,24 @@ class TaskGraph:
         if recursive:
             if _visited is None:
                 _visited = set()
-            elif node_name in _visited:
+            elif node_id in _visited:
                 return
-            _visited.add(node_name)
+            _visited.add(node_id)
         if upstream:
             iter_next_nodes = self.graph.predecessors
         else:
             iter_next_nodes = self.graph.successors
-        for next_name in iter_next_nodes(node_name):
-            node_is_included = self._filter_node(next_name, **include_filter)
+        for next_id in iter_next_nodes(node_id):
+            node_is_included = self._filter_node(next_id, **include_filter)
             if upstream:
-                link_is_included = self._filter_link(
-                    next_name, node_name, **include_filter
-                )
+                link_is_included = self._filter_link(next_id, node_id, **include_filter)
             else:
-                link_is_included = self._filter_link(
-                    node_name, next_name, **include_filter
-                )
+                link_is_included = self._filter_link(node_id, next_id, **include_filter)
             if node_is_included and link_is_included:
-                yield next_name
+                yield next_id
             if recursive:
                 yield from self._iter_nodes(
-                    next_name,
+                    next_id,
                     upstream=upstream,
                     recursive=True,
                     _visited=_visited,
@@ -398,7 +400,7 @@ class TaskGraph:
 
     def _filter_node(
         self,
-        node_name,
+        node_id: NodeIdType,
         node_filter=None,
         node_has_predecessors=None,
         node_has_successors=None,
@@ -406,20 +408,20 @@ class TaskGraph:
     ):
         """Filters are combined with the logical AND"""
         if callable(node_filter):
-            if not node_filter(node_name):
+            if not node_filter(node_id):
                 return False
         if node_has_predecessors is not None:
-            if self.has_predecessors(node_name) != node_has_predecessors:
+            if self.has_predecessors(node_id) != node_has_predecessors:
                 return False
         if node_has_successors is not None:
-            if self.has_successors(node_name) != node_has_successors:
+            if self.has_successors(node_id) != node_has_successors:
                 return False
         return True
 
     def _filter_link(
         self,
-        source_name,
-        target_name,
+        source_id: NodeIdType,
+        target_id: NodeIdType,
         link_filter=None,
         link_has_on_error=None,
         link_has_conditions=None,
@@ -429,110 +431,102 @@ class TaskGraph:
     ):
         """Filters are combined with the logical AND"""
         if callable(link_filter):
-            if not link_filter(source_name, target_name):
+            if not link_filter(source_id, target_id):
                 return False
         if link_has_on_error is not None:
-            if self._link_has_on_error(source_name, target_name) != link_has_on_error:
+            if self._link_has_on_error(source_id, target_id) != link_has_on_error:
                 return False
         if link_has_conditions is not None:
-            if (
-                self._link_has_conditions(source_name, target_name)
-                != link_has_conditions
-            ):
+            if self._link_has_conditions(source_id, target_id) != link_has_conditions:
                 return False
         if link_is_conditional is not None:
-            if (
-                self._link_is_conditional(source_name, target_name)
-                != link_is_conditional
-            ):
+            if self._link_is_conditional(source_id, target_id) != link_is_conditional:
                 return False
         if link_has_required is not None:
-            if self._link_has_required(source_name, target_name) != link_has_required:
+            if self._link_has_required(source_id, target_id) != link_has_required:
                 return False
         return True
 
-    def _link_has_conditions(self, source_name, target_name):
-        link_attrs = self.graph[source_name][target_name]
+    def _link_has_conditions(self, source_id: NodeIdType, target_id: NodeIdType):
+        link_attrs = self.graph[source_id][target_id]
         return bool(link_attrs.get("conditions", False))
 
-    def _link_has_on_error(self, source_name, target_name):
-        link_attrs = self.graph[source_name][target_name]
+    def _link_has_on_error(self, source_id: NodeIdType, target_id: NodeIdType):
+        link_attrs = self.graph[source_id][target_id]
         return bool(link_attrs.get("on_error", False))
 
-    def _link_has_required(self, source_name, target_name):
-        link_attrs = self.graph[source_name][target_name]
+    def _link_has_required(self, source_id: NodeIdType, target_id: NodeIdType):
+        link_attrs = self.graph[source_id][target_id]
         return bool(link_attrs.get("required", False))
 
-    def _link_is_conditional(self, source_name, target_name):
-        link_attrs = self.graph[source_name][target_name]
+    def _link_is_conditional(self, source_id: NodeIdType, target_id: NodeIdType):
+        link_attrs = self.graph[source_id][target_id]
         return bool(
             link_attrs.get("on_error", False) or link_attrs.get("conditions", False)
         )
 
-    def link_is_required(self, source_name, target_name):
-        if self._link_has_required(source_name, target_name):
+    def link_is_required(self, source_id: NodeIdType, target_id: NodeIdType):
+        if self._link_has_required(source_id, target_id):
             return True
-        if self._link_is_conditional(source_name, target_name):
+        if self._link_is_conditional(source_id, target_id):
             return False
-        return self._node_is_required(source_name)
+        return self._node_is_required(source_id)
 
-    def _node_is_required(self, node_name):
+    def _node_is_required(self, node_id: NodeIdType):
         return not self.has_ancestors(
-            node_name, link_has_required=False, link_is_conditional=True
+            node_id, link_has_required=False, link_is_conditional=True
         )
 
-    def _required_predecessors(self, target_name):
-        for source_name in self.predecessors(target_name):
-            if self.link_is_required(source_name, target_name):
-                yield source_name
+    def _required_predecessors(self, target_id: NodeIdType):
+        for source_id in self.predecessors(target_id):
+            if self.link_is_required(source_id, target_id):
+                yield source_id
 
-    def _has_required_predecessors(self, node_name):
-        return self._iterator_has_items(self._required_predecessors(node_name))
+    def _has_required_predecessors(self, node_id: NodeIdType):
+        return self._iterator_has_items(self._required_predecessors(node_id))
 
-    def _has_required_static_inputs(self, node_name):
+    def _has_required_static_inputs(self, node_id: NodeIdType):
         """Returns True when the default inputs cover all required inputs."""
-        node_attrs = self.graph.nodes[node_name]
+        node_attrs = self.graph.nodes[node_id]
         inputs_complete = node_attrs.get("inputs_complete", None)
         if isinstance(inputs_complete, bool):
             # method and script tasks always have an empty `required_input_names`
             # although they may have required input. This keyword is used the
             # manually indicate that all required inputs are statically provided.
             return inputs_complete
-        taskclass = inittask.get_task_class(node_attrs, node_name=node_name)
+        taskclass = inittask.get_task_class(node_attrs, node_id=node_id)
         static_inputs = {d["name"] for d in node_attrs.get("default_inputs", list())}
         return not (set(taskclass.required_input_names()) - static_inputs)
 
-    def start_nodes(self):
+    def start_nodes(self) -> Set[NodeIdType]:
         nodes = set(
-            node_name
-            for node_name in self.graph.nodes
-            if not self.has_predecessors(node_name)
+            node_id
+            for node_id in self.graph.nodes
+            if not self.has_predecessors(node_id)
         )
         if nodes:
             return nodes
         return set(
-            node_name
-            for node_name in self.graph.nodes
-            if self._has_required_static_inputs(node_name)
-            and not self._has_required_predecessors(node_name)
+            node_id
+            for node_id in self.graph.nodes
+            if self._has_required_static_inputs(node_id)
+            and not self._has_required_predecessors(node_id)
         )
 
-    def end_nodes(self):
+    def end_nodes(self) -> Set[NodeIdType]:
         nodes = set(
-            node_name
-            for node_name in self.graph.nodes
-            if not self.has_successors(node_name)
+            node_id for node_id in self.graph.nodes if not self.has_successors(node_id)
         )
         if nodes:
             return nodes
         return set(
-            node_name
-            for node_name in self.graph.nodes
-            if self._node_has_noncovered_conditions(node_name)
+            node_id
+            for node_id in self.graph.nodes
+            if self._node_has_noncovered_conditions(node_id)
         )
 
-    def _node_has_noncovered_conditions(self, source_name) -> bool:
-        links = self._get_node_expanded_conditions(source_name)
+    def _node_has_noncovered_conditions(self, source_id: NodeIdType) -> bool:
+        links = self._get_node_expanded_conditions(source_id)
         has_complement = [False] * len(links)
 
         default_complements = {CONDITIONS_ELSE_VALUE}
@@ -570,13 +564,13 @@ class TaskGraph:
                 return False
         return True
 
-    def _get_node_expanded_conditions(self, source_name):
+    def _get_node_expanded_conditions(self, source_id: NodeIdType):
         """Ensure that conditional link starting from a source node has
         the same set of output names.
         """
         links = [
-            self.graph[source_name][target_name]["conditions"]
-            for target_name in self.successors(source_name, link_has_conditions=True)
+            self.graph[source_id][target_id]["conditions"]
+            for target_id in self.successors(source_id, link_has_conditions=True)
         ]
         all_condition_names = {
             item["source_output"] for conditions in links for item in conditions
@@ -590,30 +584,30 @@ class TaskGraph:
         return links
 
     def validate_graph(self):
-        for node_name, node_attrs in self.graph.nodes.items():
-            inittask.validate_task_executable(node_attrs, node_name=node_name)
+        for node_id, node_attrs in self.graph.nodes.items():
+            inittask.validate_task_executable(node_attrs, node_id=node_id)
 
             # Isolated nodes do no harm so comment this
-            # if len(graph.nodes) > 1 and not node_has_links(graph, node_name):
-            #    raise ValueError(f"Node {repr(node_name)} has no links")
+            # if len(graph.nodes) > 1 and not node_has_links(graph, node_id):
+            #    raise ValueError(f"Node {repr(node_id)} has no links")
 
             inputs_from_required = dict()
-            for source_name in self._required_predecessors(node_name):
-                link_attrs = self.graph[source_name][node_name]
+            for source_id in self._required_predecessors(node_id):
+                link_attrs = self.graph[source_id][node_id]
                 arguments = link_attrs.get("data_mapping", list())
                 for arg in arguments:
                     try:
                         name = arg["target_input"]
                     except KeyError:
                         raise KeyError(
-                            f"Argument '{arg}' of link '{source_name}' -> '{node_name}' is missing an 'input' key"
+                            f"Argument '{arg}' of link '{source_id}' -> '{node_id}' is missing an 'input' key"
                         ) from None
-                    other_source_name = inputs_from_required.get(name)
-                    if other_source_name:
+                    other_source_id = inputs_from_required.get(name)
+                    if other_source_id:
                         raise ValueError(
-                            f"Node {repr(source_name)} and {repr(other_source_name)} both connect to the input {repr(name)} of {repr(node_name)}"
+                            f"Node {repr(source_id)} and {repr(other_source_id)} both connect to the input {repr(name)} of {repr(node_id)}"
                         )
-                    inputs_from_required[name] = source_name
+                    inputs_from_required[name] = source_id
 
         for (source, target), linkattrs in self.graph.edges.items():
             err_msg = (

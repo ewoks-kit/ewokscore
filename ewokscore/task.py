@@ -30,7 +30,7 @@ class Task(Registered, UniversalHashable, register=False):
     _OUTPUT_NAMES = set()
     _N_REQUIRED_POSITIONAL_INPUTS = 0
 
-    def __init__(self, inputs=None, varinfo=None, name=None):
+    def __init__(self, inputs=None, varinfo=None, label=None):
         """The named arguments are inputs and Variable configuration"""
         if inputs is None:
             inputs = dict()
@@ -61,7 +61,7 @@ class Task(Registered, UniversalHashable, register=False):
         # Misc
         self._exception = None
         self._done = None
-        self.__name = name
+        self.__label = label
 
         # The output hash will update dynamically if any of the input
         # variables change
@@ -205,8 +205,8 @@ class Task(Registered, UniversalHashable, register=False):
         metadata = self.output_metadata
         if metadata is None:
             return
-        if self.__name:
-            metadata.setdefault("title", self.__name)
+        if self.__label:
+            metadata.setdefault("title", self.__label)
 
     @property
     def done(self):
