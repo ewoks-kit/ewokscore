@@ -68,6 +68,7 @@ class DataUri(HasUhash):
 
 class DataProxy(Registered, HasUhash, register=False):
     SCHEME = NotImplemented
+    """name of the DataProxy scheme like json or nexus"""
 
     def __init__(
         self,
@@ -135,7 +136,7 @@ class DataProxy(Registered, HasUhash, register=False):
 
     @property
     def uhash(self) -> Optional[UniversalHash]:
-        if self.fixed_uri:
+        if self.is_fixed_uri:
             return self.__fixed_uri.uhash
         elif isinstance(self.__uhash_source, HasUhash):
             return self.__uhash_source.uhash
@@ -146,6 +147,7 @@ class DataProxy(Registered, HasUhash, register=False):
 
     @property
     def identifier(self) -> Optional[str]:
+        """Return identifier DataProxy to be used as a string"""
         uhash = self.uhash
         if uhash is None:
             return None
@@ -163,12 +165,20 @@ class DataProxy(Registered, HasUhash, register=False):
         return dict()
 
     @property
-    def fixed_uri(self) -> bool:
+    def is_fixed_uri(self) -> bool:
         return self.__fixed_uri is not None
 
     @property
     def uri(self) -> Optional[DataUri]:
-        if self.fixed_uri:
+        """
+        Return an Unified Resource Identifier. Defined as:
+        URI = scheme ":" "//" path ["?" query] ["#" fragment]
+
+        see https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
+
+        .. warning:: query can be ?path= which is different from path
+        """
+        if self.is_fixed_uri:
             return self.__fixed_uri
         return self._generate_uri()
 
@@ -177,10 +187,13 @@ class DataProxy(Registered, HasUhash, register=False):
         raise NotImplementedError
 
     def exists(self) -> bool:
+        """return True if the data exists"""
         raise NotImplementedError
 
     def load(self, raise_error: bool = True) -> Any:
+        """Load data from the uri"""
         raise NotImplementedError
 
     def dump(self, data: Any) -> bool:
+        """Dump data to the uri"""
         raise NotImplementedError

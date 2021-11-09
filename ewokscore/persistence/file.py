@@ -4,6 +4,7 @@ from urllib.parse import ParseResult
 from .uri import path_from_uri
 from . import proxy
 from ..hashing import UniversalHashable
+from silx.utils.proxy import docstring
 
 
 class FileProxy(proxy.DataProxy, register=False):
@@ -14,12 +15,18 @@ class FileProxy(proxy.DataProxy, register=False):
     """
 
     EXTENSIONS = NotImplemented
+    """Valid file extensions. Expected to be an iterable"""
     ALLOW_PATH_IN_FILE = NotImplemented
+    """Does format allow path inside files. Expected to be a boolean"""
     SEP_IN_FILE = "/"
+    """Separator used inside files. Expected to be a string"""
 
     @property
     def path(self) -> Optional[Path]:
-        if self.fixed_uri:
+        """return 'path' from the following URI representation:
+        URI = scheme ":" "//" path ["?" query] ["#" fragment]
+        """
+        if self.is_fixed_uri:
             return path_from_uri(self.uri.parse())
         parsed_root_uri = self.parsed_root_uri
         if parsed_root_uri is None:
@@ -55,8 +62,8 @@ class FileProxy(proxy.DataProxy, register=False):
         return path.with_suffix(extension)
 
     def _path_in_file_parts(self) -> List[str]:
-        parts = [s for s in self.root_uri_path_in_file.split(self.SEP_IN_FILE) if s]
-        if self.fixed_uri:
+        parts = [s for s in self._root_uri_path_in_file.split(self.SEP_IN_FILE) if s]
+        if self.is_fixed_uri:
             return parts
         identifier = self.identifier
         if identifier is not None:
@@ -64,24 +71,41 @@ class FileProxy(proxy.DataProxy, register=False):
         return parts
 
     @property
-    def root_uri_path_in_file(self) -> str:
+    def _root_uri_path_in_file(self) -> str:
+        """
+        return '**data root** path query' result
+        for data at "file://path/to/name.ext?path=/path/in/file" return "/path/in"
+        """
         return self.root_uri_query.get("path", "")
 
     def path_in_file_parts(self) -> Optional[List[str]]:
+        """Return list of 'path' query parts as a LIST WITHOUT the root"""
         if self.ALLOW_PATH_IN_FILE:
             return self._path_in_file_parts()
         else:
             return None
 
     @property
-    def path_in_file(self) -> Optional[str]:
+    def path_in_file(
+        self,
+    ) -> Optional[str]:
+        """
+        return '**data** path query' result
+        for data at "file://path/to/name.ext?path=/path/in/file" return "path/in/file"
+        """
         if self.ALLOW_PATH_IN_FILE:
             return self.SEP_IN_FILE.join(self._path_in_file_parts())
         else:
             return None
 
     @property
-    def path_in_file_parent(self) -> Optional[str]:
+    def path_in_file_parent(
+        self,
+    ) -> Optional[str]:
+        """
+        return '**data** path query' result
+        for data at "file://path/to/name.ext?path=/path/in/file" return "path/in"
+        """
         if self.ALLOW_PATH_IN_FILE:
             parts = self._path_in_file_parts()[:-1]
             return self.SEP_IN_FILE.join(parts)
@@ -90,6 +114,10 @@ class FileProxy(proxy.DataProxy, register=False):
 
     @property
     def path_in_file_name(self) -> Optional[str]:
+        """
+        Return '**data** path query' last part
+        for data at "file://path/to/name.ext?path=/path/in/file" return "file"
+        """
         if self.ALLOW_PATH_IN_FILE:
             return self._path_in_file_parts()[-1]
         else:
@@ -111,12 +139,14 @@ class FileProxy(proxy.DataProxy, register=False):
         uri = ParseResult(self.SCHEME, str(path), "", "", query, "")
         return proxy.DataUri(uri, self.uhash)
 
+    @docstring(proxy.DataProxy)
     def exists(self) -> bool:
         path = self.path
         if path is None:
             return False
         return path.exists()
 
+    @docstring(proxy.DataProxy)
     def dump(self, data, **kw):
         path = self.path
         if path is None:
@@ -124,6 +154,7 @@ class FileProxy(proxy.DataProxy, register=False):
         self._dump(path, data, **kw)
         return True
 
+    @docstring(proxy.DataProxy)
     def load(self, raise_error=True, **kw):
         path = self.path
         if path is None:
