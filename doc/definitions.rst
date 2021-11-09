@@ -49,7 +49,7 @@ Graph definition
 .. code-block:: json
 
     {
-        "graph": {"name": "mygraph"}
+        "graph": {"id": "mygraph"}
         "nodes": [{"id": "name1",
                    "task_type": "class",
                    "task_identifier": "package.module.task.SumTask",
@@ -65,7 +65,8 @@ Graph definition
 
 Graph attributes
 ^^^^^^^^^^^^^^^^
-* *name* (optional): the name of the task graph
+* *id*: graph identifier unique to a database of graphs
+* *label* (optional): non-unique label to be used when identifying a graph for human consumption
 * *input_nodes* (optional): nodes that are expected to be used as link targets when the graph
   is used as a subgraph.
 * *output_nodes* (optional): nodes that are expected to be used as link sources when the graph
@@ -106,6 +107,7 @@ of the sub-graph.
 Node attributes
 ^^^^^^^^^^^^^^^
 * *id*: node identifier unique to the graph
+* *label* (optional): non-unique label to be used when identifying a node for human consumption
 * *task_identifier*: specifies the unit of execution
 * *task_type*: defines the meaning of *task_identifier* and can have of these values:
 

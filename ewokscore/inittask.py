@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Tuple
+from typing import Optional, Tuple
 import warnings
 from .task import Task
 from .methodtask import MethodExecutorTask
@@ -9,6 +9,8 @@ from .ppftasks import PpfPortTask
 from .dynamictask import get_dynamically_task_class
 from .utils import import_method
 from .utils import import_qualname
+from .node import get_node_label
+from .node import NodeIdType
 
 
 TASK_EXECUTABLE_ATTRIBUTE = (
@@ -40,18 +42,18 @@ TASK_EXECUTABLE_ERROR_MSG_ALL = (
 )
 
 
-def raise_task_error(node_name, all=True):
-    if node_name:
-        node_name = " " + repr(node_name)
+def raise_task_error(node_label: str, all: bool = True):
+    if node_label:
+        node_label = " " + repr(node_label)
     if all:
         error_fmt = TASK_EXECUTABLE_ERROR_MSG_ALL
     else:
         error_fmt = TASK_EXECUTABLE_ERROR_MSG
-    raise ValueError(error_fmt.format(node_name))
+    raise ValueError(error_fmt.format(node_label))
 
 
 def task_executable_info(
-    node_attrs: dict, node_name: str = "", all: bool = False
+    node_attrs: dict, node_id: NodeIdType = "", all: bool = False
 ) -> Tuple[str, dict]:
     if all:
         keys = TASK_EXECUTABLE_ATTRIBUTE_ALL
@@ -59,7 +61,8 @@ def task_executable_info(
         keys = TASK_EXECUTABLE_ATTRIBUTE
     key = node_attrs.keys() & set(keys)
     if len(key) != 1:
-        raise_task_error(node_name, all=all)
+        node_label = get_node_label(node_attrs, node_id=node_id)
+        raise_task_error(node_label, all=all)
     key = key.pop()
 
     if key == "task_type":
@@ -102,11 +105,13 @@ def task_executable_info(
     return task_type, info
 
 
-def validate_task_executable(node_attrs, node_name="", all=False):
-    task_executable_info(node_attrs, node_name=node_name, all=all)
+def validate_task_executable(
+    node_attrs: dict, node_id: NodeIdType = "", all: bool = False
+):
+    task_executable_info(node_attrs, node_id=node_id, all=all)
 
 
-def get_varinfo(node_attrs, varinfo=None) -> dict:
+def get_varinfo(node_attrs: dict, varinfo: Optional[dict] = None) -> dict:
     if varinfo is None:
         varinfo = dict()
     if node_attrs:
@@ -114,12 +119,17 @@ def get_varinfo(node_attrs, varinfo=None) -> dict:
     return varinfo
 
 
-def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
+def instantiate_task(
+    node_attrs: dict,
+    varinfo: Optional[dict] = None,
+    inputs: Optional[dict] = None,
+    node_id: NodeIdType = "",
+):
     """
     :param dict node_attrs: node attributes of the graph representation
     :param dict varinfo: `Variable` constructor arguments
     :param dict or None inputs: dynamic inputs (from other tasks)
-    :param str node_name:
+    :param str node_id:
     :returns Task:
     """
     # Default inputs
@@ -132,37 +142,38 @@ def instantiate_task(node_attrs, varinfo=None, inputs=None, node_name=""):
     varinfo = get_varinfo(node_attrs, varinfo=varinfo)
 
     # Instantiate task
-    task_type, task_info = task_executable_info(node_attrs, node_name=node_name)
+    task_type, task_info = task_executable_info(node_attrs, node_id=node_id)
+    node_label = get_node_label(node_attrs, node_id=node_id)
     if task_type == "class":
         return Task.instantiate(
             task_info["task_identifier"],
             inputs=task_inputs,
             varinfo=varinfo,
-            name=node_name,
+            label=node_label,
         )
     elif task_type == "method":
         task_inputs["method"] = task_info["task_identifier"]
-        return MethodExecutorTask(inputs=task_inputs, varinfo=varinfo, name=node_name)
+        return MethodExecutorTask(inputs=task_inputs, varinfo=varinfo, label=node_label)
     elif task_type == "ppfmethod":
         task_inputs["method"] = task_info["task_identifier"]
         return PpfMethodExecutorTask(
-            inputs=task_inputs, varinfo=varinfo, name=node_name
+            inputs=task_inputs, varinfo=varinfo, label=node_label
         )
     elif task_type == "ppfport":
-        return PpfPortTask(inputs=task_inputs, varinfo=varinfo, name=node_name)
+        return PpfPortTask(inputs=task_inputs, varinfo=varinfo, label=node_label)
     elif task_type == "script":
         task_inputs["script"] = task_info["task_identifier"]
-        return ScriptExecutorTask(inputs=task_inputs, varinfo=varinfo, name=node_name)
+        return ScriptExecutorTask(inputs=task_inputs, varinfo=varinfo, label=node_label)
     elif task_type == "generated":
         task_class = get_dynamically_task_class(
             node_attrs.get("task_generator"), task_info["task_identifier"]
         )
-        return task_class(inputs=task_inputs, varinfo=varinfo, name=node_name)
+        return task_class(inputs=task_inputs, varinfo=varinfo, label=node_label)
     else:
-        raise_task_error(node_name, all=False)
+        raise_task_error(node_label, all=False)
 
 
-def add_dynamic_inputs(dynamic_inputs, link_attrs, source_results):
+def add_dynamic_inputs(dynamic_inputs: dict, link_attrs: dict, source_results: dict):
     map_all_data = link_attrs.get("map_all_data", False)
     data_mapping = link_attrs.get("data_mapping", list())
     if map_all_data and data_mapping:
@@ -184,8 +195,8 @@ def add_dynamic_inputs(dynamic_inputs, link_attrs, source_results):
             dynamic_inputs[input_arg] = source_results
 
 
-def task_executable(node_attrs, node_name=""):
-    task_type, task_info = task_executable_info(node_attrs, node_name=node_name)
+def task_executable(node_attrs: dict, node_id: NodeIdType = ""):
+    task_type, task_info = task_executable_info(node_attrs, node_id=node_id)
     if task_type == "class":
         return task_info["task_identifier"], import_qualname
     elif task_type == "method":
@@ -201,11 +212,12 @@ def task_executable(node_attrs, node_name=""):
             get_dynamically_task_class, node_attrs.get("task_generator")
         )
     else:
-        raise_task_error(node_name, all=False)
+        node_label = get_node_label(node_attrs, node_id=node_id)
+        raise_task_error(node_label, all=False)
 
 
-def get_task_class(node_attrs, node_name=""):
-    task_type, task_info = task_executable_info(node_attrs, node_name=node_name)
+def get_task_class(node_attrs: dict, node_id: NodeIdType = ""):
+    task_type, task_info = task_executable_info(node_attrs, node_id=node_id)
     if task_type == "class":
         return Task.get_subclass(task_info["task_identifier"])
     elif task_type == "method":
@@ -221,4 +233,5 @@ def get_task_class(node_attrs, node_name=""):
             node_attrs.get("task_generator"), task_info["task_identifier"]
         )
     else:
-        raise_task_error(node_name, all=False)
+        node_label = get_node_label(node_attrs, node_id=node_id)
+        raise_task_error(node_label, all=False)
