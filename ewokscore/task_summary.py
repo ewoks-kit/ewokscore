@@ -1,4 +1,9 @@
+import json
+import logging
+from pathlib import Path
 from .task import Task
+
+logger = logging.getLogger(__name__)
 
 
 def generate_task_summary() -> dict:
@@ -16,3 +21,13 @@ def generate_task_summary() -> dict:
         }
         summary.append(info)
     return summary
+
+
+def save_task_summary(filename, indent=2):
+    summary = generate_task_summary()
+    if not summary:
+        logger.warning(f"No tasks to be saved in {filename}")
+        return
+    filename = Path(filename).with_suffix(".json")
+    with open(filename, "w") as fh:
+        json.dump(summary, fh, indent=indent)
