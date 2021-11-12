@@ -29,13 +29,13 @@ The input arguments of a task are defined in the following order of priority:
  * Input from all unconditional links (argument collisions raise an exception)
  * Input from the graph representation (default input)
 
-*Ewoskcore* has a native, sequential task scheduler which can be used like this
+*ewokscore* has a native, sequential task scheduler which can be used like this
 
 .. code-block:: python
 
   from ewokscore import execute_graph
 
-  result = execute_graph(load_graph("/path/to/graph.json"))
+  result = execute_graph("/path/to/graph.json")
 
 
 The `execute_graph` method can be imported from the *ewoks* binding projects for more complex task scheduling.

@@ -16,7 +16,7 @@ pytest --pyargs ewokscore.tests
 
 ```python
 from ewokscore import Task
-from ewokscore import load_graph
+from ewokscore import execute_graph
 
 # Implement a workflow task
 class SumTask(
@@ -65,9 +65,8 @@ links = [
 workflow = {"nodes": nodes, "links": links}
 
 # Execute a workflow (use a proper Ewoks task scheduler in production)
-graph = load_graph(workflow)
 varinfo = {"root_uri": "/tmp/myresults"}  # optional
-tasks = graph.execute(varinfo=varinfo)
+tasks = execute_graph(workflow, varinfo=varinfo)
 print(tasks["task3"].output_values)
 ```
 
