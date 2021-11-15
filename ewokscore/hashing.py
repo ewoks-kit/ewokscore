@@ -124,19 +124,30 @@ class HasUhash:
             raise TypeError(other, type(other))
         return self.uhash == uhash
 
-    def __repr__(self):
+    def _get_repr_data(self) -> dict:
+        data = dict()
         uhash = self.uhash
         if uhash is None:
-            return super().__repr__()
+            data["uhash"] = None
         else:
-            return f"{super().__repr__()}(uhash='{uhash}')"
+            data["uhash"] = repr(str(uhash))
+        return data
+
+    def __repr__(self):
+        data = self._get_repr_data()
+        if data:
+            sdata = ", ".join([f"{k}={v}" for k, v in data.items()])
+            return f"{super().__repr__()}({sdata})"
+        else:
+            return super().__repr__()
 
     def __str__(self):
-        uhash = self.uhash
-        if uhash is None:
-            return qualname(type(self))
+        data = self._get_repr_data()
+        if data:
+            sdata = ", ".join([f"{k}={v}" for k, v in data.items()])
+            return f"{qualname(type(self))}({sdata})"
         else:
-            return f"{qualname(type(self))}(uhash='{uhash}')"
+            return qualname(type(self))
 
 
 class MissingData:
