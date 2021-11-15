@@ -268,7 +268,11 @@ class Task(Registered, UniversalHashable, register=False):
         except Exception as e:
             self._exception = e
             if raise_on_error:
-                raise
+                if self.__label:
+                    label = self.__label
+                else:
+                    label = str(self)
+                raise RuntimeError(f"Task '{label}' failed") from e
         else:
             self._done = True
 
