@@ -65,7 +65,7 @@ Graph definition
 
 Graph attributes
 ^^^^^^^^^^^^^^^^
-* *id*: graph identifier unique to a database of graphs
+* *id* (optional): graph identifier unique to a database of graphs
 * *label* (optional): non-unique label to be used when identifying a graph for human consumption
 * *input_nodes* (optional): nodes that are expected to be used as link targets when the graph
   is used as a subgraph.
@@ -112,15 +112,15 @@ Node attributes
 * *task_type*: defines the meaning of *task_identifier* and can have of these values:
 
   * *class*: *task_identifier* is the full qualifier name of a task class (statically defined)
-  * *generated*: *task_identifier* is the full qualifier name that is used by *task_generator* to
-    generate a task at runtime
+  * *generated*: *task_identifier* is an argument that is used by *task_generator* to generate
+    a task at runtime
   * *method*: *task_identifier* is the full qualifier name of a function
   * *graph*: *task_identifier* is the representation of another graph (e.g. json file name)
   * *ppfmethod*: *task_identifier* is the full qualifier name of a *pypushflow* function (special input/output convention)
   * *ppfport*: special *ppfmethod* which is the *identify mapping*. *task_identifier* should not be specified.
   * *script*: *task_identifier* is the absolute path of a python or shell script
-* *task_generator* (optional): the full qualifier name of the task generator to generate a task at
-  runtime. Only used when *task_type* is *generated*.
+* *task_generator* (optional): the full qualifier name of a method that generates a task at runtime
+  based on *task_identifier*. Only used when *task_type* is *generated*.
 * *default_inputs* (optional): default input arguments (used not provided by the output of other tasks). For example:
     .. code-block:: json
 
