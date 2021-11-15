@@ -24,9 +24,11 @@ def load_graph(source=None, representation=None, **load_options):
         return TaskGraph(source=source, representation=representation, **load_options)
 
 
-def execute_graph(source=None, representation=None, varinfo=None, **load_options):
-    graph = load_graph(source=source, representation=representation, **load_options)
-    return graph.execute(varinfo=varinfo)
+def execute_graph(graph, load_options: Optional[dict] = None, **execute_options):
+    if load_options is None:
+        load_options = dict()
+    graph = load_graph(source=graph, **load_options)
+    return graph.execute(**execute_options)
 
 
 def set_graph_defaults(graph_as_dict):
