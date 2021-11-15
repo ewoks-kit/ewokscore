@@ -65,7 +65,7 @@ Graph definition
 
 Graph attributes
 ^^^^^^^^^^^^^^^^
-* *id*: graph identifier unique to a database of graphs
+* *id* (optional): graph identifier unique to a database of graphs
 * *label* (optional): non-unique label to be used when identifying a graph for human consumption
 * *input_nodes* (optional): nodes that are expected to be used as link targets when the graph
   is used as a subgraph.
