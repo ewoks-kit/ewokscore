@@ -226,6 +226,13 @@ class Task(Registered, UniversalHashable, register=False):
         """Completed with exception"""
         return self._exception is not None
 
+    def _get_repr_data(self):
+        data = super()._get_repr_data()
+        if self.__label:
+            data["label"] = repr(str(self.__label))
+        else:
+            data["label"] = None
+
     def _iter_missing_input_values(self):
         for iname in self._INPUT_NAMES:
             var = self._inputs.get(iname)
