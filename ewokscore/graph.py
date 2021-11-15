@@ -624,7 +624,7 @@ class TaskGraph:
             raise RuntimeError("Sorting nodes is not possible for cyclic graphs")
         yield from networkx.topological_sort(self.graph)
 
-    def execute(self, varinfo=None):
+    def execute(self, varinfo: Optional[dict] = None, raise_on_error: bool = True):
         """Sequential execution of DAGs"""
         if self.is_cyclic:
             raise RuntimeError("Cannot execute cyclic graphs")
@@ -633,5 +633,5 @@ class TaskGraph:
         tasks = dict()
         for node in self.topological_sort():
             task = self.instantiate_task_static(node, tasks=tasks, varinfo=varinfo)
-            task.execute()
+            task.execute(raise_on_error=raise_on_error)
         return tasks
