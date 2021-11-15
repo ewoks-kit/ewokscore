@@ -152,17 +152,19 @@ def instantiate_task(
             label=node_label,
         )
     elif task_type == "method":
-        task_inputs["method"] = task_info["task_identifier"]
+        task_inputs[MethodExecutorTask.METHOD_ARGUMENT] = task_info["task_identifier"]
         return MethodExecutorTask(inputs=task_inputs, varinfo=varinfo, label=node_label)
     elif task_type == "ppfmethod":
-        task_inputs["method"] = task_info["task_identifier"]
+        task_inputs[PpfMethodExecutorTask.METHOD_ARGUMENT] = task_info[
+            "task_identifier"
+        ]
         return PpfMethodExecutorTask(
             inputs=task_inputs, varinfo=varinfo, label=node_label
         )
     elif task_type == "ppfport":
         return PpfPortTask(inputs=task_inputs, varinfo=varinfo, label=node_label)
     elif task_type == "script":
-        task_inputs["script"] = task_info["task_identifier"]
+        task_inputs[ScriptExecutorTask.SCRIPT_ARGUMENT] = task_info["task_identifier"]
         return ScriptExecutorTask(inputs=task_inputs, varinfo=varinfo, label=node_label)
     elif task_type == "generated":
         task_class = get_dynamically_task_class(

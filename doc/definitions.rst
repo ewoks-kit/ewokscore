@@ -188,11 +188,11 @@ For example
 
 When a task is defined as a method or a script, a class wrapper will be generated automatically:
 
-* *method*: defined by a `Task` class with one required input argument ("method": full qualifier name of the method)
+* *method*: defined by a `Task` class with one required input argument ("_method": full qualifier name of the method)
   and one output argument ("return_value")
-* *ppfmethod*: same as *method* but it has one optional input "ppfdict" and one output "ppfdict". The output dictonary
-  is the input dictionary updated by the method. The input dictionary is unpacked before passing to the method.
+* *ppfmethod*: same as *method* but it has one optional input "_ppfdict" and one output "_ppfdict". The output
+  dictonary is the input dictionary updated by the method. The input dictionary is unpacked before passing to the method.
   The output dictionary is unpacked when checking conditions in links.
 * *ppfport*: *ppfmethod* which is the identity mapping
-* *script*: defined by a `Task` class with one required input argument ("method": full qualifier name of the method)
-  and one output argument ("return_value")
+* *script*: defined by a `Task` class with one required input argument ("_script": path to the script)
+  and one output argument ("return_code")

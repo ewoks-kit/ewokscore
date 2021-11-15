@@ -19,12 +19,12 @@ def test_python_script_task(tmpdir, varinfo, capsys):
 
     task = Task.instantiate(
         "ScriptExecutorTask",
-        inputs={"a": 10, "script": str(pyscriptname)},
+        inputs={"a": 10, "_script": str(pyscriptname)},
         varinfo=varinfo,
     )
     task.execute()
     assert task.done
-    assert task.outputs.returncode == 0
+    assert task.outputs.return_code == 0
     captured = capsys.readouterr()
     # assert captured.out == "10\n"
     assert captured.err == ""
@@ -56,12 +56,12 @@ def test_shell_script_task(tmpdir, varinfo, capsys):
 
     task = Task.instantiate(
         "ScriptExecutorTask",
-        inputs={"a": 10, "script": str(shellscriptname)},
+        inputs={"a": 10, "_script": str(shellscriptname)},
         varinfo=varinfo,
     )
     task.execute()
     assert task.done
-    assert task.outputs.returncode == 0
+    assert task.outputs.return_code == 0
     captured = capsys.readouterr()
     # assert captured.out == "10\n"
     assert captured.err == ""
