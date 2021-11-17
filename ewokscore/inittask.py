@@ -192,7 +192,12 @@ def add_dynamic_inputs(dynamic_inputs: dict, link_attrs: dict, source_results: d
         except KeyError:
             raise KeyError(f"Argument '{arg}' is missing an 'input' key") from None
         if output_arg:
-            dynamic_inputs[input_arg] = source_results[output_arg]
+            try:
+                dynamic_inputs[input_arg] = source_results[output_arg]
+            except KeyError:
+                raise KeyError(
+                    f"'{output_arg}' is not an output variable of the source task"
+                ) from None
         else:
             dynamic_inputs[input_arg] = source_results
 
