@@ -57,7 +57,7 @@ def test_sub_graph():
     }
 
     ewoksgraph = load_graph(graph)
-    tasks = ewoksgraph.execute()
+    tasks = ewoksgraph.execute(results_of_all_nodes=True)
     expected = {
         "node1": {"return_value": 1},
         ("node2", ("subnode1", "subsubnode1")): {"return_value": 2},

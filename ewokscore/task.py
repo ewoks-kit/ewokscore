@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Union
+from typing import Optional, Union
 
 from .hashing import UniversalHashable
 from .variable import VariableContainer
@@ -265,7 +265,9 @@ class Task(Registered, UniversalHashable, register=False):
                 "The following inputs could not be loaded: " + str(lst)
             )
 
-    def execute(self, force_rerun=False, raise_on_error=True):
+    def execute(
+        self, force_rerun: Optional[bool] = False, raise_on_error: Optional[bool] = True
+    ):
         try:
             if force_rerun:
                 # Rerun a task which is already done
