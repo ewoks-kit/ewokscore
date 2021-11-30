@@ -59,25 +59,25 @@ class Task(Registered, UniversalHashable, register=False):
         ovars = {varname: self.MISSING_DATA for varname in self._OUTPUT_NAMES}
 
         # Misc
-        self._exception = None
-        self._done = None
+        self.__exception = None
+        self.__succeeded = None
         self.__label = label
 
         # The output hash will update dynamically if any of the input
         # variables change
-        self._inputs = VariableContainer(value=inputs, varinfo=varinfo)
-        self._outputs = VariableContainer(
+        self.__inputs = VariableContainer(value=inputs, varinfo=varinfo)
+        self.__outputs = VariableContainer(
             value=ovars,
-            pre_uhash=self._inputs,
+            pre_uhash=self.__inputs,
             instance_nonce=self.class_nonce(),
             varinfo=varinfo,
         )
 
-        self._public_inputs = ReadOnlyVariableContainerNamespace(self._inputs)
-        self._public_outputs = VariableContainerNamespace(self._outputs)
+        self.__public_inputs = ReadOnlyVariableContainerNamespace(self.__inputs)
+        self.__public_outputs = VariableContainerNamespace(self.__outputs)
 
         # The task class has the same hash as its output
-        super().__init__(pre_uhash=self._outputs)
+        super().__init__(pre_uhash=self.__outputs)
 
     def __init_subclass__(
         subclass,
@@ -150,56 +150,56 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def input_variables(self):
-        return self._inputs
+        return self.__inputs
 
     @property
     def inputs(self):
-        return self._public_inputs
+        return self.__public_inputs
 
     @property
     def input_uhashes(self):
-        return self._inputs.variable_uhashes
+        return self.__inputs.variable_uhashes
 
     @property
     def input_values(self):
-        return self._inputs.variable_values
+        return self.__inputs.variable_values
 
     @property
     def named_input_values(self):
-        return self._inputs.named_variable_values
+        return self.__inputs.named_variable_values
 
     @property
     def positional_input_values(self):
-        return self._inputs.positional_variable_values
+        return self.__inputs.positional_variable_values
 
     @property
     def npositional_inputs(self):
-        return self._inputs.n_positional_variables
+        return self.__inputs.n_positional_variables
 
     @property
     def output_variables(self):
-        return self._outputs
+        return self.__outputs
 
     @property
     def outputs(self):
-        return self._public_outputs
+        return self.__public_outputs
 
     @property
     def output_uhashes(self):
-        return self._outputs.variable_uhashes
+        return self.__outputs.variable_uhashes
 
     @property
     def output_values(self):
-        return self._outputs.variable_values
+        return self.__outputs.variable_values
 
     @property
     def output_transfer_data(self):
         """The values are either `DataUri` or `Variable`"""
-        return self._outputs.variable_transfer_data
+        return self.__outputs.variable_transfer_data
 
     @property
     def output_metadata(self) -> Union[dict, None]:
-        return self._outputs.metadata
+        return self.__outputs.metadata
 
     def _update_output_metadata(self):
         metadata = self.output_metadata
@@ -217,14 +217,18 @@ class Task(Registered, UniversalHashable, register=False):
     def succeeded(self):
         """Completed without exception and with output values"""
         if self._OUTPUT_NAMES:
-            return self._outputs.has_value
+            return self.__outputs.has_value
         else:
-            return self._done
+            return self.__succeeded
 
     @property
     def failed(self):
         """Completed with exception"""
-        return self._exception is not None
+        return self.__exception is not None
+
+    @property
+    def exception(self):
+        return self.__exception
 
     def _get_repr_data(self):
         data = super()._get_repr_data()
@@ -242,7 +246,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     def _iter_missing_input_values(self):
         for iname in self._INPUT_NAMES:
-            var = self._inputs.get(iname)
+            var = self.__inputs.get(iname)
             if var is None or not var.has_value:
                 yield iname
 
@@ -265,19 +269,19 @@ class Task(Registered, UniversalHashable, register=False):
         try:
             if force_rerun:
                 # Rerun a task which is already done
-                self._outputs.force_non_existing()
+                self.__outputs.force_non_existing()
             if self.done:
                 return
             self.assert_ready_to_execute()
             self.run()
             self._update_output_metadata()
-            self._outputs.dump()
+            self.__outputs.dump()
         except Exception as e:
-            self._exception = e
+            self.__exception = e
             if raise_on_error:
                 raise RuntimeError(f"Task '{self.label}' failed") from e
         else:
-            self._done = True
+            self.__succeeded = True
 
     def run(self):
         """To be implemented by the derived classes"""
