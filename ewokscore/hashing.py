@@ -237,6 +237,7 @@ class UniversalHashable(HasUhash):
         return self.__instance_nonce
 
     def fix_uhash(self):
+        """Fix the uhash when it is derived from the uhash data."""
         if self.__pre_uhash is not None:
             return
         keep, self.__instance_nonce = self.__instance_nonce, None
@@ -248,6 +249,15 @@ class UniversalHashable(HasUhash):
 
     def undo_fix_uhash(self):
         self.__pre_uhash = self.__original_pre_uhash
+
+    def cleanup_references(self):
+        """Remove all references to other hashables.
+        Side effect: fixes the uhash when it depends on another hashable.
+        """
+        if isinstance(self.__pre_uhash, HasUhash):
+            pre_uhash = self.__pre_uhash.uhash
+            self.__pre_uhash = pre_uhash
+            self.__original_pre_uhash = pre_uhash
 
     @property
     def uhash(self) -> Optional[UniversalHash]:

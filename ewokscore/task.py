@@ -150,6 +150,8 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def input_variables(self):
+        if self.__inputs is None:
+            raise RuntimeError("references have been removed")
         return self.__inputs
 
     @property
@@ -158,23 +160,23 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def input_uhashes(self):
-        return self.__inputs.variable_uhashes
+        return self.input_variables.variable_uhashes
 
     @property
     def input_values(self):
-        return self.__inputs.variable_values
+        return self.input_variables.variable_values
 
     @property
     def named_input_values(self):
-        return self.__inputs.named_variable_values
+        return self.input_variables.named_variable_values
 
     @property
     def positional_input_values(self):
-        return self.__inputs.positional_variable_values
+        return self.input_variables.positional_variable_values
 
     @property
     def npositional_inputs(self):
-        return self.__inputs.n_positional_variables
+        return self.input_variables.n_positional_variables
 
     @property
     def output_variables(self):
@@ -246,7 +248,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     def _iter_missing_input_values(self):
         for iname in self._INPUT_NAMES:
-            var = self.__inputs.get(iname)
+            var = self.input_variables.get(iname)
             if var is None or not var.has_value:
                 yield iname
 
@@ -266,7 +268,10 @@ class Task(Registered, UniversalHashable, register=False):
             )
 
     def execute(
-        self, force_rerun: Optional[bool] = False, raise_on_error: Optional[bool] = True
+        self,
+        force_rerun: Optional[bool] = False,
+        raise_on_error: Optional[bool] = True,
+        cleanup_references: Optional[bool] = False,
     ):
         try:
             if force_rerun:
@@ -284,6 +289,18 @@ class Task(Registered, UniversalHashable, register=False):
                 raise RuntimeError(f"Task '{self.label}' failed") from e
         else:
             self.__succeeded = True
+        finally:
+            if cleanup_references:
+                self.cleanup_references()
+
+    def cleanup_references(self):
+        """Removes all references to the inputs.
+        Side effect: fixes the uhash of the task and outputs
+        """
+        self.__inputs = None
+        self.__public_inputs = None
+        self.__outputs.cleanup_references()
+        super().cleanup_references()
 
     def run(self):
         """To be implemented by the derived classes"""

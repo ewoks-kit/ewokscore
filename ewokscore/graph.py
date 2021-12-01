@@ -656,6 +656,7 @@ class TaskGraph:
             evict_result_counter = None
         else:
             evict_result_counter = self.successor_counter()
+        cleanup_references = not results_of_all_nodes
         tasks = dict()
         for node_id in self.topological_sort():
             task = self.instantiate_task_static(
@@ -664,5 +665,7 @@ class TaskGraph:
                 varinfo=varinfo,
                 evict_result_counter=evict_result_counter,
             )
-            task.execute(raise_on_error=raise_on_error)
+            task.execute(
+                raise_on_error=raise_on_error, cleanup_references=cleanup_references
+            )
         return tasks

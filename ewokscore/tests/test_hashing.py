@@ -1,3 +1,4 @@
+import gc
 import numpy
 from ewokscore import hashing
 
@@ -130,3 +131,30 @@ def test_uhash_fixing():
     data[0] = 0
     uhash = var.uhash
     assert uhash1org == uhash
+
+
+def test_hashable_cleanup_references():
+    class Myclass(hashing.UniversalHashable):
+        def __init__(self, data, **kw):
+            self.data = data
+            super().__init__(**kw)
+
+        def _uhash_data(self):
+            return self.data
+
+    obj1 = Myclass(10)
+    nref_start = len(gc.get_referrers(obj1))
+    obj2 = Myclass(10, pre_uhash=obj1)
+    assert len(gc.get_referrers(obj1)) > nref_start
+
+    obj1.data += 1
+    assert obj1.uhash == obj2.uhash
+
+    obj2.cleanup_references()
+    while gc.collect():
+        pass
+    assert len(gc.get_referrers(obj1)) == nref_start
+    assert obj1.uhash == obj2.uhash
+
+    obj1.data += 1
+    assert obj1.uhash != obj2.uhash

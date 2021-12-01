@@ -75,8 +75,8 @@ class Variable(hashing.UniversalHashable):
         super().__init__(pre_uhash=pre_uhash, instance_nonce=instance_nonce)
         self.value = value
 
-    def fixed_uhash_copy(self):
-        """The uhash of the copy is fixed thereby remove references to other uhashable objects."""
+    def copy_without_references(self):
+        """Copy that does not contain references to uhashable objects"""
         kwargs = self.get_uhash_init(serialize=True)
         kwargs["data_proxy"] = self.data_proxy
         return type(self)(value=self.value, **kwargs)
@@ -213,10 +213,26 @@ class VariableContainer(Variable, Mapping):
         if value:
             self._update(value)
 
-    def fixed_uhash_copy(self):
+    def fix_uhash(self):
+        for var in self.values():
+            var.fix_uhash()
+        return super().fix_uhash()
+
+    def cleanup_references(self):
+        """Remove all references to other hashables.
+        Side effect: fixes the uhash when it depends on another hashable.
+        """
+        for var in self.values():
+            var.cleanup_references()
+        pre_uhash = self.__varparams.get("pre_uhash")
+        if isinstance(pre_uhash, hashing.HasUhash):
+            self.__varparams["pre_uhash"] = pre_uhash.uhash
+        return super().cleanup_references()
+
+    def copy_without_references(self):
         """The uhash of the copy is fixed thereby remove references to other uhashable objects."""
         return type(self)(
-            value={name: var.fixed_uhash_copy() for name, var in self.items()},
+            value={name: var.copy_without_references() for name, var in self.items()},
             **self.__varparams,
         )
 
@@ -413,7 +429,7 @@ class VariableContainer(Variable, Mapping):
                 data[name] = var.data_proxy.uri
             elif var.hashing_enabled:
                 # Remove possible references to a uhashable
-                data[name] = var.fixed_uhash_copy()
+                data[name] = var.copy_without_references()
             else:
                 data[name] = var.value
         return data
