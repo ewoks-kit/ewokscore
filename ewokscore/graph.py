@@ -1,8 +1,9 @@
 import os
 import enum
 import json
+from collections import Counter
 from collections.abc import Mapping
-from typing import Optional, Set
+from typing import Dict, Iterable, Optional, Set
 import networkx
 
 from . import inittask
@@ -22,18 +23,6 @@ def load_graph(source=None, representation=None, **load_options):
         return source
     else:
         return TaskGraph(source=source, representation=representation, **load_options)
-
-
-def execute_graph(graph, load_options: Optional[dict] = None, **execute_options):
-    """
-    :param graph: graph to be executed
-    :param Optional[dict] load_options: options to provide to the `load_graph` function (and as a consequence to the `TaskGraph.load` as `root_dir`)
-    :param execute_options: options to provide to the Graph.execute function as `varinfo` or `raise_on_error`
-    """
-    if load_options is None:
-        load_options = dict()
-    graph = load_graph(source=graph, **load_options)
-    return graph.execute(**execute_options)
 
 
 def set_graph_defaults(graph_as_dict):
@@ -298,8 +287,9 @@ class TaskGraph:
     def instantiate_task_static(
         self,
         node_id: NodeIdType,
-        tasks: Optional[dict] = None,
+        tasks: Optional[Dict[Task, int]] = None,
         varinfo: Optional[dict] = None,
+        evict_result_counter: Optional[Dict[NodeIdType, int]] = None,
     ) -> Task:
         """Instantiate destination task while no access to the dynamic inputs.
         Side effect: `tasks` will contain all predecessors.
@@ -308,20 +298,34 @@ class TaskGraph:
             raise RuntimeError(f"{self} is cyclic")
         if tasks is None:
             tasks = dict()
+        if evict_result_counter is None:
+            evict_result_counter = dict()
+        # Input from previous tasks (instantiate them if needed)
         dynamic_inputs = dict()
-        for inputnode in self.predecessors(node_id):
-            inputtask = tasks.get(inputnode, None)
-            if inputtask is None:
-                inputtask = self.instantiate_task_static(
-                    inputnode, tasks=tasks, varinfo=varinfo
+        for source_node_id in self.predecessors(node_id):
+            source_task = tasks.get(source_node_id, None)
+            if source_task is None:
+                source_task = self.instantiate_task_static(
+                    source_node_id,
+                    tasks=tasks,
+                    varinfo=varinfo,
+                    evict_result_counter=evict_result_counter,
                 )
-            link_attrs = self.graph[inputnode][node_id]
+            link_attrs = self.graph[source_node_id][node_id]
             inittask.add_dynamic_inputs(
-                dynamic_inputs, link_attrs, inputtask.output_variables
+                dynamic_inputs, link_attrs, source_task.output_variables
             )
-        task = self.instantiate_task(node_id, varinfo=varinfo, inputs=dynamic_inputs)
-        tasks[node_id] = task
-        return task
+            # Evict intermediate results
+            if evict_result_counter:
+                evict_result_counter[source_node_id] -= 1
+                if evict_result_counter[source_node_id] == 0:
+                    tasks.pop(source_node_id)
+        # Instantiate the requested task
+        target_task = self.instantiate_task(
+            node_id, varinfo=varinfo, inputs=dynamic_inputs
+        )
+        tasks[node_id] = target_task
+        return target_task
 
     def successors(self, node_id: NodeIdType, **include_filter):
         yield from self._iter_downstream_nodes(
@@ -625,20 +629,43 @@ class TaskGraph:
             if linkattrs.get("on_error") and linkattrs.get("conditions"):
                 raise ValueError(err_msg.format("on_error", "conditions"))
 
-    def topological_sort(self):
+    def topological_sort(self) -> Iterable[NodeIdType]:
         """Sort node names for sequential instantiation+execution of DAGs"""
         if self.is_cyclic:
             raise RuntimeError("Sorting nodes is not possible for cyclic graphs")
         yield from networkx.topological_sort(self.graph)
 
-    def execute(self, varinfo: Optional[dict] = None, raise_on_error: bool = True):
+    def successor_counter(self) -> Dict[NodeIdType, int]:
+        nsuccessor = Counter()
+        for edge in self.graph.edges:
+            nsuccessor[edge[0]] += 1
+        return nsuccessor
+
+    def execute(
+        self,
+        varinfo: Optional[dict] = None,
+        raise_on_error: Optional[bool] = True,
+        results_of_all_nodes: Optional[bool] = False,
+    ) -> Dict[NodeIdType, Task]:
         """Sequential execution of DAGs"""
         if self.is_cyclic:
             raise RuntimeError("Cannot execute cyclic graphs")
         if self.has_conditional_links:
             raise RuntimeError("Cannot execute graphs with conditional links")
+        if results_of_all_nodes:
+            evict_result_counter = None
+        else:
+            evict_result_counter = self.successor_counter()
+        cleanup_references = not results_of_all_nodes
         tasks = dict()
-        for node in self.topological_sort():
-            task = self.instantiate_task_static(node, tasks=tasks, varinfo=varinfo)
-            task.execute(raise_on_error=raise_on_error)
+        for node_id in self.topological_sort():
+            task = self.instantiate_task_static(
+                node_id,
+                tasks=tasks,
+                varinfo=varinfo,
+                evict_result_counter=evict_result_counter,
+            )
+            task.execute(
+                raise_on_error=raise_on_error, cleanup_references=cleanup_references
+            )
         return tasks

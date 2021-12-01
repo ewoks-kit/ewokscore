@@ -1,3 +1,4 @@
+import gc
 import pytest
 import json
 from glob import glob
@@ -143,3 +144,33 @@ def test_task_required_positional_inputs():
 
     with pytest.raises(TaskInputError):
         MyTask()
+
+
+def test_task_cleanup_references():
+    class MyTask(Task, input_names=["mylist"], output_names=["mylist"]):
+        def run(self):
+            self.outputs.mylist = self.inputs.mylist + [len(self.inputs.mylist)]
+
+    obj = [0, 1, 2]
+    nref_start = len(gc.get_referrers(obj))
+    task1 = MyTask(inputs={"mylist": obj})
+    task2 = MyTask(inputs=task1.output_variables)
+    task1.execute()
+    task2.execute()
+    assert len(gc.get_referrers(obj)) > nref_start
+
+    uhash1 = task1.uhash
+    uhashes1 = task1.output_uhashes
+    uhash2 = task2.uhash
+    uhashes2 = task2.output_uhashes
+
+    task1.cleanup_references()
+
+    while gc.collect():
+        pass
+    assert len(gc.get_referrers(obj)) == nref_start
+
+    assert uhash1 == task1.uhash
+    assert uhashes1 == task1.output_uhashes
+    assert uhash2 == task2.uhash
+    assert uhashes2 == task2.output_uhashes

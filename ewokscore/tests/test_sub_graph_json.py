@@ -222,7 +222,7 @@ def graph(tmpdir, subgraph):
 
 def test_load_from_json(tmpdir, graph):
     taskgraph = load_graph(graph, root_dir=str(tmpdir))
-    tasks = taskgraph.execute()
+    tasks = taskgraph.execute(results_of_all_nodes=True)
 
     assert len(tasks) == 13
 

@@ -1,3 +1,4 @@
+import gc
 import itertools
 import pytest
 from contextlib import contextmanager
@@ -293,4 +294,45 @@ def test_variable_container_metadata(scheme, root_uri_type, tmpdir):
         assert ref_uri["var1"].metadata["@NX_class"] == "NXcollection"
     assert ref_uri["var1"].metadata["myvalue"] == 888
 
-    print(container["var1"].data_uri)
+
+def test_variable_cleanup_references():
+    obj = [0, 1, 2]
+    nref_start = len(gc.get_referrers(obj))
+    var1 = Variable(obj)
+    var2 = Variable(pre_uhash=var1)
+    uhash = var1.uhash
+    assert uhash == var2.uhash
+    assert len(gc.get_referrers(obj)) > nref_start
+
+    del var1
+    while gc.collect():
+        pass
+    assert len(gc.get_referrers(obj)) > nref_start
+
+    var2.cleanup_references()
+    while gc.collect():
+        pass
+    assert len(gc.get_referrers(obj)) == nref_start
+
+    assert uhash == var2.uhash
+
+
+def test_variable_container_cleanup_references():
+    obj = [0, 1, 2]
+    nref_start = len(gc.get_referrers(obj))
+    var1 = MutableVariableContainer({"myvar": obj})
+    var2 = MutableVariableContainer(pre_uhash=var1)
+    uhash = var1.uhash
+    assert uhash == var2.uhash
+
+    del var1
+    while gc.collect():
+        pass
+    assert len(gc.get_referrers(obj)) > nref_start
+
+    var2.cleanup_references()
+    while gc.collect():
+        pass
+    assert len(gc.get_referrers(obj)) == nref_start
+
+    assert uhash == var2.uhash

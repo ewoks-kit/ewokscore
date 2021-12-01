@@ -3,6 +3,7 @@ import itertools
 from .examples.graphs import graph_names
 from .examples.graphs import get_graph
 from .utils import assert_taskgraph_result
+from .utils import assert_workflow_result
 from ewokscore import load_graph
 
 
@@ -20,10 +21,16 @@ def test_execute_graph(graph_name, persist, tmpdir):
         with pytest.raises(RuntimeError):
             ewoksgraph.execute(varinfo=varinfo)
     else:
-        tasks = ewoksgraph.execute(varinfo=varinfo)
+        tasks = ewoksgraph.execute(varinfo=varinfo, results_of_all_nodes=True)
         assert_taskgraph_result(ewoksgraph, expected, tasks=tasks)
         if persist:
             assert_taskgraph_result(ewoksgraph, expected, varinfo=varinfo)
+
+        end_tasks = ewoksgraph.execute(varinfo=varinfo, results_of_all_nodes=False)
+        end_nodes = ewoksgraph.end_nodes()
+        assert end_tasks.keys() == end_nodes
+        expected = {k: v for k, v in expected.items() if k in end_nodes}
+        assert_workflow_result(end_tasks, expected, varinfo=varinfo)
 
 
 def test_graph_cyclic():
