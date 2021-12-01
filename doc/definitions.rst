@@ -72,37 +72,31 @@ Graph attributes
 * *output_nodes* (optional): nodes that are expected to be used as link sources when the graph
   is used as a subgraph.
 
-The *input_nodes* and *output_nodes* define nodes which refer to nodes from the node attributes. For example
+The *input_nodes* and *output_nodes* have these attributes
+* *id*: node identifier which will be used in links with a super graph
+* *node*: node identifier which should be in the node attributes of this graphs
+* *sub_node* (optional): in case *node* is a graph we need to specify the node *id* inside
+  that graph. The *sub_node* can be an *id* from the node attributes of the sub-graph or
+  from sub-graph attributes *input_nodes* or *output_nodes*.
+* *link_attributes* (optional): default link attributes used in links with a super graph. The
+  link attributes specified in the super graph have priority over these defaults.
+
+For example for a graph with nodes `"id1"` (normal node) and `"id2"` (graph with an input node `"alias3"`):
 
 .. code-block:: json
 
     {
         "graph": {
             "input_nodes": [
-                {"id": "alias1", "node": "name1"},
-                {"id": "alias2", "node": "name2"},
+                {"id": "alias1", "node": "id1"},
+                {"id": "alias2", "node": "id2", "sub_node": "alias3"},
             ]
         }
     }
 
 
-In case the referenced nodes are graphs, the node inside that graph needs to be references with the `"sub_node"` key.
-For example
-
-.. code-block:: json
-
-    {
-        "graph": {
-            "input_nodes": [
-                {"id": "alias1", "node": "name1", "sub_node": "name3"},
-                {"id": "alias2", "node": "name2", "sub_node": "name4"},
-            ]
-        }
-    }
-
-Note that `"alias1"`, `"name1"`, `"name3"`, ... are all node id's. The `"sub_node"` *id* could be an *id* in the
-node attributes of the sub-graph or it could be an *id* in the graph attributes *input_nodes* or *output_nodes*
-of the sub-graph.
+Note that `"alias1"`, `"alias2"`, `"alias3"`,  `"id1"` and `"id2"` are all node id's. The `"alias3"`
+is an input node id but normal node id's can also be used here.
 
 Node attributes
 ^^^^^^^^^^^^^^^
