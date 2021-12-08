@@ -81,22 +81,48 @@ The *input_nodes* and *output_nodes* have these attributes
 * *link_attributes* (optional): default link attributes used in links with a super graph. The
   link attributes specified in the super graph have priority over these defaults.
 
-For example for a graph with nodes `"id1"` (normal node) and `"id2"` (graph with an input node `"alias3"`):
+For example for a graph with normal nodes `"id1"` and `"id3"` and a sub-graph node `"id2"`
+which in turn has an input node `"start"` and output node `"end"`:
 
 .. code-block:: json
 
     {
         "graph": {
+            "label": "subgraph",
             "input_nodes": [
-                {"id": "alias1", "node": "id1"},
-                {"id": "alias2", "node": "id2", "sub_node": "alias3"},
+                {"id": "in1", "node": "id1"},
+                {"id": "in2", "node": "id2", "sub_node": "start"}
+            ],
+            "output_nodes": [
+                {"id": "out1", "node": "id3"},
+                {"id": "out2", "node": "id2", "sub_node": "end"}
             ]
         }
+        "nodes": [
+            {"id": "id1", "task_type": "class", ...},
+            {"id": "id2", "task_type": "graph", ...},
+            {"id": "id3", "task_type": "class", ...},
+        ]
     }
 
+The `"in*"` and `"out*"` id's can be used by a super-graph when making connections. For example
 
-Note that `"alias1"`, `"alias2"`, `"alias3"`,  `"id1"` and `"id2"` are all node id's. The `"alias3"`
-is an input node id but normal node id's can also be used here.
+.. code-block:: json
+
+    {
+        "graph": {
+            "label": "supergraph"
+        }
+        "nodes": [
+            {"id": "id1", "task_type": "class", ...},
+            {"id": "id2", "task_type": "graph", "task_identifier": "subgraph.json", ...},
+            {"id": "id3", "task_type": "class", ...}
+        ]
+        "links": [
+            {"source": "id1", "target": "id2", "sub_target":"in1"},
+            {"source": "id2", "sub_source":"out2", "target": "id3"},
+        ]
+    }
 
 Node attributes
 ^^^^^^^^^^^^^^^
