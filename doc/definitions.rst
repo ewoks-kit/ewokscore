@@ -72,37 +72,57 @@ Graph attributes
 * *output_nodes* (optional): nodes that are expected to be used as link sources when the graph
   is used as a subgraph.
 
-The *input_nodes* and *output_nodes* define nodes which refer to nodes from the node attributes. For example
+The *input_nodes* and *output_nodes* have these attributes
+* *id*: node identifier which will be used in links with a super graph
+* *node*: node identifier which should be in the node attributes of this graphs
+* *sub_node* (optional): in case *node* is a graph we need to specify the node *id* inside
+  that graph. The *sub_node* can be an *id* from the node attributes of the sub-graph or
+  from sub-graph attributes *input_nodes* or *output_nodes*.
+* *link_attributes* (optional): default link attributes used in links with a super graph. The
+  link attributes specified in the super graph have priority over these defaults.
+
+For example for a graph with normal nodes `"id1"` and `"id3"` and a sub-graph node `"id2"`
+which in turn has an input node `"start"` and output node `"end"`:
 
 .. code-block:: json
 
     {
         "graph": {
+            "label": "subgraph",
             "input_nodes": [
-                {"id": "alias1", "node": "name1"},
-                {"id": "alias2", "node": "name2"},
+                {"id": "in1", "node": "id1"},
+                {"id": "in2", "node": "id2", "sub_node": "start"}
+            ],
+            "output_nodes": [
+                {"id": "out1", "node": "id3"},
+                {"id": "out2", "node": "id2", "sub_node": "end"}
             ]
         }
+        "nodes": [
+            {"id": "id1", "task_type": "class", ...},
+            {"id": "id2", "task_type": "graph", ...},
+            {"id": "id3", "task_type": "class", ...},
+        ]
     }
 
-
-In case the referenced nodes are graphs, the node inside that graph needs to be references with the `"sub_node"` key.
-For example
+The `"in*"` and `"out*"` id's can be used by a super-graph when making connections. For example
 
 .. code-block:: json
 
     {
         "graph": {
-            "input_nodes": [
-                {"id": "alias1", "node": "name1", "sub_node": "name3"},
-                {"id": "alias2", "node": "name2", "sub_node": "name4"},
-            ]
+            "label": "supergraph"
         }
+        "nodes": [
+            {"id": "id1", "task_type": "class", ...},
+            {"id": "id2", "task_type": "graph", "task_identifier": "subgraph.json", ...},
+            {"id": "id3", "task_type": "class", ...}
+        ]
+        "links": [
+            {"source": "id1", "target": "id2", "sub_target":"in1"},
+            {"source": "id2", "sub_source":"out2", "target": "id3"},
+        ]
     }
-
-Note that `"alias1"`, `"name1"`, `"name3"`, ... are all node id's. The `"sub_node"` *id* could be an *id* in the
-node attributes of the sub-graph or it could be an *id* in the graph attributes *input_nodes* or *output_nodes*
-of the sub-graph.
 
 Node attributes
 ^^^^^^^^^^^^^^^
