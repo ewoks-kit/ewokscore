@@ -1,5 +1,4 @@
 import pytest
-import itertools
 from .examples.graphs import graph_names
 from .examples.graphs import get_graph
 from .utils import assert_taskgraph_result
@@ -7,14 +6,13 @@ from .utils import assert_workflow_result
 from ewokscore import load_graph
 
 
-@pytest.mark.parametrize(
-    "graph_name,persist", itertools.product(graph_names(), (True, False))
-)
-def test_execute_graph(graph_name, persist, tmpdir):
+@pytest.mark.parametrize("graph_name", graph_names())
+@pytest.mark.parametrize("scheme", (None, "json", "nexus"))
+def test_execute_graph(graph_name, scheme, tmpdir):
     g, expected = get_graph(graph_name)
     ewoksgraph = load_graph(g)
-    if persist:
-        varinfo = {"root_uri": str(tmpdir)}
+    if scheme:
+        varinfo = {"root_uri": str(tmpdir), "scheme": scheme}
     else:
         varinfo = None
     if ewoksgraph.is_cyclic or ewoksgraph.has_conditional_links:
@@ -23,7 +21,7 @@ def test_execute_graph(graph_name, persist, tmpdir):
     else:
         tasks = ewoksgraph.execute(varinfo=varinfo, results_of_all_nodes=True)
         assert_taskgraph_result(ewoksgraph, expected, tasks=tasks)
-        if persist:
+        if scheme:
             assert_taskgraph_result(ewoksgraph, expected, varinfo=varinfo)
 
         end_tasks = ewoksgraph.execute(varinfo=varinfo, results_of_all_nodes=False)

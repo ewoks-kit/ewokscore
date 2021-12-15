@@ -1,5 +1,4 @@
 import gc
-import itertools
 import pytest
 from contextlib import contextmanager
 from ewokscore.variable import Variable
@@ -243,10 +242,8 @@ def test_variable_nonce(varinfo):
     assert v1.value != v2.value
 
 
-@pytest.mark.parametrize(
-    "scheme,root_uri_type",
-    itertools.product(["json", "nexus"], ["directory", "filename", "path_in_file"]),
-)
+@pytest.mark.parametrize("scheme", ("json", "nexus"))
+@pytest.mark.parametrize("root_uri_type", ("directory", "filename", "path_in_file"))
 def test_variable_container_metadata(scheme, root_uri_type, tmpdir):
     if scheme == "nexus":
         extension = ".nx"
