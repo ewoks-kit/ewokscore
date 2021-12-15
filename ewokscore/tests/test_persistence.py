@@ -1,4 +1,3 @@
-import itertools
 import pytest
 from silx.io.dictdump import nxtodict
 from ewokscore.hashing import UniversalHashable, uhash
@@ -55,9 +54,8 @@ def test_nexus_proxy_uri(tmpdir):
     assert str(proxy2.uri) == f"nexus://{tmpdir}/file.nx?path=a/b/c/{identifier}"
 
 
-@pytest.mark.parametrize(
-    "scheme,full", itertools.product(["json", "nexus"], [True, False])
-)
+@pytest.mark.parametrize("scheme", ("json", "nexus"))
+@pytest.mark.parametrize("full", (True, False))
 def test_proxy_dump(scheme, full, tmpdir):
     if scheme == "nexus":
         extension = ".nx"
