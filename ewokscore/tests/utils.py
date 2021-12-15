@@ -1,7 +1,6 @@
 from typing import Any, Dict, Optional
 import networkx
 from pprint import pprint
-import matplotlib.pyplot as plt
 from ewokscore import load_graph
 from ewokscore.graph import TaskGraph
 from ewokscore.node import NodeIdType
@@ -81,4 +80,6 @@ def show_graph(graph, stdout=True, plot=True, show=True):
     if plot:
         networkx.draw(taskgraph.graph, with_labels=True, font_size=10)
         if show:
+            import matplotlib.pyplot as plt
+
             plt.show()
