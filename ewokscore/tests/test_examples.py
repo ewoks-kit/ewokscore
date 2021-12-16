@@ -1,8 +1,8 @@
 import pytest
 from .examples.graphs import graph_names
 from .examples.graphs import get_graph
-from .utils import assert_taskgraph_result
-from .utils import assert_workflow_result
+from .utils import assert_execute_graph_all_tasks
+from .utils import assert_execute_graph_tasks
 from ewokscore import load_graph
 
 
@@ -19,16 +19,18 @@ def test_execute_graph(graph_name, scheme, tmpdir):
         with pytest.raises(RuntimeError):
             ewoksgraph.execute(varinfo=varinfo)
     else:
-        tasks = ewoksgraph.execute(varinfo=varinfo, results_of_all_nodes=True)
-        assert_taskgraph_result(ewoksgraph, expected, tasks=tasks)
+        result = ewoksgraph.execute(varinfo=varinfo, results_of_all_nodes=True)
+        assert_execute_graph_all_tasks(
+            ewoksgraph, expected, execute_graph_result=result
+        )
         if scheme:
-            assert_taskgraph_result(ewoksgraph, expected, varinfo=varinfo)
+            assert_execute_graph_all_tasks(ewoksgraph, expected, varinfo=varinfo)
 
         end_tasks = ewoksgraph.execute(varinfo=varinfo, results_of_all_nodes=False)
         end_nodes = ewoksgraph.end_nodes()
         assert end_tasks.keys() == end_nodes
         expected = {k: v for k, v in expected.items() if k in end_nodes}
-        assert_workflow_result(end_tasks, expected, varinfo=varinfo)
+        assert_execute_graph_tasks(end_tasks, expected, varinfo=varinfo)
 
 
 def test_graph_cyclic():

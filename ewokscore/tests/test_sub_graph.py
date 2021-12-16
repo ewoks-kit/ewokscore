@@ -1,6 +1,6 @@
 from ewokscore import load_graph
 from ewokscore.utils import qualname
-from .utils import assert_taskgraph_result
+from .utils import assert_execute_graph_all_tasks
 
 
 def myfunc(name=None, value=0):
@@ -57,12 +57,12 @@ def test_sub_graph_execute():
     }
 
     ewoksgraph = load_graph(graph)
-    tasks = ewoksgraph.execute(results_of_all_nodes=True)
+    result = ewoksgraph.execute(results_of_all_nodes=True)
     expected = {
         "node1": {"return_value": 1},
         ("node2", ("subnode1", "subsubnode1")): {"return_value": 2},
     }
-    assert_taskgraph_result(ewoksgraph, expected, tasks=tasks)
+    assert_execute_graph_all_tasks(ewoksgraph, expected, execute_graph_result=result)
 
 
 def test_sub_graph_link_attributes():
