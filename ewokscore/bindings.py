@@ -1,14 +1,19 @@
-from typing import Optional
+from typing import Optional, Union, Dict, List
 from .graph import load_graph
+from .graph import NodeIdentifier
+from .node import NodeIdType
 
 
-def execute_graph(graph, load_options: Optional[dict] = None, **execute_options):
-    """
-    :param graph: graph to be executed
-    :param Optional[dict] load_options: options to provide to the `load_graph` function (and as a consequence to the `TaskGraph.load` as `root_dir`)
-    :param execute_options: options to provide to the Graph.execute function as `varinfo` or `raise_on_error`
-    """
+def execute_graph(
+    graph,
+    inputs: Union[Dict[Union[NodeIdType, str], List[dict]], List[dict], None] = None,
+    inputs_node_identifier: Union[NodeIdentifier, str, None] = None,
+    load_options: Optional[dict] = None,
+    **execute_options
+):
     if load_options is None:
         load_options = dict()
     graph = load_graph(source=graph, **load_options)
+    if inputs:
+        graph.update_default_inputs(inputs, node_identifier=inputs_node_identifier)
     return graph.execute(**execute_options)

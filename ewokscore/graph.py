@@ -3,8 +3,9 @@ import enum
 import json
 from collections import Counter
 from collections.abc import Mapping
-from typing import Dict, Iterable, Optional, Set
+from typing import Any, Dict, Iterable, List, Optional, Set, Union
 import networkx
+
 
 from . import inittask
 from .utils import qualname
@@ -14,6 +15,8 @@ from .subgraph import add_subgraph_links
 from .task import Task
 from .node import NodeIdType
 from .node import node_id_from_json
+from .node import get_node_label
+from . import hashing
 
 CONDITIONS_ELSE_VALUE = "__other__"
 
@@ -118,6 +121,12 @@ def abs_path(path, root_dir=None):
     return os.path.abspath(path)
 
 
+GraphRepresentation = enum.Enum(
+    "GraphRepresentation", "json_file json_dict json_string yaml"
+)
+NodeIdentifier = enum.Enum("NodeIdentifier", "none id label")
+
+
 class TaskGraph:
     """The API for graph analysis is provided by `networkx`.
     Any directed graph is supported (cyclic or acyclic).
@@ -149,10 +158,6 @@ class TaskGraph:
         taskgraph.execute()
     """
 
-    GraphRepresentation = enum.Enum(
-        "GraphRepresentation", "json_file json_dict json_string yaml"
-    )
-
     def __init__(self, source=None, representation=None, **load_options):
         self.load(source=source, representation=representation, **load_options)
 
@@ -172,36 +177,43 @@ class TaskGraph:
             raise TypeError(other, type(other))
         return self.dump() == other.dump()
 
-    def load(self, source=None, representation=None, root_dir=None):
+    def load(
+        self,
+        source=None,
+        representation: Optional[Union[GraphRepresentation, str]] = None,
+        root_dir: Optional[str] = None,
+    ):
         """From persistent to runtime representation"""
+        if isinstance(representation, str):
+            representation = GraphRepresentation.__members__[representation]
         if representation is None:
             if isinstance(source, Mapping):
-                representation = self.GraphRepresentation.json_dict
+                representation = GraphRepresentation.json_dict
             elif isinstance(source, str):
                 if source.endswith(".json"):
-                    representation = self.GraphRepresentation.json_file
+                    representation = GraphRepresentation.json_file
                 else:
-                    representation = self.GraphRepresentation.json_string
+                    representation = GraphRepresentation.json_string
         if not source:
             graph = networkx.DiGraph()
         elif isinstance(source, networkx.Graph):
             graph = source
         elif isinstance(source, TaskGraph):
             graph = source.graph
-        elif representation == self.GraphRepresentation.json_dict:
+        elif representation == GraphRepresentation.json_dict:
             set_graph_defaults(source)
             graph = networkx.readwrite.json_graph.node_link_graph(source)
-        elif representation == self.GraphRepresentation.json_file:
+        elif representation == GraphRepresentation.json_file:
             source = abs_path(source, root_dir)
             with open(source, mode="r") as f:
                 source = json.load(f, object_pairs_hook=ewoks_jsonload_hook)
             set_graph_defaults(source)
             graph = networkx.readwrite.json_graph.node_link_graph(source)
-        elif representation == self.GraphRepresentation.json_string:
+        elif representation == GraphRepresentation.json_string:
             source = json.loads(source, object_pairs_hook=ewoks_jsonload_hook)
             set_graph_defaults(source)
             graph = networkx.readwrite.json_graph.node_link_graph(source)
-        elif representation == self.GraphRepresentation.yaml:
+        elif representation == GraphRepresentation.yaml:
             source = abs_path(source, root_dir)
             graph = networkx.readwrite.read_yaml(source)
         else:
@@ -233,30 +245,37 @@ class TaskGraph:
         self.graph = flatten_multigraph(graph)
         self.validate_graph()
 
-    def dump(self, destination=None, representation=None, **kw):
+    def dump(
+        self,
+        destination=None,
+        representation: Optional[Union[GraphRepresentation, str]] = None,
+        **kw,
+    ):
         """From runtime to persistent representation"""
+        if isinstance(representation, str):
+            representation = GraphRepresentation.__members__[representation]
         if representation is None:
             if isinstance(destination, str) and destination.endswith(".json"):
-                representation = self.GraphRepresentation.json_file
+                representation = GraphRepresentation.json_file
             else:
-                representation = self.GraphRepresentation.json_dict
-        if representation == self.GraphRepresentation.json_dict:
+                representation = GraphRepresentation.json_dict
+        if representation == GraphRepresentation.json_dict:
             return networkx.readwrite.json_graph.node_link_data(self.graph)
-        elif representation == self.GraphRepresentation.json_file:
+        elif representation == GraphRepresentation.json_file:
             dictrepr = self.dump()
             with open(destination, mode="w") as f:
                 json.dump(dictrepr, f, **kw)
             return destination
-        elif representation == self.GraphRepresentation.json_string:
+        elif representation == GraphRepresentation.json_string:
             dictrepr = self.dump()
             return json.dumps(dictrepr, **kw)
-        elif representation == self.GraphRepresentation.yaml:
+        elif representation == GraphRepresentation.yaml:
             return networkx.readwrite.write_yaml(self.graph, destination, **kw)
         else:
             raise TypeError(representation, type(representation))
 
     def serialize(self):
-        return self.dump(representation=self.GraphRepresentation.json_string)
+        return self.dump(representation=GraphRepresentation.json_string)
 
     @property
     def is_cyclic(self):
@@ -629,6 +648,119 @@ class TaskGraph:
             if linkattrs.get("on_error") and linkattrs.get("conditions"):
                 raise ValueError(err_msg.format("on_error", "conditions"))
 
+    def parse_default_inputs(
+        self,
+        default_inputs: Union[Dict[Union[NodeIdType, str], List[dict]], List[dict]],
+        node_identifier: Optional[Union[NodeIdentifier, str]] = None,
+    ) -> Dict[NodeIdType, List[dict]]:
+        """The default inputs are given as:
+        * id:    default_inputs = {"node_id1": input_list1, "node_id2": input_list2, ...}
+        * label: default_inputs = {"My node label1": input_list1, "My node label2": input_list2, ...}
+        * none:  default_inputs = input_list  (start nodes)
+
+        input_list = [{"name":"a", "value":10}, {"name":"b", "value":10}]
+        """
+        if isinstance(node_identifier, str):
+            node_identifier = NodeIdentifier.__members__[node_identifier]
+        if node_identifier is None or node_identifier == node_identifier.id:
+            assert isinstance(default_inputs, Mapping)
+        elif node_identifier == node_identifier.none:
+            assert not isinstance(default_inputs, Mapping)
+            default_inputs = {node_id: default_inputs for node_id in self.start_nodes()}
+        elif node_identifier == node_identifier.label:
+            node_ids = self.get_node_ids(list(default_inputs))
+            default_inputs = {
+                node_id: input_list
+                for node_id, input_list in zip(node_ids, default_inputs.values())
+            }
+        else:
+            raise TypeError(node_identifier)
+        return default_inputs
+
+    def parse_outputs(
+        self,
+        outputs: Union[Dict[Union[NodeIdType, str], Optional[List[dict]]], None],
+        node_identifier: Union[NodeIdentifier, str, None] = None,
+    ) -> Optional[Dict[NodeIdType, Optional[List[dict]]]]:
+        """The ouputs are given as:
+        * id:    outputs = {"node_id1": output_map1, "node_id2": output_map2, ...}
+        * label: outputs = {"My node label1": output_map1, "My node label2": output_map2, ...}
+        * none:  outputs = output_map  (end nodes or all nodes)
+
+        output_map = [{"name": "a", "new_name":"A"}, {"name": "b", "new_name":"B"}]
+        or
+        output_map = None (identity map of all outputs)
+        """
+        if isinstance(node_identifier, str):
+            node_identifier = NodeIdentifier.__members__[node_identifier]
+        if node_identifier is None or node_identifier == node_identifier.id:
+            assert outputs is None or isinstance(outputs, Mapping)
+        elif node_identifier == node_identifier.none:
+            if outputs is None:
+                outputs = {node_id: None for node_id in self.graph.nodes()}
+            else:
+                outputs = {node_id: outputs for node_id in self.end_nodes()}
+        elif node_identifier == node_identifier.label:
+            assert isinstance(outputs, Mapping)
+            node_ids = self.get_node_ids(list(outputs))
+            outputs = {
+                node_id: output_map
+                for node_id, output_map in zip(node_ids, outputs.values())
+            }
+        else:
+            raise TypeError(node_identifier)
+        return outputs
+
+    def update_default_inputs(
+        self,
+        default_inputs: Union[Dict[Union[NodeIdType, str], List[dict]], List[dict]],
+        node_identifier: Union[NodeIdentifier, str, None] = None,
+    ):
+        default_inputs = self.parse_default_inputs(default_inputs, node_identifier)
+        for node_id, input_list in default_inputs.items():
+            node_attrs = self.graph.nodes[node_id]
+            existing_input_list = node_attrs.get("default_inputs")
+            if existing_input_list:
+                for input_item in input_list:
+                    for existing_input_item in existing_input_list:
+                        if existing_input_item["name"] == input_item["name"]:
+                            existing_input_item["value"] = input_item["value"]
+                            break
+                    else:
+                        existing_input_list.append(input_item)
+            else:
+                node_attrs["default_inputs"] = input_list
+
+    def extract_output_values(
+        self,
+        node_id: NodeIdType,
+        task: Task,
+        outputs: Dict[NodeIdType, Optional[List[dict]]],
+    ) -> dict:
+        if node_id not in outputs:
+            return dict()
+        output_list = outputs[node_id]
+        task_output_values = task.output_values
+        if output_list is None:
+            return task_output_values
+        else:
+            return {
+                namemap.get("new_name", namemap["name"]): task_output_values.get(
+                    namemap["name"], hashing.UniversalHashable.MISSING_DATA
+                )
+                for namemap in output_list
+            }
+
+    def get_node_ids(self, labels: List[str]) -> List[NodeIdType]:
+        node_ids = list(labels)
+        for node_id, node_attrs in self.nodes.items():
+            node_label = get_node_label(node_attrs, node_id=node_id)
+            for i, label in enumerate(labels):
+                if label == node_label:
+                    node_ids[i] = node_id
+                    break
+        return node_ids
+
     def topological_sort(self) -> Iterable[NodeIdType]:
         """Sort node names for sequential instantiation+execution of DAGs"""
         if self.is_cyclic:
@@ -646,18 +778,34 @@ class TaskGraph:
         varinfo: Optional[dict] = None,
         raise_on_error: Optional[bool] = True,
         results_of_all_nodes: Optional[bool] = False,
-    ) -> Dict[NodeIdType, Task]:
-        """Sequential execution of DAGs"""
+        outputs: Union[Dict[Union[NodeIdType, str], Optional[List[dict]]], None] = None,
+        outputs_node_identifier: Union[NodeIdentifier, str, None] = None,
+    ) -> Union[Dict[NodeIdType, Task], Dict[str, Any]]:
+        """Sequential execution of DAGs. Returns either
+        * all tasks (results_of_all_nodes=True, selected_results=None)
+        * end tasks (results_of_all_nodes=False, selected_results=None)
+        * merged dictionary of selected outputs from selected nodes
+        """
         if self.is_cyclic:
             raise RuntimeError("Cannot execute cyclic graphs")
         if self.has_conditional_links:
             raise RuntimeError("Cannot execute graphs with conditional links")
+
+        # Pepare containers for local state
+        outputs = self.parse_outputs(outputs, outputs_node_identifier)
+        if outputs:
+            results_of_all_nodes = False
         if results_of_all_nodes:
             evict_result_counter = None
         else:
             evict_result_counter = self.successor_counter()
-        cleanup_references = not results_of_all_nodes
+        if outputs:
+            output_values = dict()
+        else:
+            output_values = None
         tasks = dict()
+
+        cleanup_references = not results_of_all_nodes
         for node_id in self.topological_sort():
             task = self.instantiate_task_static(
                 node_id,
@@ -668,4 +816,9 @@ class TaskGraph:
             task.execute(
                 raise_on_error=raise_on_error, cleanup_references=cleanup_references
             )
-        return tasks
+            if outputs:
+                output_values.update(self.extract_output_values(node_id, task, outputs))
+        if outputs:
+            return output_values
+        else:
+            return tasks
