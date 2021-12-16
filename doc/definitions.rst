@@ -73,7 +73,8 @@ Graph attributes
   is used as a subgraph.
 
 The *input_nodes* and *output_nodes* have these attributes
-* *id*: node identifier which will be used in links with a super graph
+* *id*: non-unique node identifier which will be used in links with a super graph. When there are
+   multiple nodes with the same *id*, a single link will be expanded to multiple links at runtime.
 * *node*: node identifier which should be in the node attributes of this graphs
 * *sub_node* (optional): in case *node* is a graph we need to specify the node *id* inside
   that graph. The *sub_node* can be an *id* from the node attributes of the sub-graph or

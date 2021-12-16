@@ -1,6 +1,7 @@
 from ewokscore import load_graph
 from ewokscore.utils import qualname
 from .utils import assert_execute_graph_all_tasks
+from ewokscore.node import node_id_as_string
 
 
 def myfunc(name=None, value=0):
@@ -145,3 +146,95 @@ def test_sub_graph_link_attributes():
             assert numbers == {4}
         else:
             assert False, "unexpected link"
+
+
+def test_sub_graph_duplicate_aliases():
+    subsubgraph = {
+        "graph": {
+            "input_nodes": [
+                {
+                    "id": "in",
+                    "node": "inode1",
+                },
+                {
+                    "id": "in",
+                    "node": "inode2",
+                },
+            ],
+            "output_nodes": [
+                {
+                    "id": "out",
+                    "node": "inode4",
+                },
+                {
+                    "id": "out",
+                    "node": "inode5",
+                },
+            ],
+        },
+        "nodes": [
+            {"id": "inode1", "task_type": "method", "task_identifier": "dummy"},
+            {"id": "inode2", "task_type": "method", "task_identifier": "dummy"},
+            {"id": "inode3", "task_type": "method", "task_identifier": "dummy"},
+            {"id": "inode4", "task_type": "method", "task_identifier": "dummy"},
+            {"id": "inode5", "task_type": "method", "task_identifier": "dummy"},
+        ],
+        "links": [
+            {"source": "inode1", "target": "inode3"},
+            {"source": "inode2", "target": "inode3"},
+            {"source": "inode3", "target": "inode4"},
+            {"source": "inode3", "target": "inode5"},
+        ],
+    }
+
+    subgraph = {
+        "graph": {
+            "input_nodes": [
+                {
+                    "id": "in",
+                    "node": "nonode",
+                    "sub_node": "in",
+                },
+            ],
+            "output_nodes": [
+                {
+                    "id": "out",
+                    "node": "nonode",
+                    "sub_node": "out",
+                },
+            ],
+        },
+        "nodes": [
+            {"id": "nonode", "task_type": "graph", "task_identifier": subsubgraph}
+        ],
+    }
+
+    graph = {
+        "nodes": [
+            {"id": "node1", "task_type": "method", "task_identifier": "dummy"},
+            {"id": "node2", "task_type": "method", "task_identifier": "dummy"},
+            {"id": "graphnode", "task_type": "graph", "task_identifier": subgraph},
+        ],
+        "links": [
+            {"source": "node1", "target": "graphnode", "sub_target": "in"},
+            {"source": "graphnode", "target": "node2", "sub_source": "out"},
+        ],
+    }
+
+    ewoksgraph = load_graph(graph)
+    links = {
+        (node_id_as_string(source), node_id_as_string(target))
+        for source, target in ewoksgraph.graph.edges
+    }
+    expected = {
+        ("graphnode:nonode:inode1", "graphnode:nonode:inode3"),
+        ("graphnode:nonode:inode2", "graphnode:nonode:inode3"),
+        ("graphnode:nonode:inode3", "graphnode:nonode:inode4"),
+        ("graphnode:nonode:inode3", "graphnode:nonode:inode5"),
+        ("graphnode:nonode:inode4", "node2"),
+        ("graphnode:nonode:inode5", "node2"),
+        ("node1", "graphnode:nonode:inode1"),
+        ("node1", "graphnode:nonode:inode2"),
+    }
+
+    assert links == expected
