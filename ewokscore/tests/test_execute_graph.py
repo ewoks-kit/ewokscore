@@ -123,19 +123,22 @@ def test_execute_graph_outputs():
     assert results == expected
 
     # Merge the results of all tasks
-    results = execute_graph(create_graph(), outputs_node_identifier="none")
+    results = execute_graph(create_graph(), outputs=[{"all": True}])
     expected = {"inputs": {"a": 10, "b": 6}, "result": 16, "label": "task6"}
     assert results == expected
 
     # Merge the results of selected tasks
-    results = execute_graph(create_graph(), outputs={"task5": None})
+    results = execute_graph(create_graph(), outputs=[{"id": "task5"}])
     expected = {"inputs": {"a": 4, "b": 6}, "result": 10, "label": "task5"}
     assert results == expected
 
     # Merge the results of selected tasks
     results = execute_graph(
         create_graph(),
-        outputs={"task1": [{"name": "inputs"}], "task4": [{"name": "result"}]},
+        outputs=[
+            {"id": "task1", "name": "inputs"},
+            {"id": "task4", "name": "result"},
+        ],
     )
     expected = {"inputs": {"a": 1}, "result": 6}
     assert results == expected
@@ -143,10 +146,10 @@ def test_execute_graph_outputs():
     # Merge the results of selected tasks
     results = execute_graph(
         create_graph(),
-        outputs={
-            "task1": [{"name": "inputs", "new_name": "a"}],
-            "task4": [{"name": "result"}],
-        },
+        outputs=[
+            {"id": "task1", "name": "inputs", "new_name": "a"},
+            {"id": "task4", "name": "result"},
+        ],
     )
     expected = {"a": {"a": 1}, "result": 6}
     assert results == expected
@@ -155,7 +158,7 @@ def test_execute_graph_outputs():
 def test_execute_graph_inputs():
     results = execute_graph(
         create_graph(),
-        inputs={"task1": [{"name": "b", "value": 1}]},
+        inputs=[{"id": "task1", "name": "b", "value": 1}],
         results_of_all_nodes=True,
     )
     results = {k: v.output_values for k, v in results.items()}
@@ -173,7 +176,6 @@ def test_execute_graph_inputs():
     results = execute_graph(
         create_graph(),
         inputs=[{"name": "b", "value": 1}],
-        inputs_node_identifier="none",
         results_of_all_nodes=True,
     )
     results = {k: v.output_values for k, v in results.items()}

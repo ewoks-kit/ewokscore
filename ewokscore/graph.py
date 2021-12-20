@@ -648,118 +648,105 @@ class TaskGraph:
             if linkattrs.get("on_error") and linkattrs.get("conditions"):
                 raise ValueError(err_msg.format("on_error", "conditions"))
 
-    def parse_default_inputs(
-        self,
-        default_inputs: Union[Dict[Union[NodeIdType, str], List[dict]], List[dict]],
-        node_identifier: Optional[Union[NodeIdentifier, str]] = None,
-    ) -> Dict[NodeIdType, List[dict]]:
-        """The default inputs are given as:
-        * id:    default_inputs = {"node_id1": input_list1, "node_id2": input_list2, ...}
-        * label: default_inputs = {"My node label1": input_list1, "My node label2": input_list2, ...}
-        * none:  default_inputs = input_list  (start nodes)
-
-        input_list = [{"name":"a", "value":10}, {"name":"b", "value":10}]
+    def update_default_inputs(self, default_inputs: List[dict]):
+        """Input items have the following keys:
+        * id: node id
+        * label (optional): used when id is missing
+        * name: input variable name
+        * value: input variable value
+        * all (optional): used when id and label is missing (True: all nodes, False: start nodes)
         """
-        if isinstance(node_identifier, str):
-            node_identifier = NodeIdentifier.__members__[node_identifier]
-        if node_identifier is None or node_identifier == node_identifier.id:
-            assert isinstance(default_inputs, Mapping)
-        elif node_identifier == node_identifier.none:
-            assert not isinstance(default_inputs, Mapping)
-            default_inputs = {node_id: default_inputs for node_id in self.start_nodes()}
-        elif node_identifier == node_identifier.label:
-            node_ids = self.get_node_ids(list(default_inputs))
-            default_inputs = {
-                node_id: input_list
-                for node_id, input_list in zip(node_ids, default_inputs.values())
-            }
-        else:
-            raise TypeError(node_identifier)
-        return default_inputs
-
-    def parse_outputs(
-        self,
-        outputs: Union[Dict[Union[NodeIdType, str], Optional[List[dict]]], None],
-        node_identifier: Union[NodeIdentifier, str, None] = None,
-    ) -> Optional[Dict[NodeIdType, Optional[List[dict]]]]:
-        """The ouputs are given as:
-        * id:    outputs = {"node_id1": output_map1, "node_id2": output_map2, ...}
-        * label: outputs = {"My node label1": output_map1, "My node label2": output_map2, ...}
-        * none:  outputs = output_map  (end nodes or all nodes)
-
-        output_map = [{"name": "a", "new_name":"A"}, {"name": "b", "new_name":"B"}]
-        or
-        output_map = None (identity map of all outputs)
-        """
-        if isinstance(node_identifier, str):
-            node_identifier = NodeIdentifier.__members__[node_identifier]
-        if node_identifier is None or node_identifier == node_identifier.id:
-            assert outputs is None or isinstance(outputs, Mapping)
-        elif node_identifier == node_identifier.none:
-            if outputs is None:
-                outputs = {node_id: None for node_id in self.graph.nodes()}
-            else:
-                outputs = {node_id: outputs for node_id in self.end_nodes()}
-        elif node_identifier == node_identifier.label:
-            assert isinstance(outputs, Mapping)
-            node_ids = self.get_node_ids(list(outputs))
-            outputs = {
-                node_id: output_map
-                for node_id, output_map in zip(node_ids, outputs.values())
-            }
-        else:
-            raise TypeError(node_identifier)
-        return outputs
-
-    def update_default_inputs(
-        self,
-        default_inputs: Union[Dict[Union[NodeIdType, str], List[dict]], List[dict]],
-        node_identifier: Union[NodeIdentifier, str, None] = None,
-    ):
-        default_inputs = self.parse_default_inputs(default_inputs, node_identifier)
-        for node_id, input_list in default_inputs.items():
+        self.parse_default_inputs(default_inputs)
+        for input_item in default_inputs:
+            node_id = input_item.get("id")
+            if node_id is None:
+                continue
             node_attrs = self.graph.nodes[node_id]
-            existing_input_list = node_attrs.get("default_inputs")
-            if existing_input_list:
-                for input_item in input_list:
-                    for existing_input_item in existing_input_list:
-                        if existing_input_item["name"] == input_item["name"]:
-                            existing_input_item["value"] = input_item["value"]
-                            break
-                    else:
-                        existing_input_list.append(input_item)
+            existing_inputs = node_attrs.get("default_inputs")
+            if existing_inputs:
+                for existing_input_item in existing_inputs:
+                    if existing_input_item["name"] == input_item["name"]:
+                        existing_input_item["value"] = input_item["value"]
+                        break
+                else:
+                    existing_inputs.append(input_item)
             else:
-                node_attrs["default_inputs"] = input_list
+                node_attrs["default_inputs"] = [input_item]
+
+    def parse_default_inputs(self, default_inputs: List[dict]):
+        extra = list()
+        required = {"name", "value"}
+        for input_item in default_inputs:
+            missing = required - input_item.keys()
+            if missing:
+                raise ValueError(f"missing keys in one of the graph inputs: {missing}")
+            if "id" in input_item:
+                continue
+            elif "label" in input_item:
+                node_label = input_item["label"]
+                input_item["id"] = self.get_node_id(node_label)
+            else:
+                if input_item.get("all"):
+                    nodes = self.graph.nodes
+                else:
+                    nodes = self.start_nodes()
+                for node_id in nodes:
+                    input_item = dict(input_item)
+                    input_item["id"] = node_id
+                    extra.append(input_item)
+        default_inputs += extra
 
     def extract_output_values(
-        self,
-        node_id: NodeIdType,
-        task: Task,
-        outputs: Dict[NodeIdType, Optional[List[dict]]],
+        self, node_id: NodeIdType, task: Task, outputs: List[dict]
     ) -> dict:
-        if node_id not in outputs:
-            return dict()
-        output_list = outputs[node_id]
-        task_output_values = task.output_values
-        if output_list is None:
-            return task_output_values
-        else:
-            return {
-                namemap.get("new_name", namemap["name"]): task_output_values.get(
-                    namemap["name"], hashing.UniversalHashable.MISSING_DATA
+        """Output items have the following keys:
+        * id: node id
+        * label (optional): used when id is missing
+        * name (optional): output variable name (all outputs when missing)
+        * new_name (optional): optional renaming when name is defined
+        * all (optional): used when id and label is missing (True: all nodes, False: end nodes)
+        """
+        output_values = dict()
+        task_output_values = None
+        for output_item in outputs:
+            if output_item.get("id") != node_id:
+                continue
+            if task_output_values is None:
+                task_output_values = task.output_values
+            name = output_item.get("name")
+            if name:
+                new_name = output_item.get("new_name", name)
+                output_values[new_name] = task_output_values.get(
+                    name, hashing.UniversalHashable.MISSING_DATA
                 )
-                for namemap in output_list
-            }
+            else:
+                output_values.update(task_output_values)
+        return output_values
 
-    def get_node_ids(self, labels: List[str]) -> List[NodeIdType]:
-        node_ids = list(labels)
+    def parse_outputs(self, outputs: List[dict]):
+        extra = list()
+        for output_item in outputs:
+            if "id" in output_item:
+                continue
+            elif "label" in output_item:
+                node_label = output_item["label"]
+                output_item["id"] = self.get_node_id(node_label)
+            else:
+                if output_item.get("all"):
+                    nodes = self.graph.nodes
+                else:
+                    nodes = self.end_nodes()
+                for node_id in nodes:
+                    output_item = dict(output_item)
+                    output_item["id"] = node_id
+                    extra.append(output_item)
+        outputs += extra
+
+    def get_node_id(self, label: str) -> Optional[NodeIdType]:
         for node_id, node_attrs in self.nodes.items():
             node_label = get_node_label(node_attrs, node_id=node_id)
-            for i, label in enumerate(labels):
-                if label == node_label:
-                    node_ids[i] = node_id
-                    break
-        return node_ids
+            if label == node_label:
+                return node_id
 
     def topological_sort(self) -> Iterable[NodeIdType]:
         """Sort node names for sequential instantiation+execution of DAGs"""
@@ -778,13 +765,12 @@ class TaskGraph:
         varinfo: Optional[dict] = None,
         raise_on_error: Optional[bool] = True,
         results_of_all_nodes: Optional[bool] = False,
-        outputs: Union[Dict[Union[NodeIdType, str], Optional[List[dict]]], None] = None,
-        outputs_node_identifier: Union[NodeIdentifier, str, None] = None,
+        outputs: Optional[List[dict]] = None,
     ) -> Union[Dict[NodeIdType, Task], Dict[str, Any]]:
         """Sequential execution of DAGs. Returns either
-        * all tasks (results_of_all_nodes=True, selected_results=None)
-        * end tasks (results_of_all_nodes=False, selected_results=None)
-        * merged dictionary of selected outputs from selected nodes
+        * all tasks (results_of_all_nodes=True, outputs=None)
+        * end tasks (results_of_all_nodes=False, outputs=None)
+        * merged dictionary of selected outputs from selected nodes (outputs=[...])
         """
         if self.is_cyclic:
             raise RuntimeError("Cannot execute cyclic graphs")
@@ -792,17 +778,16 @@ class TaskGraph:
             raise RuntimeError("Cannot execute graphs with conditional links")
 
         # Pepare containers for local state
-        outputs = self.parse_outputs(outputs, outputs_node_identifier)
         if outputs:
             results_of_all_nodes = False
+            self.parse_outputs(outputs)
+            output_values = dict()
+        else:
+            output_values = None
         if results_of_all_nodes:
             evict_result_counter = None
         else:
             evict_result_counter = self.successor_counter()
-        if outputs:
-            output_values = dict()
-        else:
-            output_values = None
         tasks = dict()
 
         cleanup_references = not results_of_all_nodes
