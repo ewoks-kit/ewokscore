@@ -1,8 +1,9 @@
 from . import graph
+from ewokscore import hashing
 
 
 @graph
-def acyclic1():
+def acyclic3():
     task = "ewokscore.tests.examples.tasks.sumtask.SumTask"
     nodes = [
         {
@@ -41,6 +42,16 @@ def acyclic1():
             "task_type": "class",
             "task_identifier": task,
         },
+        {
+            "id": "task7",
+            "task_type": "class",
+            "task_identifier": "ewokscore.tests.examples.tasks.nooutputtask.NoOutputTask",
+        },
+        {
+            "id": "task8",
+            "task_type": "class",
+            "task_identifier": "ewokscore.tests.examples.tasks.nooutputtask.NoOutputTask",
+        },
     ]
 
     links = [
@@ -69,6 +80,15 @@ def acyclic1():
             "target": "task6",
             "data_mapping": [{"target_input": "a", "source_output": "result"}],
         },
+        {
+            "source": "task6",
+            "target": "task7",
+            "map_all_data": True,
+        },
+        {
+            "source": "task7",
+            "target": "task8",
+        },
     ]
 
     graph = {
@@ -83,6 +103,8 @@ def acyclic1():
         "task4": {"result": 6},
         "task5": {"result": 10},
         "task6": {"result": 16},
+        "task7": hashing.UniversalHashable.MISSING_DATA,
+        "task8": hashing.UniversalHashable.MISSING_DATA,
     }
 
     return graph, expected_results

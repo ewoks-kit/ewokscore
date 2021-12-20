@@ -6,6 +6,6 @@ class NoOutputTask(Task):
     def run(self):
         input_values = self.input_values
         if input_values:
-            print(f"{self}: {pformat(input_values)}")
+            print(f"{self.label}: {pformat(input_values)}")
         else:
-            print(f"{self}: <no inputs>")
+            print(f"{self.label}: <no inputs>")
