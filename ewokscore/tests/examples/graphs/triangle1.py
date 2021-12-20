@@ -45,7 +45,7 @@ def triangle1():
         },
     ]
 
-    expected = {"result": 10, "too_small": False}
+    expected = {"task3": {"result": 10, "too_small": False}}
 
     graph = {
         "links": links,

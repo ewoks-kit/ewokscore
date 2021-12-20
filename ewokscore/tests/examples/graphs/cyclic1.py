@@ -96,7 +96,7 @@ def cyclic1():
         },
     ]
 
-    expected = {"result": 12, "too_small": False}
+    expected = {"task7": {"result": 12, "too_small": False}}
 
     graph = {
         "links": links,

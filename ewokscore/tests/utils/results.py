@@ -101,3 +101,24 @@ def assert_task_result(task: Task, node_id: NodeIdType, expected: dict, loaded: 
 def assert_result(value, expected_value, varinfo: Optional[dict] = None):
     value = value_from_transfer(value, varinfo=varinfo)
     assert value == expected_value
+
+
+def filter_expected_results(
+    ewoksgraph: TaskGraph,
+    results: Dict[NodeIdType, Any],
+    end_only: bool = False,
+    merge: bool = False,
+) -> dict:
+    if end_only:
+        nodes = ewoksgraph.end_nodes()
+        results = {k: v for k, v in results.items() if k in nodes}
+    else:
+        nodes = ewoksgraph.nodes()
+    if merge:
+        ret = dict()
+        for node_id in nodes:
+            adict = results.get(node_id)
+            if adict:
+                ret.update(adict)
+        results = ret
+    return results
