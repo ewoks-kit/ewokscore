@@ -1,13 +1,10 @@
 from typing import Any, Dict, Optional
-import networkx
-from pprint import pprint
 from ewokscore import load_graph
 from ewokscore.graph import TaskGraph
 from ewokscore.node import NodeIdType
 from ewokscore.task import Task
 from ewokscore.variable import value_from_transfer
 from ewokscore import hashing
-import warnings
 
 
 def assert_execute_graph_all_tasks(
@@ -81,31 +78,6 @@ def assert_execute_graph_values(
         assert_result(value, expected_value, varinfo=varinfo)
 
 
-def assert_taskgraph_result(*args, **kwargs):
-    kwargs["execute_graph_result"] = kwargs.pop("tasks", None)
-    warnings.warn(
-        "use 'assert_execute_graph_all_tasks' instead of 'assert_taskgraph_result'",
-        FutureWarning,
-    )
-    assert_execute_graph_all_tasks(*args, **kwargs)
-
-
-def assert_workflow_result(*args, **kwargs):
-    warnings.warn(
-        "use 'assert_execute_graph_tasks' instead of 'assert_workflow_result'",
-        FutureWarning,
-    )
-    assert_execute_graph_tasks(*args, **kwargs)
-
-
-def assert_workflow_merged_result(*args, **kwargs):
-    warnings.warn(
-        "use 'assert_execute_graph_values' instead of 'assert_workflow_merged_result'",
-        FutureWarning,
-    )
-    assert_execute_graph_values(*args, **kwargs)
-
-
 def assert_task_result(task: Task, node_id: NodeIdType, expected: dict, loaded: bool):
     expected_value = expected.get(node_id)
     if expected_value == hashing.UniversalHashable.MISSING_DATA:
@@ -131,13 +103,22 @@ def assert_result(value, expected_value, varinfo: Optional[dict] = None):
     assert value == expected_value
 
 
-def show_graph(graph, stdout=True, plot=True, show=True):
-    taskgraph = load_graph(graph)
-    if stdout:
-        pprint(taskgraph.dump())
-    if plot:
-        networkx.draw(taskgraph.graph, with_labels=True, font_size=10)
-        if show:
-            import matplotlib.pyplot as plt
-
-            plt.show()
+def filter_expected_results(
+    ewoksgraph: TaskGraph,
+    results: Dict[NodeIdType, Any],
+    end_only: bool = False,
+    merge: bool = False,
+) -> dict:
+    if end_only:
+        nodes = ewoksgraph.end_nodes()
+        results = {k: v for k, v in results.items() if k in nodes}
+    else:
+        nodes = ewoksgraph.nodes()
+    if merge:
+        ret = dict()
+        for node_id in nodes:
+            adict = results.get(node_id)
+            if adict:
+                ret.update(adict)
+        results = ret
+    return results

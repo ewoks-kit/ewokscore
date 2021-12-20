@@ -1,6 +1,6 @@
 from ewokscore import load_graph
 from ewokscore.utils import qualname
-from .utils import assert_execute_graph_all_tasks
+from .utils.results import assert_execute_graph_all_tasks
 from ewokscore.node import node_id_as_string
 
 

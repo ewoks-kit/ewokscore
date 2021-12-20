@@ -684,7 +684,10 @@ class TaskGraph:
                 continue
             elif "label" in input_item:
                 node_label = input_item["label"]
-                input_item["id"] = self.get_node_id(node_label)
+                node_id = self.get_node_id(node_label)
+                if node_id is None:
+                    raise ValueError(f"Node label '{node_label}' does not exist")
+                input_item["id"] = node_id
             else:
                 if input_item.get("all"):
                     nodes = self.graph.nodes
@@ -730,7 +733,10 @@ class TaskGraph:
                 continue
             elif "label" in output_item:
                 node_label = output_item["label"]
-                output_item["id"] = self.get_node_id(node_label)
+                node_id = self.get_node_id(node_label)
+                if node_id is None:
+                    raise ValueError(f"Node label '{node_label}' does not exist")
+                output_item["id"] = node_id
             else:
                 if output_item.get("all"):
                     nodes = self.graph.nodes
@@ -743,7 +749,7 @@ class TaskGraph:
         outputs += extra
 
     def get_node_id(self, label: str) -> Optional[NodeIdType]:
-        for node_id, node_attrs in self.nodes.items():
+        for node_id, node_attrs in self.graph.nodes.items():
             node_label = get_node_label(node_attrs, node_id=node_id)
             if label == node_label:
                 return node_id
