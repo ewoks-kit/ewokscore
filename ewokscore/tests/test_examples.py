@@ -1,8 +1,8 @@
 import pytest
 from .examples.graphs import graph_names
 from .examples.graphs import get_graph
-from .utils import assert_execute_graph_all_tasks
-from .utils import assert_execute_graph_tasks
+from .utils.results import assert_execute_graph_all_tasks
+from .utils.results import assert_execute_graph_tasks
 from ewokscore import load_graph
 
 
