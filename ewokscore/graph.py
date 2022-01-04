@@ -105,7 +105,15 @@ def get_subgraphs(graph: networkx.DiGraph, **load_options):
 
 def _ewoks_jsonload_hook_pair(item):
     key, value = item
-    if key in ("source", "target", "sub_source", "sub_target", "id", "sub_node"):
+    if key in (
+        "source",
+        "target",
+        "sub_source",
+        "sub_target",
+        "id",
+        "node",
+        "sub_node",
+    ):
         value = node_id_from_json(value)
     return key, value
 
