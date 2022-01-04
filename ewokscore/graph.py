@@ -1,6 +1,7 @@
 import os
 import enum
 import json
+import yaml
 from collections import Counter
 from collections.abc import Mapping
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
@@ -104,7 +105,15 @@ def get_subgraphs(graph: networkx.DiGraph, **load_options):
 
 def _ewoks_jsonload_hook_pair(item):
     key, value = item
-    if key in ("source", "target", "sub_source", "sub_target", "id", "sub_node"):
+    if key in (
+        "source",
+        "target",
+        "sub_source",
+        "sub_target",
+        "id",
+        "node",
+        "sub_node",
+    ):
         value = node_id_from_json(value)
     return key, value
 
@@ -122,7 +131,7 @@ def abs_path(path, root_dir=None):
 
 
 GraphRepresentation = enum.Enum(
-    "GraphRepresentation", "json_file json_dict json_string yaml"
+    "GraphRepresentation", "json json_dict json_string yaml"
 )
 NodeIdentifier = enum.Enum("NodeIdentifier", "none id label")
 
@@ -191,7 +200,9 @@ class TaskGraph:
                 representation = GraphRepresentation.json_dict
             elif isinstance(source, str):
                 if source.endswith(".json"):
-                    representation = GraphRepresentation.json_file
+                    representation = GraphRepresentation.json
+                elif source.endswith(".yml"):
+                    representation = GraphRepresentation.yaml
                 else:
                     representation = GraphRepresentation.json_string
         if not source:
@@ -203,7 +214,7 @@ class TaskGraph:
         elif representation == GraphRepresentation.json_dict:
             set_graph_defaults(source)
             graph = networkx.readwrite.json_graph.node_link_graph(source)
-        elif representation == GraphRepresentation.json_file:
+        elif representation == GraphRepresentation.json:
             source = abs_path(source, root_dir)
             with open(source, mode="r") as f:
                 source = json.load(f, object_pairs_hook=ewoks_jsonload_hook)
@@ -215,7 +226,10 @@ class TaskGraph:
             graph = networkx.readwrite.json_graph.node_link_graph(source)
         elif representation == GraphRepresentation.yaml:
             source = abs_path(source, root_dir)
-            graph = networkx.readwrite.read_yaml(source)
+            with open(source, mode="r") as f:
+                source = yaml.load(f, yaml.Loader)
+            set_graph_defaults(source)
+            graph = networkx.readwrite.json_graph.node_link_graph(source)
         else:
             raise TypeError(representation, type(representation))
 
@@ -250,27 +264,31 @@ class TaskGraph:
         destination=None,
         representation: Optional[Union[GraphRepresentation, str]] = None,
         **kw,
-    ):
+    ) -> Optional[str]:
         """From runtime to persistent representation"""
         if isinstance(representation, str):
             representation = GraphRepresentation.__members__[representation]
         if representation is None:
-            if isinstance(destination, str) and destination.endswith(".json"):
-                representation = GraphRepresentation.json_file
+            if isinstance(destination, str):
+                if destination.endswith(".json"):
+                    representation = GraphRepresentation.json
+                elif destination.endswith(".yml"):
+                    representation = GraphRepresentation.yaml
             else:
                 representation = GraphRepresentation.json_dict
         if representation == GraphRepresentation.json_dict:
             return networkx.readwrite.json_graph.node_link_data(self.graph)
-        elif representation == GraphRepresentation.json_file:
+        elif representation == GraphRepresentation.json:
             dictrepr = self.dump()
             with open(destination, mode="w") as f:
                 json.dump(dictrepr, f, **kw)
-            return destination
         elif representation == GraphRepresentation.json_string:
             dictrepr = self.dump()
             return json.dumps(dictrepr, **kw)
         elif representation == GraphRepresentation.yaml:
-            return networkx.readwrite.write_yaml(self.graph, destination, **kw)
+            dictrepr = self.dump()
+            with open(destination, mode="w") as f:
+                yaml.dump(dictrepr, f, **kw)
         else:
             raise TypeError(representation, type(representation))
 

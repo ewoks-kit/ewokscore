@@ -1,18 +1,11 @@
 import json
+import yaml
 import pytest
 from ewokscore import load_graph
 
 
-def savegraph(graph, tmpdir, name):
-    filename = name + ".json"
-    with open(tmpdir / filename, mode="w") as f:
-        json.dump(graph, f, indent=2)
-    return filename
-
-
-@pytest.fixture
-def subsubsubgraph(tmpdir):
-    graph = {
+def subsubsubgraph():
+    return {
         "graph": {
             "input_nodes": [{"id": "in", "node": "task1"}],
             "output_nodes": [{"id": "out", "node": "task2"}],
@@ -38,12 +31,9 @@ def subsubsubgraph(tmpdir):
         ],
     }
 
-    return savegraph(graph, tmpdir, "subsubsubgraph")
 
-
-@pytest.fixture
-def subsubgraph(tmpdir, subsubsubgraph):
-    graph = {
+def subsubgraph(_subsubsubgraph):
+    return {
         "graph": {
             "input_nodes": [{"id": "in", "node": "task1"}],
             "output_nodes": [
@@ -64,7 +54,7 @@ def subsubgraph(tmpdir, subsubsubgraph):
             {
                 "id": "subsubsubgraph",
                 "task_type": "graph",
-                "task_identifier": subsubsubgraph,
+                "task_identifier": _subsubsubgraph,
             },
         ],
         "links": [
@@ -81,12 +71,10 @@ def subsubgraph(tmpdir, subsubsubgraph):
             },
         ],
     }
-    return savegraph(graph, tmpdir, "subsubgraph")
 
 
-@pytest.fixture
-def subgraph(tmpdir, subsubgraph):
-    graph = {
+def subgraph(_subsubgraph):
+    return {
         "graph": {
             "input_nodes": [{"id": "in", "node": "task1"}],
             "output_nodes": [{"id": "out", "node": "subsubgraph", "sub_node": "out"}],
@@ -102,7 +90,11 @@ def subgraph(tmpdir, subsubgraph):
                 "task_type": "method",
                 "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.add",
             },
-            {"id": "subsubgraph", "task_type": "graph", "task_identifier": subsubgraph},
+            {
+                "id": "subsubgraph",
+                "task_type": "graph",
+                "task_identifier": _subsubgraph,
+            },
         ],
         "links": [
             {
@@ -118,15 +110,13 @@ def subgraph(tmpdir, subsubgraph):
             },
         ],
     }
-    return savegraph(graph, tmpdir, "subgraph")
 
 
-@pytest.fixture
-def graph(tmpdir, subgraph):
-    graph = {
+def graph(_subgraph):
+    return {
         "nodes": [
-            {"id": "subgraph1", "task_type": "graph", "task_identifier": subgraph},
-            {"id": "subgraph2", "task_type": "graph", "task_identifier": subgraph},
+            {"id": "subgraph1", "task_type": "graph", "task_identifier": _subgraph},
+            {"id": "subgraph2", "task_type": "graph", "task_identifier": _subgraph},
             {
                 "id": "append",
                 "task_type": "method",
@@ -217,12 +207,67 @@ def graph(tmpdir, subgraph):
             },
         ],
     }
-    return savegraph(graph, tmpdir, "graph")
 
 
-def test_load_from_json(tmpdir, graph):
-    taskgraph = load_graph(graph, root_dir=str(tmpdir))
-    tasks = taskgraph.execute(results_of_all_nodes=True)
+def savegraph(graph, tmpdir, name, representation="json"):
+    if representation == "json":
+        filename = name + ".json"
+        with open(tmpdir / filename, mode="w") as f:
+            json.dump(graph, f, indent=2)
+    elif representation == "yaml":
+        filename = name + ".yml"
+        with open(tmpdir / filename, mode="w") as f:
+            yaml.dump(graph, f)
+    else:
+        raise ValueError(representation)
+    return filename
+
+
+def serialized_graph(tmpdir, representation="json") -> str:
+    subname = savegraph(
+        subsubsubgraph(), tmpdir, "subsubsubgraph", representation=representation
+    )
+    subname = savegraph(
+        subsubgraph(subname), tmpdir, "subsubgraph", representation=representation
+    )
+    subname = savegraph(
+        subgraph(subname), tmpdir, "subgraph", representation=representation
+    )
+    return savegraph(graph(subname), tmpdir, "graph", representation=representation)
+
+
+def nonserialized_graph() -> dict:
+    return graph(subgraph(subsubgraph(subsubsubgraph())))
+
+
+@pytest.mark.parametrize(
+    "representation", (None, "json", "json_dict", "json_string", "yaml")
+)
+def test_sub_graph_serialize(representation, tmpdir):
+    ewoksgraph = load_graph(nonserialized_graph())
+    if representation == "yaml":
+        destination = str(tmpdir / "file.yml")
+    elif representation == "json":
+        destination = str(tmpdir / "file.json")
+    else:
+        destination = None
+    inmemorydump = ewoksgraph.dump(destination, representation=representation)
+
+    if destination:
+        source = destination
+    else:
+        source = inmemorydump
+    ewoksgraph2 = load_graph(source, representation=representation)
+
+    assert ewoksgraph == ewoksgraph2
+
+
+@pytest.mark.parametrize("representation", ("json", "yaml"))
+def test_sub_graph_execute(representation, tmpdir):
+    g = serialized_graph(tmpdir, representation=representation)
+    ewoksgraph = load_graph(g, root_dir=str(tmpdir))
+
+    tasks = ewoksgraph.execute(results_of_all_nodes=True)
 
     assert len(tasks) == 13
 

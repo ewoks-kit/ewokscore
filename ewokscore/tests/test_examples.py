@@ -70,3 +70,27 @@ def test_start_nodes():
     graph, _ = get_graph("triangle1")
     ewoksgraph = load_graph(graph)
     assert ewoksgraph.start_nodes() == {"task1"}
+
+
+@pytest.mark.parametrize("graph_name", graph_names())
+@pytest.mark.parametrize(
+    "representation", (None, "json", "json_dict", "json_string", "yaml")
+)
+def test_serialize_graph(graph_name, representation, tmpdir):
+    graph, _ = get_graph(graph_name)
+    ewoksgraph = load_graph(graph)
+    if representation == "yaml":
+        destination = str(tmpdir / "file.yml")
+    elif representation == "json":
+        destination = str(tmpdir / "file.json")
+    else:
+        destination = None
+    inmemorydump = ewoksgraph.dump(destination, representation=representation)
+
+    if destination:
+        source = destination
+    else:
+        source = inmemorydump
+    ewoksgraph2 = load_graph(source, representation=representation)
+
+    assert ewoksgraph == ewoksgraph2

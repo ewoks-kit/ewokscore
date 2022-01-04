@@ -1,8 +1,11 @@
 import os
+import sys
 import re
 from pathlib import Path
 from typing import Iterable, Optional, Tuple, Union
 from urllib.parse import ParseResult, urlparse
+
+WIN32 = sys.platform == "win32"
 
 
 def _normalize(uri: str) -> Tuple[str, str]:
@@ -31,6 +34,9 @@ def parse_uri(
     uri, query_paths = _normalize(uri)
     result = urlparse(uri)
     scheme, netloc, path, params, query, fragment = result
+    if WIN32 and len(scheme) == 1:
+        result = urlparse("file://" + uri)
+        scheme, netloc, path, params, query, fragment = result
     query = merge_query(query_paths, query)
     if not scheme and default_scheme:
         scheme = default_scheme
