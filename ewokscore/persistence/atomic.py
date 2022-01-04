@@ -33,7 +33,12 @@ def atomic_create_path(path: Path) -> Iterable[Path]:
         except FileNotFoundError:
             pass
         raise
-    tmppath.rename(path)  # overwrite when it exists
+    while True:
+        try:
+            tmppath.rename(path)  # overwrite when it exists
+            break
+        except FileExistsError:
+            path.unlink(missing_ok=True)
 
 
 @contextmanager
