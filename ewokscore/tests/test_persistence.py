@@ -15,19 +15,20 @@ def test_json_proxy_uri(tmpdir):
     assert proxy.uri is None
 
     proxy = JsonProxy(uhash_source=hashable, root_uri=str(tmpdir))
-    assert str(proxy.uri) == f"json://{tmpdir}/{identifier}.json"
-    proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpdir}/file.json")
-    assert str(proxy.uri) == f"json://{tmpdir}/file/{identifier}.json"
-    proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpdir}/file.json?path=/a")
-    assert str(proxy.uri) == f"json://{tmpdir}/file/a/{identifier}.json"
-    proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpdir}/file.json?path=/a/b")
-    assert str(proxy.uri) == f"json://{tmpdir}/file/a/b/{identifier}.json"
-    proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpdir}/file.json?path=/a/b/c")
-    assert str(proxy.uri) == f"json://{tmpdir}/file/a/b/c/{identifier}.json"
+    assert str(proxy.uri) == f"json://{tmpdir/identifier}.json"
+    tmpfile = tmpdir / "file"
+    proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json")
+    assert str(proxy.uri) == f"json://{tmpfile/identifier}.json"
+    proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json?path=/a")
+    assert str(proxy.uri) == f"json://{tmpfile/'a'/identifier}.json"
+    proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json?path=/a/b")
+    assert str(proxy.uri) == f"json://{tmpfile/'a'/'b'/identifier}.json"
+    proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json?path=/a/b/c")
+    assert str(proxy.uri) == f"json://{tmpfile/'a'/'b'/'c'/identifier}.json"
 
     proxy2 = JsonProxy(proxy.uri)
     assert proxy.uri == proxy2.uri
-    assert str(proxy2.uri) == f"json://{tmpdir}/file/a/b/c/{identifier}.json"
+    assert str(proxy2.uri) == f"json://{tmpfile/'a'/'b'/'c'/identifier}.json"
 
 
 def test_nexus_proxy_uri(tmpdir):
@@ -39,19 +40,20 @@ def test_nexus_proxy_uri(tmpdir):
     assert proxy.uri is None
 
     proxy = NexusProxy(uhash_source=hashable, root_uri=str(tmpdir))
-    assert str(proxy.uri) == f"nexus://{tmpdir}/{identifier}.nx?path={identifier}"
-    proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpdir}/file.nx")
-    assert str(proxy.uri) == f"nexus://{tmpdir}/file.nx?path={identifier}"
-    proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpdir}/file.h5?path=/a")
-    assert str(proxy.uri) == f"nexus://{tmpdir}/file.h5?path=a/{identifier}"
-    proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpdir}/file.nx?path=/a/b")
-    assert str(proxy.uri) == f"nexus://{tmpdir}/file.nx?path=a/b/{identifier}"
-    proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpdir}/file.nx?path=/a/b/c")
-    assert str(proxy.uri) == f"nexus://{tmpdir}/file.nx?path=a/b/c/{identifier}"
+    assert str(proxy.uri) == f"nexus://{tmpdir/identifier}.nx?path={identifier}"
+    tmpfile = tmpdir / "file"
+    proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.nx")
+    assert str(proxy.uri) == f"nexus://{tmpfile}.nx?path={identifier}"
+    proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.h5?path=/a")
+    assert str(proxy.uri) == f"nexus://{tmpfile}.h5?path=a/{identifier}"
+    proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.nx?path=/a/b")
+    assert str(proxy.uri) == f"nexus://{tmpfile}.nx?path=a/b/{identifier}"
+    proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.nx?path=/a/b/c")
+    assert str(proxy.uri) == f"nexus://{tmpfile}.nx?path=a/b/c/{identifier}"
 
     proxy2 = JsonProxy(proxy.uri)
     assert proxy.uri == proxy2.uri
-    assert str(proxy2.uri) == f"nexus://{tmpdir}/file.nx?path=a/b/c/{identifier}"
+    assert str(proxy2.uri) == f"nexus://{tmpfile}.nx?path=a/b/c/{identifier}"
 
 
 @pytest.mark.parametrize("scheme", ("json", "nexus"))

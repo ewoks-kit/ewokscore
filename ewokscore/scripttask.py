@@ -3,6 +3,7 @@ import subprocess
 from .task import Task
 
 SCRIPT_ARGUMENT = "_script"
+WIN32 = sys.platform == "win32"
 
 
 class ScriptExecutorTask(
@@ -20,7 +21,8 @@ class ScriptExecutorTask(
             args.append(sys.executable)
         else:
             argmarker = "-"
-            args.append("bash")
+            if not WIN32:
+                args.append("bash")
         args.append(fullname)
         for k, v in self.input_values.items():
             if k != self.SCRIPT_ARGUMENT:

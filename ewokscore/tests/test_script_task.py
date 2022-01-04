@@ -1,5 +1,9 @@
 import os
+import sys
 from ewokscore.task import Task
+
+WIN32 = sys.platform == "win32"
+
 
 pyscript = r"""
 if __name__ == "__main__":
@@ -30,7 +34,34 @@ def test_python_script_task(tmpdir, varinfo, capsys):
     assert captured.err == ""
 
 
-shellscript = r"""a=0
+if WIN32:
+    shellscript = r"""@echo off
+
+set a=0
+
+:initial
+if "%1"=="" goto done
+echo              %1
+set aux=%1
+if "%aux:~0,1%"=="-" (
+   set varname=%aux:~1,250%
+) else (
+   set "%varname%=%1"
+   set varname=
+)
+shift
+goto initial
+:done
+
+echo input a = %a%
+if %a%==10 (
+    echo exit 0
+) else (
+    echo exit 1
+)
+"""
+else:
+    shellscript = r"""a=0
 
 while getopts u:a:f: flag
 do
@@ -49,14 +80,19 @@ fi
 
 
 def test_shell_script_task(tmpdir, varinfo, capsys):
-    shellscriptname = tmpdir / "test.sh"
-    with open(shellscriptname, mode="w") as f:
+    if WIN32:
+        ext = ".bat"
+    else:
+        ext = ".sh"
+    filename = tmpdir / f"test{ext}"
+    with open(filename, mode="w") as f:
         f.writelines(shellscript)
-    os.chmod(shellscriptname, 0o755)
+    if not WIN32:
+        os.chmod(filename, 0o755)
 
     task = Task.instantiate(
         "ScriptExecutorTask",
-        inputs={"a": 10, "_script": str(shellscriptname)},
+        inputs={"a": 10, "_script": str(filename)},
         varinfo=varinfo,
     )
     task.execute()
