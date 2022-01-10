@@ -150,6 +150,7 @@ Node attributes
         }
 * *inputs_complete* (optional): set to `True` when the default input covers all required input
   (used for method and script as the required inputs are unknown)
+* *conditions_else_value* (optional): value used in conditional links to indicate the *else* value (`None` by default)
 
 Link attributes
 ^^^^^^^^^^^^^^^
