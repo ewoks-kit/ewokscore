@@ -450,6 +450,7 @@ class TaskGraph:
         node_filter=None,
         node_has_predecessors=None,
         node_has_successors=None,
+        node_has_error_handlers=None,
         **linkfilter,
     ):
         """Filters are combined with the logical AND"""
@@ -461,6 +462,9 @@ class TaskGraph:
                 return False
         if node_has_successors is not None:
             if self.has_successors(node_id) != node_has_successors:
+                return False
+        if node_has_error_handlers is not None:
+            if self._node_has_error_handlers(node_id) != node_has_error_handlers:
                 return False
         return True
 
@@ -519,9 +523,14 @@ class TaskGraph:
         return self._node_is_required(source_id)
 
     def _node_is_required(self, node_id: NodeIdType):
-        return not self.has_ancestors(
+        not_required = self.has_ancestors(
             node_id, link_has_required=False, link_is_conditional=True
         )
+        not_required |= self.has_ancestors(node_id, node_has_error_handlers=True)
+        return not not_required
+
+    def _node_has_error_handlers(self, node_id: NodeIdType):
+        return self.has_successors(node_id, link_has_on_error=True)
 
     def _required_predecessors(self, target_id: NodeIdType):
         for source_id in self.predecessors(target_id):
