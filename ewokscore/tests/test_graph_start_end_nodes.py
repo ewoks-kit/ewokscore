@@ -1,4 +1,6 @@
 from ewokscore.graph import load_graph
+from ewokscore.graph.analysis import start_nodes
+from ewokscore.graph.analysis import end_nodes
 
 
 def test_graph_start_end_nodes():
@@ -51,5 +53,5 @@ def test_graph_start_end_nodes():
     ]
     taskgraph = load_graph({"nodes": nodes, "links": links})
 
-    assert taskgraph.start_nodes() == {"start1"}
-    assert taskgraph.end_nodes() == {"end_always", "end_on_error"}
+    assert start_nodes(taskgraph.graph) == {"start1"}
+    assert end_nodes(taskgraph.graph) == {"end_always", "end_on_error"}

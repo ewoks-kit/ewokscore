@@ -2,7 +2,7 @@ from ewokscore.graph import load_graph
 from ewokscore.node import get_node_label
 
 
-def subsubmodel():
+def subsubmodel1():
     nodes = [
         {
             "id": "a",
@@ -49,7 +49,7 @@ def subsubmodel():
     return {"nodes": nodes, "links": links}
 
 
-def submodel():
+def submodel1():
     nodes = [
         {
             "id": "a",
@@ -57,7 +57,7 @@ def submodel():
             "task_type": "method",
             "task_identifier": "dummy",
         },
-        {"id": "b", "task_type": "graph", "task_identifier": subsubmodel()},
+        {"id": "b", "task_type": "graph", "task_identifier": subsubmodel1()},
         {
             "id": "c",
             "label": "special_task6",
@@ -91,7 +91,7 @@ def submodel():
     return {"nodes": nodes, "links": links}
 
 
-def model():
+def model1():
     nodes = [
         {
             "id": "a",
@@ -99,7 +99,7 @@ def model():
             "task_type": "method",
             "task_identifier": "dummy",
         },
-        {"id": "b", "task_type": "graph", "task_identifier": submodel()},
+        {"id": "b", "task_type": "graph", "task_identifier": submodel1()},
         {
             "id": "c",
             "label": "special_task7",
@@ -133,8 +133,8 @@ def model():
     return {"nodes": nodes, "links": links}
 
 
-def test_default_error_handlers():
-    graph = load_graph(model()).graph
+def test_default_error_handlers1():
+    graph = load_graph(model1()).graph
 
     links = dict()
     for (source_id, target_id), link_attrs in graph.edges.items():
@@ -175,6 +175,80 @@ def test_default_error_handlers():
         # error handlers of graph handlers
         ("graph_handler2", "graph_handler1"): {"map_all_data": True, "on_error": True},
         ("graph_handler3", "graph_handler2"): {"map_all_data": True, "on_error": True},
+    }
+
+    assert expected == links
+
+
+def submodel2():
+    graph = {
+        "input_nodes": [{"id": "in", "node": "a"}],
+        "output_nodes": [{"id": "out", "node": "c"}],
+    }
+    nodes = [
+        {
+            "id": "a",
+            "task_type": "method",
+            "task_identifier": "dummy",
+        },
+        {
+            "id": "b",
+            "task_type": "method",
+            "task_identifier": "dummy",
+        },
+        {
+            "id": "c",
+            "task_type": "method",
+            "task_identifier": "dummy",
+        },
+    ]
+    links = [
+        {"source": "a", "target": "b", "map_all_data": True},
+        {"source": "b", "target": "c", "map_all_data": True},
+    ]
+    return {"graph": graph, "nodes": nodes, "links": links}
+
+
+def model2():
+    nodes = [
+        {
+            "id": "start",
+            "task_type": "method",
+            "task_identifier": "dummy",
+        },
+        {
+            "id": "error_graph",
+            "task_type": "graph",
+            "task_identifier": submodel2(),
+            "default_error_node": True,
+        },
+        {
+            "id": "end",
+            "task_type": "method",
+            "task_identifier": "dummy",
+        },
+    ]
+    links = [
+        {"source": "start", "target": "end", "map_all_data": True},
+    ]
+    return {"nodes": nodes, "links": links}
+
+
+def test_default_error_handlers2():
+    graph = load_graph(model2()).graph
+
+    links = dict()
+    for (source_id, target_id), link_attrs in graph.edges.items():
+        source_label = get_node_label(graph.nodes[source_id], source_id)
+        target_label = get_node_label(graph.nodes[target_id], target_id)
+        links[(source_label, target_label)] = link_attrs
+
+    expected = {
+        ("start", "end"): {"map_all_data": True},
+        ("start", "error_graph:a"): {"map_all_data": True, "on_error": True},
+        ("end", "error_graph:a"): {"map_all_data": True, "on_error": True},
+        ("error_graph:a", "error_graph:b"): {"map_all_data": True},
+        ("error_graph:b", "error_graph:c"): {"map_all_data": True},
     }
 
     assert expected == links

@@ -1,10 +1,14 @@
 import pytest
+
+from ewokscore import load_graph
+from ewokscore import execute_graph
+from ewokscore.graph.analysis import start_nodes
+
 from .examples.graphs import graph_names
 from .examples.graphs import get_graph
 from .utils.results import assert_execute_graph_all_tasks
 from .utils.results import assert_execute_graph_tasks
 from .utils.results import filter_expected_results
-from ewokscore import load_graph
 
 
 @pytest.mark.parametrize("graph_name", graph_names())
@@ -18,12 +22,12 @@ def test_execute_graph(graph_name, scheme, tmpdir):
         varinfo = None
     if ewoksgraph.is_cyclic or ewoksgraph.has_conditional_links:
         with pytest.raises(RuntimeError):
-            ewoksgraph.execute(varinfo=varinfo)
+            execute_graph(ewoksgraph, varinfo=varinfo)
         return
 
-    result = ewoksgraph.execute(varinfo=varinfo, results_of_all_nodes=True)
+    result = execute_graph(ewoksgraph, varinfo=varinfo, results_of_all_nodes=True)
     assert_all_results(ewoksgraph, result, expected, varinfo)
-    result = ewoksgraph.execute(varinfo=varinfo, results_of_all_nodes=False)
+    result = execute_graph(ewoksgraph, varinfo=varinfo, results_of_all_nodes=False)
     assert_end_results(ewoksgraph, result, expected, varinfo)
 
 
@@ -57,19 +61,19 @@ def test_graph_cyclic():
 def test_start_nodes():
     graph, _ = get_graph("acyclic1")
     ewoksgraph = load_graph(graph)
-    assert ewoksgraph.start_nodes() == {"task1", "task2"}
+    assert start_nodes(ewoksgraph.graph) == {"task1", "task2"}
 
     graph, _ = get_graph("acyclic2")
     ewoksgraph = load_graph(graph)
-    assert ewoksgraph.start_nodes() == {"task1"}
+    assert start_nodes(ewoksgraph.graph) == {"task1"}
 
     graph, _ = get_graph("cyclic1")
     ewoksgraph = load_graph(graph)
-    assert ewoksgraph.start_nodes() == {"task1"}
+    assert start_nodes(ewoksgraph.graph) == {"task1"}
 
     graph, _ = get_graph("triangle1")
     ewoksgraph = load_graph(graph)
-    assert ewoksgraph.start_nodes() == {"task1"}
+    assert start_nodes(ewoksgraph.graph) == {"task1"}
 
 
 @pytest.mark.parametrize("graph_name", graph_names())

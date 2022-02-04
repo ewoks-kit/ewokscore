@@ -1,10 +1,12 @@
 from typing import Any, Dict, Optional
 from ewokscore import load_graph
-from ewokscore.graph import TaskGraph
+from ewokscore.graph.taskgraph import TaskGraph
 from ewokscore.node import NodeIdType
 from ewokscore.task import Task
 from ewokscore.variable import value_from_transfer
 from ewokscore import hashing
+from ewokscore.graph.analysis import end_nodes
+from ewokscore.graph.execute.sequential import instantiate_task_static
 
 
 def assert_execute_graph_all_tasks(
@@ -32,8 +34,8 @@ def assert_execute_graph_all_tasks(
         loaded = False
         if task is None:
             assert varinfo, "Need 'varinfo' to load task output"
-            task = taskgraph.instantiate_task_static(
-                node, tasks=execute_graph_result, varinfo=varinfo
+            task = instantiate_task_static(
+                taskgraph.graph, node, tasks=execute_graph_result, varinfo=varinfo
             )
             loaded = True
         assert_task_result(task, node, expected, loaded)
@@ -110,7 +112,7 @@ def filter_expected_results(
     merge: bool = False,
 ) -> dict:
     if end_only:
-        nodes = ewoksgraph.end_nodes()
+        nodes = end_nodes(ewoksgraph.graph)
         results = {k: v for k, v in results.items() if k in nodes}
     else:
         nodes = ewoksgraph.nodes()
