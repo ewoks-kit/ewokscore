@@ -1,7 +1,9 @@
 from ewokscore import load_graph
 from ewokscore.utils import qualname
-from .utils.results import assert_execute_graph_all_tasks
 from ewokscore.node import node_id_as_string
+from ewokscore import execute_graph
+
+from .utils.results import assert_execute_graph_all_tasks
 
 
 def myfunc(name=None, value=0):
@@ -58,7 +60,7 @@ def test_sub_graph_execute():
     }
 
     ewoksgraph = load_graph(graph)
-    result = ewoksgraph.execute(results_of_all_nodes=True)
+    result = execute_graph(ewoksgraph, results_of_all_nodes=True)
     expected = {
         "node1": {"return_value": 1},
         ("node2", ("subnode1", "subsubnode1")): {"return_value": 2},

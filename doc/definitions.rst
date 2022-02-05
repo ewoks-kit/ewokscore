@@ -142,7 +142,7 @@ Node attributes
   * *script*: *task_identifier* is the absolute path of a python or shell script
 * *task_generator* (optional): the full qualifier name of a method that generates a task at runtime
   based on *task_identifier*. Only used when *task_type* is *generated*.
-* *default_inputs* (optional): default input arguments (used not provided by the output of other tasks). For example:
+* *default_inputs* (optional): default input arguments (used when not provided by the output of other tasks). For example:
     .. code-block:: json
 
         {

@@ -2,6 +2,7 @@ import json
 import yaml
 import pytest
 from ewokscore import load_graph
+from ewokscore import execute_graph
 
 
 def subsubsubgraph():
@@ -267,7 +268,7 @@ def test_sub_graph_execute(representation, tmpdir):
     g = serialized_graph(tmpdir, representation=representation)
     ewoksgraph = load_graph(g, root_dir=str(tmpdir))
 
-    tasks = ewoksgraph.execute(results_of_all_nodes=True)
+    tasks = execute_graph(ewoksgraph, results_of_all_nodes=True)
 
     assert len(tasks) == 13
 

@@ -2,8 +2,9 @@ import itertools
 from typing import Iterable, Optional, Tuple, Union, Any
 import networkx
 from copy import deepcopy
-from .utils import dict_merge
-from .node import flatten_node_id
+
+from ..utils import dict_merge
+from ..node import flatten_node_id
 
 
 NodeIdType = Union[str, Tuple[str, Any]]  # Any is NodeIdType
@@ -39,6 +40,14 @@ def _get_subgraph(node_id: NodeIdType, subgraphs: dict):
     )
 
 
+def _alias_to_node_id(alias_attrs: dict) -> NodeIdType:
+    sub_node = alias_attrs.get("sub_node", None)
+    if sub_node:
+        return alias_attrs["node"], sub_node
+    else:
+        return alias_attrs["node"]
+
+
 def _resolve_node_aliases(
     node_id: NodeIdType, graph_attrs: dict, input_nodes: bool
 ) -> Iterable[Tuple[NodeIdType, dict]]:
@@ -49,14 +58,22 @@ def _resolve_node_aliases(
     aliases = [alias_attrs for alias_attrs in aliases if alias_attrs["id"] == node_id]
     if aliases:
         for alias_attrs in aliases:
-            sub_node = alias_attrs.get("sub_node", None)
-            if sub_node:
-                sub_node_id = alias_attrs["node"], sub_node
-            else:
-                sub_node_id = alias_attrs["node"]
-            yield sub_node_id, alias_attrs.get("link_attributes", dict())
+            sub_node_id = _alias_to_node_id(alias_attrs)
+            link_attributes = alias_attrs.get("link_attributes", dict())
+            yield sub_node_id, link_attributes
     else:
         yield node_id, dict()
+
+
+def _resolve_all_node_aliases(
+    graph_attrs: dict, input_nodes: bool
+) -> Iterable[NodeIdType]:
+    if input_nodes:
+        aliases = graph_attrs.get("input_nodes", list())
+    else:
+        aliases = graph_attrs.get("output_nodes", list())
+    for alias_attrs in aliases:
+        yield _alias_to_node_id(alias_attrs)
 
 
 def _get_subnode_ids(
@@ -87,6 +104,31 @@ def _get_subnode_ids(
         ):
             new_node_id = _append_subnode_id(node_id, sub_node_id)
             yield new_node_id, link_attributes
+
+
+def _get_subnode_attributes(
+    node_id: NodeIdType, subgraphs: dict, graph_node_attrs: dict
+) -> Iterable[Tuple[NodeIdType, dict]]:
+    """Update all input node attributes of the subgraph with the graph node attributes from the super graph"""
+    transfer_attributes = {
+        "default_inputs",
+        "inputs_complete",
+        "conditions_else_value",
+        "default_error_node",
+    }
+    node_attrs = {k: v for k, v in graph_node_attrs.items() if k in transfer_attributes}
+    if not node_attrs:
+        return
+    subgraph = _get_subgraph(node_id, subgraphs)
+    if subgraph is None:
+        # node_id is not a subgraph
+        return
+    # node_id is a subgraph
+    for sub_node_id in _resolve_all_node_aliases(
+        subgraph.graph.graph, input_nodes=True
+    ):
+        new_node_id = _append_subnode_id(node_id, sub_node_id)
+        yield new_node_id, node_attrs
 
 
 def _get_subnode_links(
@@ -177,6 +219,15 @@ def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]
     update_attrs = dict()
     graph_is_multi = graph.is_multigraph()
     for subgraph_id in subgraphs:
+        # Nodes to be updated after flattening the graph
+        for node_id, graph_node_attrs in _get_subnode_attributes(
+            subgraph_id, subgraphs, graph.nodes[subgraph_id]
+        ):
+            if node_id in update_attrs:
+                update_attrs[node_id].update(graph_node_attrs)
+            else:
+                update_attrs[node_id] = graph_node_attrs
+        # Links to be made after flattening the graph
         it1 = (
             (source_id, subgraph_id) for source_id in graph.predecessors(subgraph_id)
         )
@@ -236,6 +287,6 @@ def add_subgraph_links(graph: networkx.DiGraph, edges: list, update_attrs: dict)
             )
     graph.add_edges_from(edges)  # This adds missing nodes
     for node, attrs in update_attrs.items():
-        node_attrs = graph.nodes[node]
         if attrs:
+            node_attrs = graph.nodes[node]
             dict_merge(node_attrs, attrs, overwrite=True)

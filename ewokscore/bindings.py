@@ -1,5 +1,7 @@
 from typing import Optional, List
 from .graph import load_graph
+from .graph.execute import sequential
+from .graph.graph_io import update_default_inputs
 
 
 def execute_graph(
@@ -10,7 +12,7 @@ def execute_graph(
 ):
     if load_options is None:
         load_options = dict()
-    graph = load_graph(source=graph, **load_options)
+    taskgraph = load_graph(source=graph, **load_options)
     if inputs:
-        graph.update_default_inputs(inputs)
-    return graph.execute(**execute_options)
+        update_default_inputs(taskgraph.graph, inputs)
+    return sequential.execute_graph(taskgraph.graph, **execute_options)
