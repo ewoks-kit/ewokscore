@@ -161,11 +161,11 @@ class TaskGraph:
 
     @property
     def is_cyclic(self) -> bool:
-        return analysis.is_cyclic(self.graph)
+        return analysis.graph_is_cyclic(self.graph)
 
     @property
     def has_conditional_links(self) -> bool:
-        return analysis.has_conditional_links(self.graph)
+        return analysis.graph_has_conditional_links(self.graph)
 
     def execute(self, *args, **kw):
         return execute_graph(self.graph, *args, **kw)

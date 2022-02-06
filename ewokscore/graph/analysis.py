@@ -5,18 +5,18 @@ from ..node import NodeIdType
 from ..inittask import get_task_class
 
 
-def is_cyclic(graph: networkx.DiGraph) -> bool:
+def graph_is_cyclic(graph: networkx.DiGraph) -> bool:
     return not networkx.is_directed_acyclic_graph(graph)
 
 
-def has_conditional_links(graph: networkx.DiGraph) -> bool:
+def graph_has_conditional_links(graph: networkx.DiGraph) -> bool:
     for attrs in graph.edges.values():
         if attrs.get("conditions") or attrs.get("on_error"):
             return True
     return False
 
 
-def successors(
+def node_successors(
     graph: networkx.DiGraph, node_id: NodeIdType, **include_filter
 ) -> Iterable[NodeIdType]:
     if include_filter:
@@ -27,13 +27,13 @@ def successors(
         yield from graph.successors(node_id)
 
 
-def descendants(
+def node_descendants(
     graph: networkx.DiGraph, node_id: NodeIdType, **include_filter
 ) -> Iterable[NodeIdType]:
     yield from iter_downstream_nodes(graph, node_id, recursive=True, **include_filter)
 
 
-def predecessors(
+def node_predecessors(
     graph: networkx.DiGraph, node_id: NodeIdType, **include_filter
 ) -> Iterable[NodeIdType]:
     if include_filter:
@@ -44,7 +44,7 @@ def predecessors(
         yield from graph.predecessors(node_id)
 
 
-def ancestors(
+def node_ancestors(
     graph: networkx.DiGraph, node_id: NodeIdType, **include_filter
 ) -> Iterable[NodeIdType]:
     yield from iter_upstream_nodes(graph, node_id, recursive=True, **include_filter)
@@ -58,20 +58,24 @@ def iterator_has_items(iterator):
         return False
 
 
-def has_successors(graph: networkx.DiGraph, node_id: NodeIdType, **include_filter):
-    return iterator_has_items(successors(graph, node_id, **include_filter))
+def node_has_successors(graph: networkx.DiGraph, node_id: NodeIdType, **include_filter):
+    return iterator_has_items(node_successors(graph, node_id, **include_filter))
 
 
-def has_descendants(graph: networkx.DiGraph, node_id: NodeIdType, **include_filter):
-    return iterator_has_items(descendants(graph, node_id, **include_filter))
+def node_has_descendants(
+    graph: networkx.DiGraph, node_id: NodeIdType, **include_filter
+):
+    return iterator_has_items(node_descendants(graph, node_id, **include_filter))
 
 
-def has_predecessors(graph: networkx.DiGraph, node_id: NodeIdType, **include_filter):
-    return iterator_has_items(predecessors(graph, node_id, **include_filter))
+def node_has_predecessors(
+    graph: networkx.DiGraph, node_id: NodeIdType, **include_filter
+):
+    return iterator_has_items(node_predecessors(graph, node_id, **include_filter))
 
 
-def has_ancestors(graph: networkx.DiGraph, node_id: NodeIdType, **include_filter):
-    return iterator_has_items(ancestors(graph, node_id, **include_filter))
+def node_has_ancestors(graph: networkx.DiGraph, node_id: NodeIdType, **include_filter):
+    return iterator_has_items(node_ancestors(graph, node_id, **include_filter))
 
 
 def iter_downstream_nodes(
@@ -145,13 +149,13 @@ def _filter_node(
         if not _node_filter(node_id):
             return False
     if _node_has_predecessors is not None:
-        if has_predecessors(graph, node_id) != _node_has_predecessors:
+        if node_has_predecessors(graph, node_id) != _node_has_predecessors:
             return False
     if _node_has_successors is not None:
-        if has_successors(graph, node_id) != _node_has_successors:
+        if node_has_successors(graph, node_id) != _node_has_successors:
             return False
     if _node_has_error_handlers is not None:
-        if has_error_handlers(graph, node_id) != _node_has_error_handlers:
+        if node_has_error_handlers(graph, node_id) != _node_has_error_handlers:
             return False
     return True
 
@@ -227,21 +231,21 @@ def link_is_required(
 
 
 def node_is_required(graph: networkx.DiGraph, node_id: NodeIdType) -> bool:
-    not_required = has_ancestors(
+    not_required = node_has_ancestors(
         graph, node_id, link_has_required=False, link_is_conditional=True
     )
-    not_required |= has_ancestors(graph, node_id, node_has_error_handlers=True)
+    not_required |= node_has_ancestors(graph, node_id, node_has_error_handlers=True)
     return not not_required
 
 
-def has_error_handlers(graph: networkx.DiGraph, node_id: NodeIdType):
-    return has_successors(graph, node_id, link_has_on_error=True)
+def node_has_error_handlers(graph: networkx.DiGraph, node_id: NodeIdType):
+    return node_has_successors(graph, node_id, link_has_on_error=True)
 
 
 def required_predecessors(
     graph: networkx.DiGraph, target_id: NodeIdType
 ) -> Iterable[NodeIdType]:
-    for source_id in predecessors(graph, target_id):
+    for source_id in node_predecessors(graph, target_id):
         if link_is_required(graph, source_id, target_id):
             yield source_id
 
@@ -268,7 +272,7 @@ def node_condition_values(
     graph: networkx.DiGraph, source_id: NodeIdType
 ) -> Dict[str, set]:
     condition_values = defaultdict(set)
-    for target_id in successors(graph, source_id, link_has_conditions=True):
+    for target_id in node_successors(graph, source_id, link_has_conditions=True):
         for condition in graph[source_id][target_id]["conditions"]:
             varname = condition["source_output"]
             value = condition["value"]
@@ -294,8 +298,9 @@ def node_has_noncovered_conditions(
 
 
 def start_nodes(graph: networkx.DiGraph) -> Set[NodeIdType]:
+    """Nodes from which the graph execution starts"""
     nodes = set(
-        node_id for node_id in graph.nodes if not has_predecessors(graph, node_id)
+        node_id for node_id in graph.nodes if not node_has_predecessors(graph, node_id)
     )
     if nodes:
         return nodes
@@ -308,27 +313,39 @@ def start_nodes(graph: networkx.DiGraph) -> Set[NodeIdType]:
 
 
 def end_nodes(graph: networkx.DiGraph) -> Set[NodeIdType]:
-    """Node that could potentially be the end of a graph execution thread"""
+    """Nodes at which an graph execution thread may end and
+    which result need to be recorded.
+    """
     nodes = set(
-        node_id for node_id in graph.nodes if not has_successors(graph, node_id)
+        node_id for node_id in graph.nodes if node_is_pure_end_node(graph, node_id)
     )
     if nodes:
         return nodes
-    return set(
-        node_id
-        for node_id in graph.nodes
-        if node_has_noncovered_conditions(graph, node_id)
-    )
+    return set(node_id for node_id in graph.nodes if node_is_end_node(graph, node_id))
+
+
+def node_is_pure_end_node(graph: networkx.DiGraph, node_id: NodeIdType) -> bool:
+    """Node without successors or only error handlers"""
+    return not node_has_successors(graph, node_id, link_has_on_error=False)
+
+
+def node_is_end_node(graph: networkx.DiGraph, node_id: NodeIdType) -> bool:
+    """A pure end node or a node with uncovered conditions"""
+    if node_is_pure_end_node(graph, node_id):
+        return True
+    if node_has_noncovered_conditions(graph, node_id):
+        return True
+    return False
 
 
 def topological_sort(graph: networkx.DiGraph) -> Iterable[NodeIdType]:
     """Sort node names for sequential instantiation+execution of DAGs"""
-    if is_cyclic(graph):
+    if graph_is_cyclic(graph):
         raise RuntimeError("Sorting nodes is not possible for cyclic graphs")
     yield from networkx.topological_sort(graph)
 
 
-def pure_descendants(
+def node_pure_descendants(
     graph: networkx.DiGraph, node_id: NodeIdType, include_node: bool = False
 ) -> Iterable[NodeIdType]:
     """Yields all descendants which do not depend on anything else than `node_id`"""

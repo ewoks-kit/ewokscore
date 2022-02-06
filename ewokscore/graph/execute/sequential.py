@@ -34,7 +34,7 @@ def instantiate_task_static(
     """Instantiate destination task while no access to the dynamic inputs.
     Side effect: `tasks` will contain all predecessors.
     """
-    if analysis.is_cyclic(graph):
+    if analysis.graph_is_cyclic(graph):
         raise RuntimeError("cannot execute cyclic graphs with ewokscore")
     if tasks is None:
         tasks = dict()
@@ -42,7 +42,7 @@ def instantiate_task_static(
         evict_result_counter = dict()
     # Input from previous tasks (instantiate them if needed)
     dynamic_inputs = dict()
-    for source_node_id in analysis.predecessors(graph, node_id):
+    for source_node_id in analysis.node_predecessors(graph, node_id):
         source_task = tasks.get(source_node_id, None)
         if source_task is None:
             source_task = instantiate_task_static(
@@ -86,9 +86,9 @@ def execute_graph(
     * end tasks (results_of_all_nodes=False, outputs=None)
     * merged dictionary of selected outputs from selected nodes (outputs=[...])
     """
-    if analysis.is_cyclic(graph):
+    if analysis.graph_is_cyclic(graph):
         raise RuntimeError("cannot execute cyclic graphs")
-    if analysis.has_conditional_links(graph):
+    if analysis.graph_has_conditional_links(graph):
         raise RuntimeError("cannot execute graphs with conditional links")
 
     # Pepare containers for local state
