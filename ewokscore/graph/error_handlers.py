@@ -1,7 +1,7 @@
 from typing import Mapping
 import networkx
 
-from .analysis import pure_descendants
+from .analysis import node_pure_descendants
 from ewokscore.graph import analysis
 
 
@@ -33,7 +33,7 @@ def connect_default_error_handlers(graph: networkx.DiGraph) -> networkx.DiGraph:
 
     # Remove nodes that have any of the default error handlers as ancestor
     for node_id in set(nodes_without_error_handlers):
-        for ancestor_id in analysis.ancestors(graph, node_id):
+        for ancestor_id in analysis.node_ancestors(graph, node_id):
             if ancestor_id in default_error_handlers:
                 nodes_without_error_handlers.remove(node_id)
                 break
@@ -49,5 +49,5 @@ def connect_default_error_handlers(graph: networkx.DiGraph) -> networkx.DiGraph:
             try:
                 next(graph.predecessors())
             except StopIteration:
-                nodes = set(pure_descendants(graph, node_id, include_node=True))
+                nodes = set(node_pure_descendants(graph, node_id, include_node=True))
                 graph.remove_nodes_from(nodes)
