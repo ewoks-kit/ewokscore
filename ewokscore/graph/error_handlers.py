@@ -11,9 +11,10 @@ def connect_default_error_handlers(graph: networkx.DiGraph) -> networkx.DiGraph:
     """
     default_error_handlers = dict()
     for node_id, attrs in graph.nodes.items():
-        link_attrs = attrs.pop("default_error_node", None)
-        if link_attrs is None:
+        default_error_node = attrs.pop("default_error_node", False)
+        if not default_error_node:
             continue
+        link_attrs = attrs.pop("default_error_attributes", None)
         if not isinstance(link_attrs, Mapping):
             link_attrs = dict()
         link_attrs["on_error"] = True
