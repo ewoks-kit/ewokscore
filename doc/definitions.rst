@@ -151,12 +151,9 @@ Node attributes
 * *inputs_complete* (optional): set to `True` when the default input covers all required input
   (used for method and script as the required inputs are unknown)
 * *conditions_else_value* (optional): value used in conditional links to indicate the *else* value (`None` by default)
-* *default_error_node* (optional): nodes without error handler will get this node as error handler.
-  The value of this attribute can be
-
-  * `True`: the error link attributes are `{"on_error": True, "map_all_data":True}`
-  * `{...}`: the provided dictionary will be used as link attributes (`"on_error"` is forced to `True` and `"map_all_data"`
-    is `True` unless `"map_all_data"` or `"data_mapping"` are specified)
+* *default_error_node* (optional): when set to `True` all nodes without error handler will be linked to this node.
+* *default_error_attributes* (optional): when `default_error_node=True` this dictionary is used as attributes for the
+  error handler links. The default is `{"map_all_data": True}`. The link attribute `"on_error"` is forced to be `True`.
 
 Link attributes
 ^^^^^^^^^^^^^^^
