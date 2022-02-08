@@ -536,7 +536,7 @@ class ReadOnlyVariableContainerNamespace:
         try:
             return self._container[key]
         except (KeyError, TypeError):
-            raise MissingVariableError(key)
+            raise MissingVariableError(key) from None
 
 
 class VariableContainerNamespace(ReadOnlyVariableContainerNamespace):
