@@ -32,12 +32,18 @@ def ewoks_jsonload_hook(items):
     return dict(map(_ewoks_jsonload_hook_pair, items))
 
 
-def graph_full_path(path, root_dir=None):
-    if os.path.isabs(path):
-        return path
-    if root_dir:
+def graph_full_path(path, root_dir=None, possible_extensions=tuple()):
+    if not os.path.isabs(path) and root_dir:
         path = os.path.join(root_dir, path)
-    return os.path.abspath(path)
+    path = os.path.abspath(path)
+    if os.path.exists(path):
+        return path
+    root, _ = os.path.splitext(path)
+    for new_ext in possible_extensions:
+        new_full_path = root + new_ext
+        if os.path.exists(new_full_path):
+            return new_full_path
+    raise FileNotFoundError(path)
 
 
 def set_graph_defaults(graph_as_dict):
@@ -96,8 +102,10 @@ def load(
                 representation = GraphRepresentation.json
             elif source.endswith(".yml"):
                 representation = GraphRepresentation.yaml
-            else:
+            elif "{" in source and "}" in source:
                 representation = GraphRepresentation.json_string
+            else:
+                representation = GraphRepresentation.json
     if not source:
         graph = networkx.DiGraph()
     elif isinstance(source, networkx.Graph):
@@ -108,7 +116,7 @@ def load(
         set_graph_defaults(source)
         graph = networkx.readwrite.json_graph.node_link_graph(source)
     elif representation == GraphRepresentation.json:
-        source = graph_full_path(source, root_dir)
+        source = graph_full_path(source, root_dir, possible_extensions=(".json",))
         with open(source, mode="r") as f:
             source = json.load(f, object_pairs_hook=ewoks_jsonload_hook)
         set_graph_defaults(source)
@@ -118,7 +126,9 @@ def load(
         set_graph_defaults(source)
         graph = networkx.readwrite.json_graph.node_link_graph(source)
     elif representation == GraphRepresentation.yaml:
-        source = graph_full_path(source, root_dir)
+        source = graph_full_path(
+            source, root_dir, possible_extensions=(".yml", ".yaml")
+        )
         with open(source, mode="r") as f:
             source = yaml.load(f, yaml.Loader)
         set_graph_defaults(source)
