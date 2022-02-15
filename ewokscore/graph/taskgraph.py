@@ -115,13 +115,21 @@ class TaskGraph:
         self,
         source=None,
         representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
+        subgraph_representation: Optional[
+            Union[serialize.GraphRepresentation, str]
+        ] = None,
         root_dir: Optional[str] = None,
     ) -> None:
         graph = serialize.load(
             source=source, representation=representation, root_dir=root_dir
         )
 
-        subgraphs = get_subgraphs(graph, root_dir=root_dir)
+        if subgraph_representation is not None:
+            representation = subgraph_representation
+
+        subgraphs = get_subgraphs(
+            graph, root_dir=root_dir, representation=representation
+        )
         if subgraphs:
             # Extract
             edges, update_attrs = extract_graph_nodes(graph, subgraphs)
