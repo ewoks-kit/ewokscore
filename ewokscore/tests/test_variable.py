@@ -333,3 +333,30 @@ def test_variable_container_cleanup_references():
     assert len(gc.get_referrers(obj)) == nref_start
 
     assert uhash == var2.uhash
+
+
+def test_variable_fixed_uhash():
+    class MyClass:
+        pass
+
+    var = Variable(value=MyClass, varinfo={"enable_hashing": True})
+    with pytest.raises(TypeError):
+        assert var.uhash
+
+    var = Variable(
+        value=MyClass, varinfo={"enable_hashing": True, "uhash_data": "some data"}
+    )
+    assert var.uhash
+
+    var1 = Variable(value=10, varinfo={"enable_hashing": True, "uhash_data": None})
+    var2 = Variable(
+        value=10, varinfo={"enable_hashing": True, "uhash_data": "some data"}
+    )
+    var3 = Variable(
+        value=20, varinfo={"enable_hashing": True, "uhash_data": "some data"}
+    )
+    assert var1.uhash
+    assert var2.uhash
+    assert var3.uhash
+    assert var1.uhash != var2.uhash
+    assert var2.uhash == var3.uhash
