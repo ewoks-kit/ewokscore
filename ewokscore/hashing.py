@@ -223,7 +223,7 @@ class UniversalHashable(HasUhash):
         elif isinstance(pre_uhash, (UniversalHash, HasUhash)):
             self.__pre_uhash = pre_uhash
         else:
-            raise TypeError(pre_uhash, type(pre_uhash))
+            self.__pre_uhash = uhash(pre_uhash)
 
     @classmethod
     def class_nonce(cls):

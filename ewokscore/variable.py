@@ -49,6 +49,9 @@ class Variable(hashing.UniversalHashable):
         elif not isinstance(varinfo, Mapping):
             raise TypeError(varinfo, type(varinfo))
 
+        if pre_uhash is None:
+            pre_uhash = varinfo.get("uhash_data", None)
+
         if data_proxy is not None:
             pre_uhash = data_proxy.uri.uhash
             instance_nonce = None
