@@ -1,14 +1,23 @@
 import json
 import logging
+import importlib
 from pathlib import Path
 from .task import Task
 
 logger = logging.getLogger(__name__)
 
 
-def generate_task_summary() -> dict:
+def generate_task_summary(*module_names) -> dict:
+    filter_packages = set()
+    for module_name in module_names:
+        importlib.import_module(module_name)
+        filter_packages.add(module_name.partition(".")[0])
     summary = list()
     for cls in Task.get_subclasses():
+        if filter_packages:
+            package = cls.__module__.partition(".")[0]
+            if package not in filter_packages:
+                continue
         task_identifier = cls.class_registry_name()
         category = task_identifier.split(".")[0]
         info = {
