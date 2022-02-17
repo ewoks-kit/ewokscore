@@ -373,8 +373,11 @@ class VariableContainer(Variable, Mapping):
 
     def dump(self):
         b = True
-        for v in self.values():
-            b &= v.dump()
+        for name, var in self.items():
+            try:
+                b &= var.dump()
+            except Exception as e:
+                raise RuntimeError(f"cannot serialize variable '{name}'") from e
         b &= super().dump()
         return b
 
