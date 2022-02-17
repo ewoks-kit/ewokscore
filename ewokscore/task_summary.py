@@ -1,13 +1,14 @@
 import json
 import logging
 import importlib
+from typing import List, Iterable
 from pathlib import Path
 from .task import Task
 
 logger = logging.getLogger(__name__)
 
 
-def generate_task_summary(*module_names) -> dict:
+def generate_task_summary(*module_names: Iterable[str]) -> List[dict]:
     filter_packages = set()
     for module_name in module_names:
         importlib.import_module(module_name)
