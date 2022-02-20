@@ -1,6 +1,8 @@
-from typing import Union
+from typing import Optional, Union
 
 NodeIdType = Union[str, int, tuple]
+
+SEPARATOR = ":"
 
 
 def flatten_node_id(node_id: NodeIdType) -> tuple:
@@ -14,7 +16,9 @@ def flatten_node_id(node_id: NodeIdType) -> tuple:
         return (node_id[0],) + flatten_node_id(node_id[1])
 
 
-def node_id_as_string(node_id: NodeIdType, sep=":") -> str:
+def node_id_as_string(node_id: NodeIdType, sep: Optional[str] = None) -> str:
+    if sep is None:
+        sep = SEPARATOR
     return sep.join(flatten_node_id(node_id))
 
 
@@ -24,8 +28,10 @@ def node_id_from_json(node_id):
     return node_id
 
 
-def get_node_label(node_attrs: dict, node_id: NodeIdType = ""):
+def get_node_label(
+    node_attrs: dict, node_id: NodeIdType = "", sep: Optional[str] = None
+):
     node_label = node_attrs.get("label")
     if node_label:
         return node_label
-    return node_id_as_string(node_id)
+    return node_id_as_string(node_id, sep=sep)
