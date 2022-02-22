@@ -1,11 +1,14 @@
-from collections.abc import Mapping
-from typing import Optional, Union
+from typing import Optional, Union, Mapping
+
+from ewokscore.events import node_context
 
 from .hashing import UniversalHashable
 from .variable import VariableContainer
 from .variable import VariableContainerNamespace
 from .variable import ReadOnlyVariableContainerNamespace
 from .registration import Registered
+from . import events
+from . import node
 
 
 class TaskInputError(ValueError):
@@ -30,7 +33,14 @@ class Task(Registered, UniversalHashable, register=False):
     _OUTPUT_NAMES = set()
     _N_REQUIRED_POSITIONAL_INPUTS = 0
 
-    def __init__(self, inputs=None, varinfo=None, label=None):
+    def __init__(
+        self,
+        inputs: Optional[Mapping] = None,
+        varinfo: Optional[dict] = None,
+        node_id: Optional[node.NodeIdType] = None,
+        node_attrs: Optional[dict] = None,
+        execinfo: Optional[dict] = None,
+    ):
         """The named arguments are inputs and Variable configuration"""
         if inputs is None:
             inputs = dict()
@@ -58,13 +68,25 @@ class Task(Registered, UniversalHashable, register=False):
         # Required outputs for the task to be "done"
         ovars = {varname: self.MISSING_DATA for varname in self._OUTPUT_NAMES}
 
+        # Node/task info
+        node_id = node.get_node_id(node_id, node_attrs)
+        self.__node_id = node_id
+        self.__node_label = node.get_node_label(node_id, node_attrs)
+        task_id = self.class_registry_name()
+        task_id = node.get_task_identifier(node_attrs, task_id)
+        self.__task_id = task_id
+        if node_id and task_id:
+            self.__execinfo = execinfo
+        else:
+            self.__execinfo = None
+
         # Misc
         self.__exception = None
         self.__succeeded = None
-        self.__label = label
 
         # The output hash will update dynamically if any of the input
         # variables change
+        varinfo = node.get_varinfo(node_attrs, varinfo)
         self.__inputs = VariableContainer(value=inputs, varinfo=varinfo)
         self.__outputs = VariableContainer(
             value=ovars,
@@ -207,8 +229,8 @@ class Task(Registered, UniversalHashable, register=False):
         metadata = self.output_metadata
         if metadata is None:
             return
-        if self.__label:
-            metadata.setdefault("title", self.__label)
+        if self.__node_label:
+            metadata.setdefault("title", self.__node_label)
 
     @property
     def done(self):
@@ -234,15 +256,15 @@ class Task(Registered, UniversalHashable, register=False):
 
     def _get_repr_data(self):
         data = super()._get_repr_data()
-        if self.__label:
-            data["label"] = repr(str(self.__label))
+        if self.__node_label:
+            data["label"] = repr(str(self.__node_label))
         else:
             data["label"] = None
 
     @property
     def label(self):
-        if self.__label:
-            return self.__label
+        if self.__node_label:
+            return self.__node_label
         else:
             return str(self)
 
@@ -273,25 +295,58 @@ class Task(Registered, UniversalHashable, register=False):
         raise_on_error: Optional[bool] = True,
         cleanup_references: Optional[bool] = False,
     ):
-        try:
-            if force_rerun:
-                # Rerun a task which is already done
-                self.__outputs.force_non_existing()
-            if self.done:
-                return
-            self.assert_ready_to_execute()
-            self.run()
-            self._update_output_metadata()
-            self.__outputs.dump()
-        except Exception as e:
-            self.__exception = e
-            if raise_on_error:
-                raise RuntimeError(f"Task '{self.label}' failed") from e
-        else:
-            self.__succeeded = True
-        finally:
-            if cleanup_references:
-                self.cleanup_references()
+        with node_context(
+            self.__execinfo, node_id=self.__node_id, task_id=self.__task_id
+        ) as execinfo:
+            self.__execinfo = execinfo
+            self._send_start_event()
+            try:
+                if force_rerun:
+                    # Rerun a task which is already done
+                    self.__outputs.force_non_existing()
+                if self.done:
+                    return
+                self.assert_ready_to_execute()
+                self.run()
+                self._update_output_metadata()
+                self.__outputs.dump()
+            except Exception as e:
+                self.__exception = e
+                if raise_on_error:
+                    raise RuntimeError(f"Task '{self.label}' failed") from e
+            else:
+                self.__succeeded = True
+            finally:
+                if cleanup_references:
+                    self.cleanup_references()
+                self._send_send_event()
+
+    def _send_event(self, **kwargs):
+        """Send an ewoks event"""
+        if self.__execinfo:
+            events.send_task_event(execinfo=self.__execinfo, **kwargs)
+
+    def _send_start_event(self):
+        input_uris = [
+            {"name": name, "value": str(uri) if uri else None}
+            for name, uri in self.input_variables.variable_uris.items()
+        ]
+        output_uris = [
+            {"name": name, "value": str(uri) if uri else None}
+            for name, uri in self.output_variables.variable_uris.items()
+        ]
+        task_uri = self.output_variables.data_uri
+        if task_uri:
+            task_uri = str(task_uri)
+        self._send_event(
+            event="start",
+            input_uris=input_uris,
+            output_uris=output_uris,
+            task_uri=task_uri,
+        )
+
+    def _send_send_event(self):
+        self._send_event(event="end", exception=self.exception)
 
     def cleanup_references(self):
         """Removes all references to the inputs.

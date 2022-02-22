@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List, Union, Any, Mapping
+from typing import Optional, Dict, List, Union, Any
 from collections import Counter
 import networkx
 
@@ -11,18 +11,13 @@ from .. import graph_io
 from ... import events
 
 
-def instantiate_task(
-    graph: networkx.DiGraph,
-    node_id: NodeIdType,
-    varinfo: Optional[dict] = None,
-    inputs: Optional[dict] = None,
-) -> Task:
+def instantiate_task(graph: networkx.DiGraph, node_id: NodeIdType, **kw) -> Task:
     """Named arguments are dynamic input and Variable config.
     Default input from the persistent representation are added internally.
     """
     # Dynamic input has priority over default input
     nodeattrs = graph.nodes[node_id]
-    return _instantiate_task(node_id, nodeattrs, varinfo=varinfo, inputs=inputs)
+    return _instantiate_task(node_id, nodeattrs, **kw)
 
 
 def instantiate_task_static(
@@ -30,6 +25,7 @@ def instantiate_task_static(
     node_id: NodeIdType,
     tasks: Optional[Dict[Task, int]] = None,
     varinfo: Optional[dict] = None,
+    execinfo: Optional[dict] = None,
     evict_result_counter: Optional[Dict[NodeIdType, int]] = None,
 ) -> Task:
     """Instantiate destination task while no access to the dynamic inputs.
@@ -51,6 +47,7 @@ def instantiate_task_static(
                 source_node_id,
                 tasks=tasks,
                 varinfo=varinfo,
+                execinfo=execinfo,
                 evict_result_counter=evict_result_counter,
             )
         link_attrs = graph[source_node_id][node_id]
@@ -62,7 +59,7 @@ def instantiate_task_static(
                 tasks.pop(source_node_id)
     # Instantiate the requested task
     target_task = instantiate_task(
-        graph, node_id, varinfo=varinfo, inputs=dynamic_inputs
+        graph, node_id, inputs=dynamic_inputs, varinfo=varinfo, execinfo=execinfo
     )
     tasks[node_id] = target_task
     return target_task
@@ -78,7 +75,7 @@ def successor_counter(graph: networkx.DiGraph) -> Dict[NodeIdType, int]:
 def execute_graph(
     graph: networkx.DiGraph,
     varinfo: Optional[dict] = None,
-    execinfo: Union[Mapping, bool, str, None] = None,
+    execinfo: Optional[dict] = None,
     raise_on_error: Optional[bool] = True,
     results_of_all_nodes: Optional[bool] = False,
     outputs: Optional[List[dict]] = None,
@@ -114,6 +111,7 @@ def execute_graph(
                 node_id,
                 tasks=tasks,
                 varinfo=varinfo,
+                execinfo=execinfo,
                 evict_result_counter=evict_result_counter,
             )
             task.execute(
