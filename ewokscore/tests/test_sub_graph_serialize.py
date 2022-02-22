@@ -1,8 +1,8 @@
 import json
 import yaml
 import pytest
-from ewokscore import load_graph
 from ewokscore import execute_graph
+from ewokscore.graph import load_graph
 
 
 def subsubsubgraph():

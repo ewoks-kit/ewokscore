@@ -98,6 +98,7 @@ def create_graph():
     ]
 
     return {
+        "graph": {"id": "testgraph"},
         "links": links,
         "nodes": nodes,
     }
