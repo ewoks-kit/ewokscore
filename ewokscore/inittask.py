@@ -53,7 +53,7 @@ def raise_task_error(node_label: str, all: bool = True):
 
 
 def task_executable_info(
-    node_attrs: dict, node_id: NodeIdType = "", all: bool = False
+    node_id: NodeIdType, node_attrs: dict, all: bool = False
 ) -> Tuple[str, dict]:
     if all:
         keys = TASK_EXECUTABLE_ATTRIBUTE_ALL
@@ -61,7 +61,7 @@ def task_executable_info(
         keys = TASK_EXECUTABLE_ATTRIBUTE
     key = node_attrs.keys() & set(keys)
     if len(key) != 1:
-        node_label = get_node_label(node_attrs, node_id=node_id)
+        node_label = get_node_label(node_id, node_attrs)
         raise_task_error(node_label, all=all)
     key = key.pop()
 
@@ -105,10 +105,8 @@ def task_executable_info(
     return task_type, info
 
 
-def validate_task_executable(
-    node_attrs: dict, node_id: NodeIdType = "", all: bool = False
-):
-    task_executable_info(node_attrs, node_id=node_id, all=all)
+def validate_task_executable(node_id: NodeIdType, node_attrs: dict, all: bool = False):
+    task_executable_info(node_id, node_attrs, all=all)
 
 
 def get_varinfo(node_attrs: dict, varinfo: Optional[dict] = None) -> dict:
@@ -120,16 +118,16 @@ def get_varinfo(node_attrs: dict, varinfo: Optional[dict] = None) -> dict:
 
 
 def instantiate_task(
+    node_id: NodeIdType,
     node_attrs: dict,
     varinfo: Optional[dict] = None,
     inputs: Optional[dict] = None,
-    node_id: NodeIdType = "",
 ):
     """
+    :param NodeIdType node_id:
     :param dict node_attrs: node attributes of the graph representation
     :param dict varinfo: `Variable` constructor arguments
     :param dict or None inputs: dynamic inputs (from other tasks)
-    :param str node_id:
     :returns Task:
     """
     # Default inputs
@@ -142,8 +140,8 @@ def instantiate_task(
     varinfo = get_varinfo(node_attrs, varinfo=varinfo)
 
     # Instantiate task
-    task_type, task_info = task_executable_info(node_attrs, node_id=node_id)
-    node_label = get_node_label(node_attrs, node_id=node_id)
+    task_type, task_info = task_executable_info(node_id, node_attrs)
+    node_label = get_node_label(node_id, node_attrs)
     if task_type == "class":
         return Task.instantiate(
             task_info["task_identifier"],
@@ -202,8 +200,8 @@ def add_dynamic_inputs(dynamic_inputs: dict, link_attrs: dict, source_results: d
             dynamic_inputs[input_arg] = source_results
 
 
-def task_executable(node_attrs: dict, node_id: NodeIdType = ""):
-    task_type, task_info = task_executable_info(node_attrs, node_id=node_id)
+def task_executable(node_id: NodeIdType, node_attrs: dict):
+    task_type, task_info = task_executable_info(node_id, node_attrs)
     if task_type == "class":
         return task_info["task_identifier"], import_qualname
     elif task_type == "method":
@@ -219,12 +217,12 @@ def task_executable(node_attrs: dict, node_id: NodeIdType = ""):
             get_dynamically_task_class, node_attrs.get("task_generator")
         )
     else:
-        node_label = get_node_label(node_attrs, node_id=node_id)
+        node_label = get_node_label(node_id, node_attrs)
         raise_task_error(node_label, all=False)
 
 
-def get_task_class(node_attrs: dict, node_id: NodeIdType = ""):
-    task_type, task_info = task_executable_info(node_attrs, node_id=node_id)
+def get_task_class(node_id: NodeIdType, node_attrs: dict):
+    task_type, task_info = task_executable_info(node_id, node_attrs)
     if task_type == "class":
         return Task.get_subclass(task_info["task_identifier"])
     elif task_type == "method":
@@ -240,5 +238,5 @@ def get_task_class(node_attrs: dict, node_id: NodeIdType = ""):
             node_attrs.get("task_generator"), task_info["task_identifier"]
         )
     else:
-        node_label = get_node_label(node_attrs, node_id=node_id)
+        node_label = get_node_label(node_id, node_attrs)
         raise_task_error(node_label, all=False)

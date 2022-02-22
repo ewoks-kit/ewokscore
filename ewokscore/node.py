@@ -28,9 +28,7 @@ def node_id_from_json(node_id):
     return node_id
 
 
-def get_node_label(
-    node_attrs: dict, node_id: NodeIdType = "", sep: Optional[str] = None
-):
+def get_node_label(node_id: NodeIdType, node_attrs: dict, sep: Optional[str] = None):
     node_label = node_attrs.get("label")
     if node_label:
         return node_label

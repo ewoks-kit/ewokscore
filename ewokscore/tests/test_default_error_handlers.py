@@ -138,8 +138,8 @@ def test_default_error_handlers1():
 
     links = dict()
     for (source_id, target_id), link_attrs in graph.edges.items():
-        source_label = get_node_label(graph.nodes[source_id], source_id)
-        target_label = get_node_label(graph.nodes[target_id], target_id)
+        source_label = get_node_label(source_id, graph.nodes[source_id])
+        target_label = get_node_label(target_id, graph.nodes[target_id])
         links[(source_label, target_label)] = link_attrs
 
     expected = {
@@ -239,8 +239,8 @@ def test_default_error_handlers2():
 
     links = dict()
     for (source_id, target_id), link_attrs in graph.edges.items():
-        source_label = get_node_label(graph.nodes[source_id], source_id)
-        target_label = get_node_label(graph.nodes[target_id], target_id)
+        source_label = get_node_label(source_id, graph.nodes[source_id])
+        target_label = get_node_label(target_id, graph.nodes[target_id])
         links[(source_label, target_label)] = link_attrs
 
     expected = {

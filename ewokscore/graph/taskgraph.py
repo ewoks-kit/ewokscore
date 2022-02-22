@@ -55,7 +55,7 @@ def get_subgraphs(graph: networkx.DiGraph, **load_options):
     subgraphs = dict()
     for node_id, node_attrs in graph.nodes.items():
         task_type, task_info = inittask.task_executable_info(
-            node_attrs, node_id=node_id, all=True
+            node_id, node_attrs, all=True
         )
         if task_type == "graph":
             g = load_graph(task_info["task_identifier"], **load_options)

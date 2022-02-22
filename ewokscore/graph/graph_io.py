@@ -87,7 +87,7 @@ def parse_outputs(graph: networkx.DiGraph, outputs: List[dict]) -> None:
 
 def get_node_id(graph: networkx.DiGraph, label: str) -> Optional[NodeIdType]:
     for node_id, node_attrs in graph.nodes.items():
-        node_label = get_node_label(node_attrs, node_id=node_id)
+        node_label = get_node_label(node_id, node_attrs)
         if label == node_label:
             return node_id
 

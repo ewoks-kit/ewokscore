@@ -21,7 +21,7 @@ def instantiate_task(
     """
     # Dynamic input has priority over default input
     nodeattrs = graph.nodes[node_id]
-    return _instantiate_task(nodeattrs, node_id=node_id, varinfo=varinfo, inputs=inputs)
+    return _instantiate_task(node_id, nodeattrs, varinfo=varinfo, inputs=inputs)
 
 
 def instantiate_task_static(
