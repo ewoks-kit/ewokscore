@@ -33,13 +33,19 @@ def job_decorator(**static_job_info):
 def job_context(execinfo: RawExecInfoType, **static_job_info) -> ExecInfoType:
     if execinfo is None:
         execinfo = global_state.ENABLE_EWOKS_EVENTS_BY_DEFAULT
+
     if isinstance(execinfo, str):
         execinfo = {"job_id": execinfo}
-    elif not isinstance(execinfo, Mapping):
+    elif isinstance(execinfo, bool):
         if execinfo:
             execinfo = dict()
         else:
             execinfo = None
+    elif execinfo is None:
+        pass
+    elif not isinstance(execinfo, Mapping):
+        raise TypeError
+
     execinfo = init_job(execinfo, **static_job_info)
     if execinfo is None:
         yield None
@@ -67,7 +73,7 @@ def node_context(execinfo: ExecInfoType, **kw) -> ExecInfoType:
 
 @contextmanager
 def _context(
-    execinfo: RawExecInfoType, context, send_context_event, obj_id
+    execinfo: ExecInfoType, context, send_context_event, obj_id
 ) -> ExecInfoType:
     contexts = execinfo.get("contexts")
     if contexts is None:

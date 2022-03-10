@@ -5,10 +5,10 @@ import os
 import getpass
 import socket
 from uuid import uuid4
-from typing import Optional, Union
+from typing import Mapping, Optional, Union
 import networkx
 
-ExecInfoType = Union[dict, None]
+ExecInfoType = Union[Mapping, None]
 
 
 def init_job(execinfo: ExecInfoType, **static_job_info) -> ExecInfoType:
