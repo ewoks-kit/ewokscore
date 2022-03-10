@@ -2,20 +2,18 @@ import time
 import json
 import sqlite3
 from typing import Iterable, List, Optional
-from .base import EwoksConnectionEventHander
-from .. import send_events
+from .connection import ConnectionHandler
 
 
-class EwoksSqlite3EventHandler(EwoksConnectionEventHander):
-    BLOCKING = True
-
-    def __init__(self, uri: str):
+class Sqlite3Handler(ConnectionHandler):
+    def __init__(self, uri: str, table: str, fields: Iterable[str]):
         self._uri = uri
-        fields = ",".join([f"{field} TEXT" for field in send_events.FIELDS])
-        ensure_table = f"CREATE TABLE IF NOT EXISTS ewoks_events({fields})"
+        self._fields = list(fields)
+        fields = ",".join([f"{field} TEXT" for field in self._fields])
+        ensure_table = f"CREATE TABLE IF NOT EXISTS {table}({fields})"
         self._ensure_table_query = ensure_table
-        values = ("?," * len(send_events.FIELDS))[:-1]
-        self._insert_row_query = f"INSERT INTO ewoks_events VALUES({values})"
+        values = ("?," * len(self._fields))[:-1]
+        self._insert_row_query = f"INSERT INTO {table} VALUES({values})"
         super().__init__()
 
     def _connect(self, timeout=1) -> None:
@@ -37,11 +35,11 @@ class EwoksSqlite3EventHandler(EwoksConnectionEventHander):
             self._sql_query(self._insert_row_query, values)
 
     def _serialize_record(self, record) -> Optional[List[Optional[str]]]:
-        return [self.get_value(record, field) for field in send_events.FIELDS]
+        return [self.get_value(record, field) for field in self._fields]
 
     @staticmethod
     def get_value(record, field) -> Optional[str]:
-        value = getattr(record, field)
+        value = getattr(record, field, None)
         if value is None:
             return value
         elif isinstance(value, str):

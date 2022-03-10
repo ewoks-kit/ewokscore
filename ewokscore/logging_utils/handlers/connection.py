@@ -1,8 +1,13 @@
 import time
 import logging.handlers
+from typing import Any
 
 
 class ConnectionHandler(logging.Handler):
+    """A python handler with a generic underlying connection. The
+    only requirement is that the connection closes itself on garbage collection.
+    """
+
     def __init__(self):
         super().__init__()
         self._connection = None
@@ -16,21 +21,25 @@ class ConnectionHandler(logging.Handler):
         self._retry_factor = 2.0
 
     def _connect(self, timeout=1) -> None:
+        """This is called when no connection exists."""
         raise NotImplementedError
 
     def _disconnect(self) -> None:
+        """This is called when a connection exists and is connected."""
         raise NotImplementedError
 
-    def _send_serialized_record(self, record):
+    def _serialize_record(self, record: logging.LogRecord) -> Any:
+        """Convert a record to something that can be given to the connection."""
         raise NotImplementedError
 
-    def _serialize_record(self, record):
+    def _send_serialized_record(self, srecord: Any):
+        """Send the output from `_serialize_record` to the connection."""
         raise NotImplementedError
 
     def _connected(self) -> bool:
         return self._connection is not None
 
-    def ensure_connection(self) -> bool:
+    def _ensure_connection(self) -> bool:
         if self._connected():
             return True
         now = time.time()
@@ -59,7 +68,7 @@ class ConnectionHandler(logging.Handler):
 
     def emit(self, record):
         try:
-            if self.ensure_connection():
+            if self._ensure_connection():
                 s = self._serialize_record(record)
                 self._send_serialized_record(s)
         except Exception:
