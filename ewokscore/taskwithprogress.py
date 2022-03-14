@@ -24,4 +24,8 @@ class TaskWithProgress(Task, register=False):
     @progress.setter
     def progress(self, progress: int):
         if self._task_progress:
+            current = self._task_progress.progress
             self._task_progress.progress = progress
+            new = self._task_progress.progress
+            if current != new:
+                self._send_event(event="progress", progress=new)

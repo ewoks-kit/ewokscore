@@ -1,7 +1,7 @@
 import pytest
 
-from ewokscore import load_graph
 from ewokscore import execute_graph
+from ewokscore.graph import load_graph
 from ewokscore.graph.analysis import start_nodes
 
 from .examples.graphs import graph_names

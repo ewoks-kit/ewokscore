@@ -10,4 +10,5 @@ ewokscore has been developed by the `Software group <http://www.esrf.eu/Instrume
 
     definitions
     implementation
+    events
     api

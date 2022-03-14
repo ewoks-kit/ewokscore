@@ -1,5 +1,5 @@
 from typing import Any, Dict, Optional
-from ewokscore import load_graph
+from ewokscore.graph import load_graph
 from ewokscore.graph.taskgraph import TaskGraph
 from ewokscore.node import NodeIdType
 from ewokscore.task import Task

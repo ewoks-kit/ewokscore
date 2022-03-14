@@ -424,7 +424,12 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def variable_uris(self):
-        return {k: v.data_proxy.uri for k, v in self.items()}
+        uris = dict()
+        for k, v in self.items():
+            proxy = v.data_proxy
+            if proxy:
+                uris[k] = proxy.uri
+        return uris
 
     @property
     def variable_transfer_data(self):

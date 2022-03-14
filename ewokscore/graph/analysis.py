@@ -263,7 +263,7 @@ def has_required_static_inputs(graph: networkx.DiGraph, node_id: NodeIdType) -> 
         # although they may have required input. This keyword is used the
         # manually indicate that all required inputs are statically provided.
         return inputs_complete
-    taskclass = get_task_class(node_attrs, node_id=node_id)
+    taskclass = get_task_class(node_id, node_attrs)
     static_inputs = {d["name"] for d in node_attrs.get("default_inputs", list())}
     return not (set(taskclass.required_input_names()) - static_inputs)
 

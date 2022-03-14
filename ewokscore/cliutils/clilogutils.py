@@ -12,6 +12,7 @@ LEVELS = {
 
 def add_log_parameters(parser):
     parser.add_argument(
+        "-l",
         "--log",
         type=str.lower,
         choices=list(LEVELS),
@@ -22,7 +23,8 @@ def add_log_parameters(parser):
 
 def apply_log_parameters(args):
     logger = logging.getLogger()
-    logger.setLevel(LEVELS[args.log])
+    level = LEVELS[args.log]
+    logger.setLevel(level)
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)-8s - %(message)s"
     )
@@ -35,16 +37,17 @@ def apply_log_parameters(args):
         def filter(self, record):
             return record.levelno >= logging.WARNING
 
-    h = logging.StreamHandler(sys.stdout)
-    h.addFilter(StdOutFilter())
-    h.setLevel(logging.DEBUG)
-    if formatter is not None:
-        h.setFormatter(formatter)
-    logger.addHandler(h)
+    if level < logging.WARNING:
+        h = logging.StreamHandler(sys.stdout)
+        h.addFilter(StdOutFilter())
+        h.setLevel(level)
+        if formatter is not None:
+            h.setFormatter(formatter)
+        logger.addHandler(h)
 
     h = logging.StreamHandler(sys.stderr)
     h.addFilter(StdErrFilter())
-    h.setLevel(logging.WARNING)
+    h.setLevel(level)
     if formatter is not None:
         h.setFormatter(formatter)
     logger.addHandler(h)

@@ -5,7 +5,7 @@ from .analysis import required_predecessors
 
 def validate_graph(graph: networkx.DiGraph) -> None:
     for node_id, node_attrs in graph.nodes.items():
-        validate_task_executable(node_attrs, node_id=node_id)
+        validate_task_executable(node_id, node_attrs)
 
         # Isolated nodes do no harm so comment this
         # if len(graph.nodes) > 1 and not node_has_links(graph, node_id):

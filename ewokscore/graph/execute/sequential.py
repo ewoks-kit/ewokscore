@@ -8,20 +8,16 @@ from ...inittask import instantiate_task as _instantiate_task
 from ...inittask import add_dynamic_inputs
 from .. import analysis
 from .. import graph_io
+from ... import events
 
 
-def instantiate_task(
-    graph: networkx.DiGraph,
-    node_id: NodeIdType,
-    varinfo: Optional[dict] = None,
-    inputs: Optional[dict] = None,
-) -> Task:
+def instantiate_task(graph: networkx.DiGraph, node_id: NodeIdType, **kw) -> Task:
     """Named arguments are dynamic input and Variable config.
     Default input from the persistent representation are added internally.
     """
     # Dynamic input has priority over default input
     nodeattrs = graph.nodes[node_id]
-    return _instantiate_task(nodeattrs, node_id=node_id, varinfo=varinfo, inputs=inputs)
+    return _instantiate_task(node_id, nodeattrs, **kw)
 
 
 def instantiate_task_static(
@@ -29,6 +25,7 @@ def instantiate_task_static(
     node_id: NodeIdType,
     tasks: Optional[Dict[Task, int]] = None,
     varinfo: Optional[dict] = None,
+    execinfo: Optional[dict] = None,
     evict_result_counter: Optional[Dict[NodeIdType, int]] = None,
 ) -> Task:
     """Instantiate destination task while no access to the dynamic inputs.
@@ -50,6 +47,7 @@ def instantiate_task_static(
                 source_node_id,
                 tasks=tasks,
                 varinfo=varinfo,
+                execinfo=execinfo,
                 evict_result_counter=evict_result_counter,
             )
         link_attrs = graph[source_node_id][node_id]
@@ -61,7 +59,7 @@ def instantiate_task_static(
                 tasks.pop(source_node_id)
     # Instantiate the requested task
     target_task = instantiate_task(
-        graph, node_id, varinfo=varinfo, inputs=dynamic_inputs
+        graph, node_id, inputs=dynamic_inputs, varinfo=varinfo, execinfo=execinfo
     )
     tasks[node_id] = target_task
     return target_task
@@ -77,6 +75,7 @@ def successor_counter(graph: networkx.DiGraph) -> Dict[NodeIdType, int]:
 def execute_graph(
     graph: networkx.DiGraph,
     varinfo: Optional[dict] = None,
+    execinfo: Optional[dict] = None,
     raise_on_error: Optional[bool] = True,
     results_of_all_nodes: Optional[bool] = False,
     outputs: Optional[List[dict]] = None,
@@ -86,39 +85,45 @@ def execute_graph(
     * end tasks (results_of_all_nodes=False, outputs=None)
     * merged dictionary of selected outputs from selected nodes (outputs=[...])
     """
-    if analysis.graph_is_cyclic(graph):
-        raise RuntimeError("cannot execute cyclic graphs")
-    if analysis.graph_has_conditional_links(graph):
-        raise RuntimeError("cannot execute graphs with conditional links")
+    with events.workflow_context(execinfo, workflow=graph) as execinfo:
+        if analysis.graph_is_cyclic(graph):
+            raise RuntimeError("cannot execute cyclic graphs")
+        if analysis.graph_has_conditional_links(graph):
+            raise RuntimeError("cannot execute graphs with conditional links")
 
-    # Pepare containers for local state
-    if outputs:
-        results_of_all_nodes = False
-        graph_io.parse_outputs(graph, outputs)
-        output_values = dict()
-    else:
-        output_values = None
-    if results_of_all_nodes:
-        evict_result_counter = None
-    else:
-        evict_result_counter = successor_counter(graph)
-    tasks = dict()
-
-    cleanup_references = not results_of_all_nodes
-    for node_id in analysis.topological_sort(graph):
-        task = instantiate_task_static(
-            graph,
-            node_id,
-            tasks=tasks,
-            varinfo=varinfo,
-            evict_result_counter=evict_result_counter,
-        )
-        task.execute(
-            raise_on_error=raise_on_error, cleanup_references=cleanup_references
-        )
+        # Pepare containers for local state
         if outputs:
-            output_values.update(graph_io.extract_output_values(node_id, task, outputs))
-    if outputs:
-        return output_values
-    else:
-        return tasks
+            results_of_all_nodes = False
+            graph_io.parse_outputs(graph, outputs)
+            output_values = dict()
+        else:
+            output_values = None
+        if results_of_all_nodes:
+            evict_result_counter = None
+        else:
+            evict_result_counter = successor_counter(graph)
+        tasks = dict()
+
+        cleanup_references = not results_of_all_nodes
+        for node_id in analysis.topological_sort(graph):
+            task = instantiate_task_static(
+                graph,
+                node_id,
+                tasks=tasks,
+                varinfo=varinfo,
+                execinfo=execinfo,
+                evict_result_counter=evict_result_counter,
+            )
+            task.execute(
+                raise_on_error=raise_on_error, cleanup_references=cleanup_references
+            )
+            if execinfo:
+                execinfo.setdefault("exception", task.exception)
+            if outputs:
+                output_values.update(
+                    graph_io.extract_output_values(node_id, task, outputs)
+                )
+        if outputs:
+            return output_values
+        else:
+            return tasks
