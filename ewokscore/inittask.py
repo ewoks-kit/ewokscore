@@ -165,11 +165,22 @@ def instantiate_task(
         raise_task_error(node_label, all=False)
 
 
-def add_dynamic_inputs(dynamic_inputs: dict, link_attrs: dict, source_results: dict):
+def add_dynamic_inputs(
+    dynamic_inputs: dict,
+    link_attrs: dict,
+    source_results: dict,
+    source_id: Optional[NodeIdType] = None,
+    target_id: Optional[NodeIdType] = None,
+):
+    err_suffix = ""
+    if source_id or target_id:
+        err_suffix = f" (Link '{source_id}' -> '{target_id}')"
     map_all_data = link_attrs.get("map_all_data", False)
     data_mapping = link_attrs.get("data_mapping", list())
     if map_all_data and data_mapping:
-        raise ValueError("'data_mapping' and 'map_all_data' cannot be used together")
+        raise ValueError(
+            f"'data_mapping' and 'map_all_data' cannot be used together{err_suffix}"
+        )
     if map_all_data:
         data_mapping = [{"target_input": s, "source_output": s} for s in source_results]
         for from_arg in source_results:
@@ -180,13 +191,15 @@ def add_dynamic_inputs(dynamic_inputs: dict, link_attrs: dict, source_results: d
         try:
             input_arg = arg["target_input"]
         except KeyError:
-            raise KeyError(f"Argument '{arg}' is missing an 'input' key") from None
+            raise KeyError(
+                f"Argument '{arg}' is missing an 'input' key{err_suffix}"
+            ) from None
         if output_arg:
             try:
                 dynamic_inputs[input_arg] = source_results[output_arg]
             except KeyError:
                 raise KeyError(
-                    f"'{output_arg}' is not an output variable of the source task"
+                    f"'{output_arg}' is not an output variable of the source node{err_suffix}"
                 ) from None
         else:
             dynamic_inputs[input_arg] = source_results
