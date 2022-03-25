@@ -49,14 +49,15 @@ def atomic_write(path: Path, **kw):
 
 
 @h5py_utils.retry_contextmanager()
-def append_hdf5(filename, **kw):
-    with h5py_utils.File(filename, mode="a", **kw) as h5file:
+def append_hdf5(path: Path, **kw):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with h5py_utils.File(path, mode="a", **kw) as h5file:
         yield h5file
 
 
 @contextmanager
 def atomic_write_hdf5(
-    path, h5group: Optional[str], **kw
+    path: Path, h5group: Optional[str], **kw
 ) -> Tuple[h5py_utils.File, Optional[str]]:
     if not h5group or h5group == "/":
         with atomic_create_path(path) as tmppath:
