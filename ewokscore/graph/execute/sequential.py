@@ -39,24 +39,30 @@ def instantiate_task_static(
         evict_result_counter = dict()
     # Input from previous tasks (instantiate them if needed)
     dynamic_inputs = dict()
-    for source_node_id in analysis.node_predecessors(graph, node_id):
-        source_task = tasks.get(source_node_id, None)
+    for source_id in analysis.node_predecessors(graph, node_id):
+        source_task = tasks.get(source_id, None)
         if source_task is None:
             source_task = instantiate_task_static(
                 graph,
-                source_node_id,
+                source_id,
                 tasks=tasks,
                 varinfo=varinfo,
                 execinfo=execinfo,
                 evict_result_counter=evict_result_counter,
             )
-        link_attrs = graph[source_node_id][node_id]
-        add_dynamic_inputs(dynamic_inputs, link_attrs, source_task.output_variables)
+        link_attrs = graph[source_id][node_id]
+        add_dynamic_inputs(
+            dynamic_inputs,
+            link_attrs,
+            source_task.output_variables,
+            source_id=source_id,
+            target_id=node_id,
+        )
         # Evict intermediate results
         if evict_result_counter:
-            evict_result_counter[source_node_id] -= 1
-            if evict_result_counter[source_node_id] == 0:
-                tasks.pop(source_node_id)
+            evict_result_counter[source_id] -= 1
+            if evict_result_counter[source_id] == 0:
+                tasks.pop(source_id)
     # Instantiate the requested task
     target_task = instantiate_task(
         graph, node_id, inputs=dynamic_inputs, varinfo=varinfo, execinfo=execinfo
