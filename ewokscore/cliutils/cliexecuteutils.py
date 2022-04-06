@@ -1,12 +1,11 @@
-import json
-from typing import Any, Tuple
+from . import utils
 
 
 def add_execute_parameters(parser):
     parser.add_argument(
         "workflow",
         type=str,
-        help="URI to a workflow (e.g. JSON filename)",
+        help="Workflow to execute(e.g. JSON filename)",
     )
     parser.add_argument(
         "--workflow-dir",
@@ -82,49 +81,13 @@ def add_execute_parameters(parser):
     )
 
 
-def parse_value(value: str) -> Any:
-    try:
-        return json.loads(value)
-    except Exception:
-        return value
-
-
-def parse_parameter(input_item: str):
-    node_and_name, _, value = input_item.partition("=")
-    label, _, name = node_and_name.partition(":")
-    value = parse_value(value)
-    if name:
-        return {"label": label, "name": name, "value": value}
-    else:
-        return {"name": label, "value": value}  # all input nodes
-
-
-def parse_option(option: str) -> Tuple[str, Any]:
-    option, _, value = option.partition("=")
-    return option, parse_value(value)
-
-
-def parse_workflow(args):
-    if args.test:
-        from ewokscore.tests.examples.graphs import graph_names, get_graph
-
-        graphs = list(graph_names())
-        if args.workflow not in graphs:
-            raise RuntimeError(f"Test graph '{args.workflow}' does not exist: {graphs}")
-
-        graph, _ = get_graph(args.workflow)
-    else:
-        graph = args.workflow
-    return graph
-
-
 def apply_execute_parameters(args):
-    args.graph = parse_workflow(args)
+    args.graph = utils.parse_workflow(args)
 
-    execute_options = dict(parse_option(item) for item in args.options)
+    execute_options = dict(utils.parse_option(item) for item in args.options)
 
     execute_options["inputs"] = [
-        parse_parameter(input_item) for input_item in args.parameters
+        utils.parse_parameter(input_item) for input_item in args.parameters
     ]
 
     execute_options["results_of_all_nodes"] = args.output == "all"

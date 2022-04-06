@@ -22,3 +22,35 @@ def test_cli_execute_workflow():
         "execinfo": {},
     }
     assert args.execute_options == execute_options
+
+
+def test_cli_convert_workflow():
+    parser = argparse.ArgumentParser()
+    cliutils.add_convert_parameters(parser)
+    argv = [
+        "acyclic1",
+        "test.json",
+        "--test",
+        "-p",
+        "a=1",
+        "-p",
+        "task1:b=test",
+        "--source-format",
+        "yaml",
+        "--destination-format",
+        "json",
+    ]
+    args, _ = parser.parse_known_args(argv)
+    cliutils.apply_convert_parameters(args)
+
+    assert args.graph["graph"]["id"] == "acyclic1"
+
+    convert_options = {
+        "inputs": [
+            {"name": "a", "value": 1},
+            {"label": "task1", "name": "b", "value": "test"},
+        ],
+        "load_options": {"representation": "yaml"},
+        "save_options": {"representation": "json"},
+    }
+    assert args.convert_options == convert_options
