@@ -63,9 +63,10 @@ def dump(
         representation = GraphRepresentation.__members__[representation]
     if representation is None:
         if isinstance(destination, str):
-            if destination.endswith(".json"):
+            filename = destination.lower()
+            if filename.endswith(".json"):
                 representation = GraphRepresentation.json
-            elif destination.endswith(".yml"):
+            elif filename.endswith(".yml") or filename.endswith(".yaml"):
                 representation = GraphRepresentation.yaml
         else:
             representation = GraphRepresentation.json_dict
@@ -98,14 +99,16 @@ def load(
         if isinstance(source, Mapping):
             representation = GraphRepresentation.json_dict
         elif isinstance(source, str):
-            if source.endswith(".json"):
-                representation = GraphRepresentation.json
-            elif source.endswith(".yml"):
-                representation = GraphRepresentation.yaml
-            elif "{" in source and "}" in source:
+            if "{" in source and "}" in source:
                 representation = GraphRepresentation.json_string
             else:
-                representation = GraphRepresentation.json
+                filename = source.lower()
+                if filename.endswith(".json"):
+                    representation = GraphRepresentation.json
+                elif filename.endswith(".yml") or filename.endswith(".yaml"):
+                    representation = GraphRepresentation.yaml
+                else:
+                    representation = GraphRepresentation.json
     if not source:
         graph = networkx.DiGraph()
     elif isinstance(source, networkx.Graph):
