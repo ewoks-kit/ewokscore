@@ -66,7 +66,7 @@ def dump(
             filename = destination.lower()
             if filename.endswith(".json"):
                 representation = GraphRepresentation.json
-            elif filename.endswith(".yml") or filename.endswith(".yaml"):
+            elif filename.endswith((".yml", ".yaml")):
                 representation = GraphRepresentation.yaml
         else:
             representation = GraphRepresentation.json_dict
@@ -105,7 +105,7 @@ def load(
                 filename = source.lower()
                 if filename.endswith(".json"):
                     representation = GraphRepresentation.json
-                elif filename.endswith(".yml") or filename.endswith(".yaml"):
+                elif filename.endswith((".yml", ".yaml")):
                     representation = GraphRepresentation.yaml
                 else:
                     representation = GraphRepresentation.json

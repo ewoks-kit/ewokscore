@@ -13,14 +13,14 @@ def add_convert_parameters(parser):
         help="Destination of the conversion (e.g. JSON filename)",
     )
     parser.add_argument(
-        "--source-format",
+        "--src-format",
         type=str.lower,
         default="",
         dest="source_representation",
         help="Source format (json, yaml, ows, ...)",
     )
     parser.add_argument(
-        "--destination-format",
+        "--dst-format",
         type=str.lower,
         default="",
         dest="destination_representation",
@@ -31,7 +31,7 @@ def add_convert_parameters(parser):
         type=str,
         default="",
         dest="workflow_dir",
-        help="Directory of sub-workflows",
+        help="Directory of sub-workflows (current working directory by default)",
     )
     parser.add_argument(
         "-p",
@@ -63,7 +63,7 @@ def add_convert_parameters(parser):
     parser.add_argument(
         "--test",
         action="store_true",
-        help="The workflow arguments is the name of a test graph",
+        help="The 'workflow' argument refers to the name of a test graph",
     )
 
 

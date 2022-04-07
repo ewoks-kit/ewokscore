@@ -5,13 +5,13 @@ import networkx
 def graphs_are_equal(graph1: networkx.DiGraph, graph2: networkx.DiGraph) -> bool:
     if not _attrs_are_equal(graph1.graph, graph2.graph):
         return False
-    if set(graph1.nodes) != set(graph1.nodes):
+    if set(graph1.nodes) != set(graph2.nodes):
         return False
     for node_id, node_attr1 in graph1.nodes.items():
         node_attr2 = graph2.nodes[node_id]
         if not _attrs_are_equal(node_attr1, node_attr2):
             return False
-    if set(graph1.edges) != set(graph1.edges):
+    if set(graph1.edges) != set(graph2.edges):
         return False
     for edge_id, edge_attrs1 in graph1.edges.items():
         edge_attrs2 = graph2.edges[edge_id]

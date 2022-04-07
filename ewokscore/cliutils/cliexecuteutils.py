@@ -12,7 +12,7 @@ def add_execute_parameters(parser):
         type=str,
         default="",
         dest="workflow_dir",
-        help="Directory of sub-workflows",
+        help="Directory of sub-workflows (current working directory by default)",
     )
     parser.add_argument(
         "--data-root-uri",
@@ -70,7 +70,7 @@ def add_execute_parameters(parser):
     parser.add_argument(
         "--test",
         action="store_true",
-        help="The workflow arguments is the name of a test graph",
+        help="The 'workflow' argument refers to the name of a test graph",
     )
     parser.add_argument(
         "--output",

@@ -35,9 +35,9 @@ def test_cli_convert_workflow():
         "a=1",
         "-p",
         "task1:b=test",
-        "--source-format",
+        "--src-format",
         "yaml",
-        "--destination-format",
+        "--dst-format",
         "json",
     ]
     args, _ = parser.parse_known_args(argv)
