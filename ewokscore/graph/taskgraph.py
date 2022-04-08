@@ -11,6 +11,7 @@ from .validate import validate_graph
 from .multigraph import flatten_multigraph
 from .error_handlers import connect_default_error_handlers
 from .execute.sequential import execute_graph
+from .compare import graphs_are_equal
 
 
 def load_graph(source=None, representation=None, **load_options):
@@ -109,7 +110,7 @@ class TaskGraph:
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             raise TypeError(other, type(other))
-        return self.dump() == other.dump()
+        return graphs_are_equal(self.graph, other.graph)
 
     def load(
         self,
