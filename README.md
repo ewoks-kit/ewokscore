@@ -72,4 +72,4 @@ print(tasks["task3"].output_values)
 
 ## Documentation
 
-https://workflow.gitlab-pages.esrf.fr/ewoks/ewokscore
+https://ewokscore.readthedocs.io/
