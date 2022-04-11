@@ -1,7 +1,7 @@
 import gc
 import pytest
 from contextlib import contextmanager
-from ewokscore.variable import Variable
+from ewokscore.variable import Variable, VariableContainer
 from ewokscore.variable import MutableVariableContainer
 
 VALUES = [None, True, 10, "string", 10.1, [1, 2, 3], {"1": 1, "2": {"2": [10, 20]}}]
@@ -360,3 +360,23 @@ def test_variable_fixed_uhash():
     assert var3.uhash
     assert var1.uhash != var2.uhash
     assert var2.uhash == var3.uhash
+
+
+def test_variable_uri(tmpdir):
+    var1 = Variable(value=10, varinfo={"root_uri": str(tmpdir)})
+    var1.dump()
+
+    var2 = Variable(data_uri=str(var1.data_uri))
+    assert var1.value == 10
+    assert var1.value == var2.value
+    assert var1 == var2
+
+
+def test_variable_container_uri(tmpdir):
+    var1 = VariableContainer(value={"a": 1, "b": 2}, varinfo={"root_uri": str(tmpdir)})
+    var1.dump()
+
+    var2 = VariableContainer(data_uri=str(var1.data_uri))
+    assert var1.variable_values == {"a": 1, "b": 2}
+    assert var1.value == var2.value
+    assert var1 == var2
