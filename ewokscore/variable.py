@@ -57,7 +57,10 @@ class Variable(hashing.UniversalHashable):
             instance_nonce = None
             self._data_proxy = data_proxy
         elif data_uri is not None:
-            pre_uhash = data_uri.uhash
+            if isinstance(data_uri, str):
+                data_uri = DataUri(data_uri, self)
+            else:
+                pre_uhash = data_uri.uhash
             instance_nonce = None
             self._data_proxy = instantiate_data_proxy(uri=data_uri)
             if self._data_proxy is None:
