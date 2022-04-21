@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from numbers import Integral
 from collections.abc import Mapping, MutableMapping, Iterable, Sequence
 
@@ -39,7 +39,7 @@ class Variable(hashing.UniversalHashable):
         value=hashing.UniversalHashable.MISSING_DATA,
         metadata=hashing.UniversalHashable.MISSING_DATA,
         varinfo: Optional[dict] = None,
-        data_uri: Optional[DataUri] = None,
+        data_uri: Union[DataUri, str, None] = None,
         data_proxy: Optional[DataProxy] = None,
         pre_uhash: Optional[hashing.PreUhashTypes] = None,
         instance_nonce: Optional[Any] = None,

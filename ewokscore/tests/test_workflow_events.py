@@ -169,7 +169,7 @@ def _execute_graph(tmpdir, graph, execute_graph, **execute_options):
     handlers = execinfo.setdefault("handlers", list())
     handlers.append(
         {
-            "class": "ewokscore.events.handlers.EwoksSqlite3EventHandler",
+            "class": "ewokscore.events.handlers.Sqlite3EwoksEventHandler",
             "arguments": [{"name": "uri", "value": uri}],
         }
     )

@@ -1,4 +1,5 @@
 import importlib
+from datetime import datetime
 from collections.abc import Mapping, Sequence
 
 
@@ -57,3 +58,11 @@ def dict_merge(
                 raise ValueError("Conflict at " + ".".join(_nodes))
         else:
             destination[key] = value
+
+
+def fromisoformat(s: str) -> datetime:
+    if hasattr(datetime, "fromisoformat"):
+        return datetime.fromisoformat(s)
+    else:
+        # python < 3.7
+        return datetime.strptime(s[:-3] + s[-2:], "%Y-%m-%dT%H:%M:%S.%f%z")

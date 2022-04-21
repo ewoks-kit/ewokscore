@@ -112,7 +112,7 @@ def apply_execute_parameters(args):
             execinfo["asynchronous"] = False
             execinfo["handlers"] = [
                 {
-                    "class": "ewokscore.events.handlers.EwoksSqlite3EventHandler",
+                    "class": "ewokscore.events.handlers.Sqlite3EwoksEventHandler",
                     "arguments": [{"name": "uri", "value": args.sqlite3_uri}],
                 }
             ]
