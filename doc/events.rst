@@ -56,7 +56,7 @@ If you want to record workflow events you have to specify one or more event hand
         "job_id": "1234",
         "handlers": [
             {
-                "class": "ewokscore.events.handlers.EwoksSqlite3EventHandler",
+                "class": "ewokscore.events.handlers.Sqlite3EwoksEventHandler",
                 "asynchronous": True,
                 "arguments": [{"name": "uri",
                                "value": "file:/tmp/ewoks_event.db"}],
