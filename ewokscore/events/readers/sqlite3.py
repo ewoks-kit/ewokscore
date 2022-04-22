@@ -13,6 +13,7 @@ class Sqlite3EwoksEventReader(EwoksEventReader):
         if self.__connection is not None:
             self.__connection.close()
             self.__connection = None
+        super().close()
 
     @property
     def _connection(self):
