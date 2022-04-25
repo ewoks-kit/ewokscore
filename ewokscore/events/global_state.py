@@ -5,8 +5,7 @@ import os
 import logging
 from contextlib import contextmanager
 from typing import Dict, Iterable, List, Optional, Tuple
-from .handlers import is_ewoks_event_handler
-from ..utils import import_qualname
+from .handlers import is_ewoks_event_handler, instantiate_handler
 from ..logging_utils import handlers
 from ..logging_utils.cleanup import cleanup_logger
 
@@ -110,14 +109,10 @@ def _init_ewoks_event_logger(
         return
     for desc in handlers:
         try:
-            cls = import_qualname(desc["class"])
             kwargs = {
                 arg["name"]: arg["value"] for arg in desc.get("arguments", list())
             }
-        except Exception as e:
-            raise ValueError("wrong ewoks event handler description") from e
-        try:
-            handler = cls(**kwargs)
+            handler = instantiate_handler(desc["class"], **kwargs)
         except Exception as e:
             raise RuntimeError(
                 "cannot create an ewoks event handler from the description"
