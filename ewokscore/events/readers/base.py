@@ -49,9 +49,21 @@ class EwoksEventReader:
         """Returns all currently available events matching the filter."""
         raise NotImplementedError
 
-    def get_events_with_variables(self, **filters) -> Iterable[EventType]:
+    def wait_events_with_variables(self, *args, **kwargs) -> Iterable[EventType]:
         """`get_events` with URI dereferencing."""
-        for event in self.get_events(**filters):
+        for event in self.wait_events(*args, **kwargs):
+            self.dereference_data_uris(event)
+            yield event
+
+    def poll_events_with_variables(self, *args, **kwargs) -> Iterable[EventType]:
+        """`get_events` with URI dereferencing."""
+        for event in self.poll_events(*args, **kwargs):
+            self.dereference_data_uris(event)
+            yield event
+
+    def get_events_with_variables(self, *args, **kwargs) -> Iterable[EventType]:
+        """`get_events` with URI dereferencing."""
+        for event in self.get_events(*args, **kwargs):
             self.dereference_data_uris(event)
             yield event
 
