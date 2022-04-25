@@ -27,6 +27,11 @@ def import_method(qualname):
     return method
 
 
+def instantiate_class(class_name: str, *args, **kwargs):
+    cls = import_qualname(class_name)
+    return cls(*args, **kwargs)
+
+
 def dict_merge(
     destination, source, overwrite=False, _nodes=None, contatenate_sequences=False
 ):

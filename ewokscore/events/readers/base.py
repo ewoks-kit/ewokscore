@@ -1,5 +1,6 @@
 import time
 from typing import Dict, Iterable, Tuple
+import json
 from ewokscore.variable import Variable, VariableContainer
 from .. import send_events
 from ...utils import fromisoformat
@@ -49,9 +50,21 @@ class EwoksEventReader:
         """Returns all currently available events matching the filter."""
         raise NotImplementedError
 
-    def get_events_with_variables(self, **filters) -> Iterable[EventType]:
+    def wait_events_with_variables(self, *args, **kwargs) -> Iterable[EventType]:
         """`get_events` with URI dereferencing."""
-        for event in self.get_events(**filters):
+        for event in self.wait_events(*args, **kwargs):
+            self.dereference_data_uris(event)
+            yield event
+
+    def poll_events_with_variables(self, *args, **kwargs) -> Iterable[EventType]:
+        """`get_events` with URI dereferencing."""
+        for event in self.poll_events(*args, **kwargs):
+            self.dereference_data_uris(event)
+            yield event
+
+    def get_events_with_variables(self, *args, **kwargs) -> Iterable[EventType]:
+        """`get_events` with URI dereferencing."""
+        for event in self.get_events(*args, **kwargs):
             self.dereference_data_uris(event)
             yield event
 
@@ -77,16 +90,20 @@ class EwoksEventReader:
 
     @staticmethod
     def dereference_data_uris(event: EventType) -> None:
-        if "input_uris" in event:
+        input_uris = event.get("input_uris")
+        if input_uris:
+            if isinstance(input_uris, str):
+                input_uris = json.loads(input_uris)
             inputs = {
                 uri["name"]: Variable(data_uri=uri["value"])
                 if uri["value"]
                 else Variable()
-                for uri in event["input_uris"]
+                for uri in input_uris
             }
             event["inputs"] = VariableContainer(inputs)
-        if "task_uri" in event:
-            event["outputs"] = VariableContainer(data_uri=event["task_uri"])
+        task_uri = event.get("task_uri")
+        if task_uri:
+            event["outputs"] = VariableContainer(data_uri=task_uri)
 
     @staticmethod
     def match_indirect_filter(event: EventType, starttime=None, endtime=None) -> bool:
