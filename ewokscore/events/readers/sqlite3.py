@@ -27,7 +27,8 @@ class Sqlite3EwoksEventReader(EwoksEventReader):
     def get_events(self, **filters) -> Iterable[EventType]:
         direct_filter, indirect_filter = self.split_filter(**filters)
 
-        cursor = self._connection.cursor()
+        conn = self._connection
+        cursor = conn.cursor()
         if direct_filter:
             conditions = " AND ".join(
                 [
@@ -38,7 +39,11 @@ class Sqlite3EwoksEventReader(EwoksEventReader):
             query = f"SELECT * FROM ewoks_events WHERE {conditions}"
         else:
             query = "SELECT * FROM ewoks_events"
-        cursor.execute(query)
+        try:
+            cursor.execute(query)
+        except sqlite3.OperationalError as e:
+            if "no such table" in str(e):
+                return
         rows = cursor.fetchall()
         self._connection.commit()
 
