@@ -75,9 +75,15 @@ def add_execute_parameters(parser):
     parser.add_argument(
         "--output",
         type=str,
-        choices=["end", "all", "end_values", "all_values"],
-        default="end",
+        choices=["none", "end", "all"],
+        default="none",
         help="Log outputs (per task or merged values dictionary)",
+    )
+    parser.add_argument(
+        "--merge-outputs",
+        action="store_true",
+        dest="merge_outputs",
+        help="Merge node outputs",
     )
 
 
@@ -90,11 +96,13 @@ def apply_execute_parameters(args):
         utils.parse_parameter(input_item) for input_item in args.parameters
     ]
 
-    execute_options["results_of_all_nodes"] = args.output == "all"
-    if args.output == "all_values":
+    if args.output == "all":
         execute_options["outputs"] = [{"all": True}]
-    elif args.output == "end_values":
+    elif args.output == "end":
         execute_options["outputs"] = [{"all": False}]
+    else:
+        execute_options["outputs"] = []
+    execute_options["merge_outputs"] = args.merge_outputs
 
     execute_options["varinfo"] = {
         "root_uri": args.data_root_uri,

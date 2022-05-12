@@ -105,12 +105,8 @@ def create_graph():
 
 
 def test_execute_graph_outputs():
-    results = execute_graph(create_graph())
-    results = {k: v.output_values for k, v in results.items()}
-    expected = {"task7": dict()}
-    assert results == expected
-
-    results = execute_graph(create_graph(), results_of_all_nodes=True)
+    # All task instances
+    results = execute_graph(create_graph(), output_tasks=True)
     results = {k: v.output_values for k, v in results.items()}
     expected = {
         "task1": {"inputs": {"a": 1}, "result": 1, "label": "task1"},
@@ -123,14 +119,39 @@ def test_execute_graph_outputs():
     }
     assert results == expected
 
+    # The results of all tasks
+    results = execute_graph(
+        create_graph(), outputs=[{"all": True}], merge_outputs=False
+    )
+    assert results == expected
+
     # Merge the results of all tasks
     results = execute_graph(create_graph(), outputs=[{"all": True}])
     expected = {"inputs": {"a": 10, "b": 6}, "result": 16, "label": "task6"}
     assert results == expected
 
+    # The results of selected tasks
+    results = execute_graph(
+        create_graph(), outputs=[{"id": "task5"}], merge_outputs=False
+    )
+    expected = {"task5": {"inputs": {"a": 4, "b": 6}, "result": 10, "label": "task5"}}
+    assert results == expected
+
     # Merge the results of selected tasks
     results = execute_graph(create_graph(), outputs=[{"id": "task5"}])
     expected = {"inputs": {"a": 4, "b": 6}, "result": 10, "label": "task5"}
+    assert results == expected
+
+    # The results of selected tasks
+    results = execute_graph(
+        create_graph(),
+        outputs=[
+            {"id": "task1", "name": "inputs"},
+            {"id": "task4", "name": "result"},
+        ],
+        merge_outputs=False,
+    )
+    expected = {"task1": {"inputs": {"a": 1}}, "task4": {"result": 6}}
     assert results == expected
 
     # Merge the results of selected tasks
@@ -142,6 +163,18 @@ def test_execute_graph_outputs():
         ],
     )
     expected = {"inputs": {"a": 1}, "result": 6}
+    assert results == expected
+
+    # The results of selected tasks
+    results = execute_graph(
+        create_graph(),
+        outputs=[
+            {"id": "task1", "name": "inputs", "new_name": "a"},
+            {"id": "task4", "name": "result"},
+        ],
+        merge_outputs=False,
+    )
+    expected = {"task1": {"a": {"a": 1}}, "task4": {"result": 6}}
     assert results == expected
 
     # Merge the results of selected tasks
@@ -160,7 +193,7 @@ def test_execute_graph_inputs():
     results = execute_graph(
         create_graph(),
         inputs=[{"id": "task1", "name": "b", "value": 1}],
-        results_of_all_nodes=True,
+        output_tasks=True,
     )
     results = {k: v.output_values for k, v in results.items()}
     expected = {
@@ -177,7 +210,7 @@ def test_execute_graph_inputs():
     results = execute_graph(
         create_graph(),
         inputs=[{"name": "b", "value": 1}],
-        results_of_all_nodes=True,
+        output_tasks=True,
     )
     results = {k: v.output_values for k, v in results.items()}
     expected = {

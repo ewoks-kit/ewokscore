@@ -3,7 +3,7 @@ from ewokscore.graph import load_graph
 from ewokscore.utils import qualname
 from ewokscore.node import node_id_as_string
 
-from .utils.results import assert_execute_graph_all_tasks
+from .utils.results import assert_execute_graph_tasks
 
 
 def myfunc(name=None, value=0):
@@ -60,12 +60,12 @@ def test_sub_graph_execute():
     }
 
     ewoksgraph = load_graph(graph)
-    result = execute_graph(ewoksgraph, results_of_all_nodes=True)
+    result = execute_graph(ewoksgraph, output_tasks=True)
     expected = {
         "node1": {"return_value": 1},
         ("node2", ("subnode1", "subsubnode1")): {"return_value": 2},
     }
-    assert_execute_graph_all_tasks(ewoksgraph, expected, execute_graph_result=result)
+    assert_execute_graph_tasks(ewoksgraph, result, expected)
 
 
 def test_sub_graph_link_attributes():
