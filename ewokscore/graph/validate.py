@@ -1,9 +1,18 @@
 import networkx
+
 from ..inittask import validate_task_executable
 from .analysis import required_predecessors
+from .update import update_graph
 
 
 def validate_graph(graph: networkx.DiGraph) -> None:
+    while update_graph(graph):
+        pass
+    _validate_nodes(graph)
+    _validate_links(graph)
+
+
+def _validate_nodes(graph: networkx.DiGraph) -> None:
     for node_id, node_attrs in graph.nodes.items():
         validate_task_executable(node_id, node_attrs)
 
@@ -29,6 +38,8 @@ def validate_graph(graph: networkx.DiGraph) -> None:
                     )
                 inputs_from_required[name] = source_id
 
+
+def _validate_links(graph: networkx.DiGraph) -> None:
     for (source, target), linkattrs in graph.edges.items():
         err_msg = f"Link {source}->{target}: '{{}}' and '{{}}' cannot be used together"
         if linkattrs.get("map_all_data") and linkattrs.get("data_mapping"):

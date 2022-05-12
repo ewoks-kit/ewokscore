@@ -67,6 +67,7 @@ Graph attributes
 ^^^^^^^^^^^^^^^^
 * *id* (optional): graph identifier unique to a database of graphs
 * *label* (optional): non-unique label to be used when identifying a graph for human consumption
+* *version* (optional): the version to the representation (Default: "1.0")
 * *input_nodes* (optional): nodes that are expected to be used as link targets when the graph
   is used as a subgraph.
 * *output_nodes* (optional): nodes that are expected to be used as link sources when the graph
@@ -150,7 +151,7 @@ Node attributes
         }
 * *inputs_complete* (optional): set to `True` when the default input covers all required input
   (used for method and script as the required inputs are unknown)
-* *conditions_else_value* (optional): value used in conditional links to indicate the *else* value (`None` by default)
+* *conditions_else_value* (optional): value used in conditional links to indicate the *else* value (Default: `None`)
 * *default_error_node* (optional): when set to `True` all nodes without error handler will be linked to this node.
 * *default_error_attributes* (optional): when `default_error_node=True` this dictionary is used as attributes for the
   error handler links. The default is `{"map_all_data": True}`. The link attribute `"on_error"` is forced to be `True`.
