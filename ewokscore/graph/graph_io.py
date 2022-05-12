@@ -106,7 +106,6 @@ def parse_outputs(
                 output_item["id"] = node_id
                 parsed.append(output_item)
 
-    print(parsed)
     return parsed
 
 
