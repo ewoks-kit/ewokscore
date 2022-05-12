@@ -83,13 +83,15 @@ def execute_graph(
     varinfo: Optional[dict] = None,
     execinfo: Optional[dict] = None,
     raise_on_error: Optional[bool] = True,
-    results_of_all_nodes: Optional[bool] = False,
     outputs: Optional[List[dict]] = None,
+    merge_outputs: Optional[bool] = True,
+    output_tasks: Optional[bool] = False,
 ) -> Union[Dict[NodeIdType, Task], Dict[str, Any]]:
-    """Sequential execution of DAGs. Returns either
-    * all tasks (results_of_all_nodes=True, outputs=None)
-    * end tasks (results_of_all_nodes=False, outputs=None)
-    * merged dictionary of selected outputs from selected nodes (outputs=[...])
+    """Sequential execution of DAGs.
+
+    When `output_tasks` is `True` the arguments `outputs` and `merge_outputs`
+    are ignored and instead of returning output values, it returns `Task` instances.
+    This was introduced for testing.
     """
     with events.workflow_context(execinfo, workflow=graph) as execinfo:
         if analysis.graph_is_cyclic(graph):
@@ -98,19 +100,16 @@ def execute_graph(
             raise RuntimeError("cannot execute graphs with conditional links")
 
         # Pepare containers for local state
-        if outputs:
-            results_of_all_nodes = False
-            graph_io.parse_outputs(graph, outputs)
-            output_values = dict()
-        else:
+        tasks = dict()
+        if output_tasks:
             output_values = None
-        if results_of_all_nodes:
             evict_result_counter = None
         else:
+            outputs = graph_io.parse_outputs(graph, outputs)
+            output_values = dict()
             evict_result_counter = successor_counter(graph)
-        tasks = dict()
 
-        cleanup_references = not results_of_all_nodes
+        # Execute in topological order
         for node_id in analysis.topological_sort(graph):
             task = instantiate_task_static(
                 graph,
@@ -121,15 +120,18 @@ def execute_graph(
                 evict_result_counter=evict_result_counter,
             )
             task.execute(
-                raise_on_error=raise_on_error, cleanup_references=cleanup_references
+                raise_on_error=raise_on_error,
+                cleanup_references=evict_result_counter is not None,
             )
             if execinfo:
                 execinfo.setdefault("exception", task.exception)
-            if outputs:
-                output_values.update(
-                    graph_io.extract_output_values(node_id, task, outputs)
+            if not output_tasks:
+                graph_io.add_output_values(
+                    output_values, node_id, task, outputs, merge_outputs=merge_outputs
                 )
-        if outputs:
-            return output_values
-        else:
+
+        # Return results or Task instances
+        if output_tasks:
             return tasks
+        else:
+            return output_values

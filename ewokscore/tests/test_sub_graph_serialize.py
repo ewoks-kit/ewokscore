@@ -268,7 +268,7 @@ def test_sub_graph_execute(representation, tmpdir):
     g = serialized_graph(tmpdir, representation=representation)
     ewoksgraph = load_graph(g, root_dir=str(tmpdir))
 
-    tasks = execute_graph(ewoksgraph, results_of_all_nodes=True)
+    tasks = execute_graph(ewoksgraph, output_tasks=True)
 
     assert len(tasks) == 13
 

@@ -28,8 +28,10 @@ def graph(graph_method):
     @wraps(graph_method)
     def wrapper():
         g, result = graph_method()
-        g.setdefault("graph", dict()).setdefault("id", name)
-        g.setdefault("graph", dict()).setdefault("label", name)
+        attrs = g.setdefault("graph", dict())
+        attrs.setdefault("id", name)
+        attrs.setdefault("label", name)
+        attrs.setdefault("version", "1.0")
         return g, result
 
     if ALL_GRAPHS is None:

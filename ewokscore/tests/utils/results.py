@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from ewokscore.graph import load_graph
 from ewokscore.graph.taskgraph import TaskGraph
 from ewokscore.node import NodeIdType
@@ -9,8 +9,55 @@ from ewokscore.graph.analysis import end_nodes
 from ewokscore.graph.execute.sequential import instantiate_task_static
 
 
-def assert_execute_graph_all_tasks(
-    taskgraph: TaskGraph,
+def assert_execute_graph_default_result(
+    taskgraph: Union[TaskGraph, dict],
+    result: Dict[str, Any],
+    expected: Dict[str, Any],
+    varinfo: Optional[dict] = None,
+):
+    """The default result is the merged output of all end nodes."""
+    if varinfo:
+        scheme = varinfo.get("scheme")
+    else:
+        scheme = None
+    taskgraph = load_graph(taskgraph)
+    if taskgraph.is_cyclic:
+        expected = filter_expected_results(
+            taskgraph, expected, end_only=True, merge=True
+        )
+        assert_execute_graph_values(result, expected, varinfo)
+    elif scheme:
+        _assert_execute_graph_tasks(taskgraph, expected, varinfo=varinfo)
+        expected = filter_expected_results(
+            taskgraph, expected, end_only=True, merge=True
+        )
+        assert_execute_graph_values(result, expected, varinfo)
+    else:
+        expected = filter_expected_results(
+            taskgraph, expected, end_only=True, merge=True
+        )
+        assert_execute_graph_values(result, expected, varinfo)
+
+
+def assert_execute_graph_tasks(
+    taskgraph: Union[TaskGraph, dict],
+    result: Dict[str, Any],
+    expected: Dict[str, Any],
+    varinfo: Optional[dict] = None,
+):
+    if varinfo:
+        scheme = varinfo.get("scheme")
+    else:
+        scheme = None
+    _assert_execute_graph_tasks(
+        taskgraph, expected, varinfo=varinfo, execute_graph_result=result
+    )
+    if scheme and result:
+        _assert_execute_graph_tasks(taskgraph, expected, varinfo=varinfo)
+
+
+def _assert_execute_graph_tasks(
+    taskgraph: Union[TaskGraph, dict],
     expected: Dict[NodeIdType, Any],
     varinfo: Optional[dict] = None,
     execute_graph_result: Optional[Dict[NodeIdType, Task]] = None,
@@ -39,34 +86,6 @@ def assert_execute_graph_all_tasks(
             )
             loaded = True
         assert_task_result(task, node, expected, loaded)
-
-
-def assert_execute_graph_tasks(
-    execute_graph_result: Dict[NodeIdType, Any],
-    expected: Dict[NodeIdType, Any],
-    varinfo: Optional[dict] = None,
-):
-    """Check the output of `execute_graph` for each node.
-
-    An expected value can be:
-        * `None`: task is not executed and therefore does not appear in the results
-        * `MISSING_DATA`: task has no output and is therefore cannot be persisted
-        * else: task is executed and has output
-    """
-    for node_id, expected_result in expected.items():
-        if expected_result is None:
-            assert node_id not in execute_graph_result
-            continue
-        result = execute_graph_result[node_id]
-        if isinstance(result, Task):
-            assert result.done, node_id
-            result = result.output_values
-        if expected_result == hashing.UniversalHashable.MISSING_DATA:
-            assert result == dict(), result
-            continue
-        for output_name, expected_value in expected_result.items():
-            value = result[output_name]
-            assert_result(value, expected_value, varinfo=varinfo)
 
 
 def assert_execute_graph_values(
@@ -106,16 +125,17 @@ def assert_result(value, expected_value, varinfo: Optional[dict] = None):
 
 
 def filter_expected_results(
-    ewoksgraph: TaskGraph,
+    taskgraph: Union[TaskGraph, dict],
     results: Dict[NodeIdType, Any],
     end_only: bool = False,
     merge: bool = False,
 ) -> dict:
+    taskgraph = load_graph(taskgraph)
     if end_only:
-        nodes = end_nodes(ewoksgraph.graph)
+        nodes = end_nodes(taskgraph.graph)
         results = {k: v for k, v in results.items() if k in nodes}
     else:
-        nodes = ewoksgraph.nodes()
+        nodes = taskgraph.nodes()
     if merge:
         ret = dict()
         for node_id in nodes:

@@ -9,9 +9,8 @@ from ewokscore.graph.analysis import start_nodes
 
 from .examples.graphs import graph_names
 from .examples.graphs import get_graph
-from .utils.results import assert_execute_graph_all_tasks
+from .utils.results import assert_execute_graph_default_result
 from .utils.results import assert_execute_graph_tasks
-from .utils.results import filter_expected_results
 from .utils.show import show_graph
 
 
@@ -29,25 +28,10 @@ def test_execute_graph(graph_name, scheme, tmpdir):
             execute_graph(ewoksgraph, varinfo=varinfo)
         return
 
-    result = execute_graph(ewoksgraph, varinfo=varinfo, results_of_all_nodes=True)
-    assert_all_results(ewoksgraph, result, expected, varinfo)
-    result = execute_graph(ewoksgraph, varinfo=varinfo, results_of_all_nodes=False)
-    assert_end_results(ewoksgraph, result, expected, varinfo)
-
-
-def assert_all_results(ewoksgraph, result, expected, varinfo):
-    if varinfo:
-        scheme = varinfo.get("scheme")
-    else:
-        scheme = None
-    assert_execute_graph_all_tasks(ewoksgraph, expected, execute_graph_result=result)
-    if scheme:
-        assert_execute_graph_all_tasks(ewoksgraph, expected, varinfo=varinfo)
-
-
-def assert_end_results(ewoksgraph, result, expected, varinfo):
-    expected = filter_expected_results(ewoksgraph, expected, end_only=True)
-    assert_execute_graph_tasks(result, expected, varinfo=varinfo)
+    result = execute_graph(ewoksgraph, varinfo=varinfo)
+    assert_execute_graph_default_result(ewoksgraph, result, expected, varinfo)
+    result = execute_graph(ewoksgraph, varinfo=varinfo, output_tasks=True)
+    assert_execute_graph_tasks(ewoksgraph, result, expected, varinfo)
 
 
 def test_graph_cyclic():
