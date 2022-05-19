@@ -3,6 +3,7 @@ from numbers import Integral
 from collections.abc import Mapping, MutableMapping, Iterable, Sequence
 
 from . import hashing
+from . import missing_data
 from .persistence import instantiate_data_proxy
 from .persistence.proxy import DataProxy
 from .persistence.proxy import DataUri
@@ -36,8 +37,8 @@ class Variable(hashing.UniversalHashable):
 
     def __init__(
         self,
-        value=hashing.UniversalHashable.MISSING_DATA,
-        metadata=hashing.UniversalHashable.MISSING_DATA,
+        value=missing_data.MISSING_DATA,
+        metadata=missing_data.MISSING_DATA,
         varinfo: Optional[dict] = None,
         data_uri: Union[DataUri, str, None] = None,
         data_proxy: Optional[DataProxy] = None,
@@ -74,7 +75,7 @@ class Variable(hashing.UniversalHashable):
         self._hashing_enabled |= self._data_proxy is not None
 
         self._runtime_value = self.MISSING_DATA
-        if metadata == self.MISSING_DATA:
+        if missing_data.is_missing_data(metadata):
             metadata = dict()
         self._runtime_metadata = metadata
 
@@ -116,13 +117,16 @@ class Variable(hashing.UniversalHashable):
 
     @property
     def value(self):
-        if self._runtime_value is self.MISSING_DATA:
+        if missing_data.is_missing_data(self._runtime_value):
             self.load(raise_error=False)
         return self._runtime_value
 
     @value.setter
     def value(self, v):
         self._runtime_value = v
+
+    def is_missing(self) -> bool:
+        return missing_data.is_missing_data(self.value)
 
     @property
     def metadata(self) -> dict:
@@ -157,7 +161,7 @@ class Variable(hashing.UniversalHashable):
         """
         if self.data_proxy is not None:
             data = self.data_proxy.load(raise_error=raise_error)
-            if data is not self.MISSING_DATA:
+            if not missing_data.is_missing_data(data):
                 self.deserialize(data)
 
     def serialize(self) -> dict:
@@ -187,7 +191,7 @@ class Variable(hashing.UniversalHashable):
         return self.data_proxy is not None and self.data_proxy.exists()
 
     def _has_runtime_value(self):
-        return self._runtime_value is not self.MISSING_DATA
+        return not missing_data.is_missing_data(self._runtime_value)
 
     def force_non_existing(self):
         while self.has_persistent_value:
@@ -199,7 +203,7 @@ class VariableContainer(Variable, Mapping):
 
     def __init__(
         self,
-        value=hashing.UniversalHashable.MISSING_DATA,
+        value=missing_data.MISSING_DATA,
         varinfo: Optional[dict] = None,
         data_uri: Optional[DataUri] = None,
         data_proxy: Optional[DataProxy] = None,
@@ -546,6 +550,9 @@ class ReadOnlyVariableContainerNamespace:
     def __getitem__(self, key):
         return self._get_variable(key).value
 
+    def __setitem__(self, key, value):
+        raise ReadOnlyVariableError(key)
+
     def _get_variable(self, key):
         try:
             return self._container[key]
@@ -560,4 +567,24 @@ class VariableContainerNamespace(ReadOnlyVariableContainerNamespace):
         if attrname == "_container":
             super().__setattr__(attrname, value)
         else:
-            self._get_variable(attrname).value = value
+            self[attrname] = value
+
+    def __setitem__(self, key, value):
+        self._get_variable(key).value = value
+
+
+class VariableContainerMissingNamespace(ReadOnlyVariableContainerNamespace):
+    """Expose missing variable values through attributes and indexing"""
+
+    def __init__(self, container):
+        self._container = container
+
+    def __getitem__(self, key):
+        return self._is_missing(key)
+
+    def _is_missing(self, key):
+        try:
+            var = self._container[key]
+        except (KeyError, TypeError):
+            raise MissingVariableError(key) from None
+        return var.is_missing()

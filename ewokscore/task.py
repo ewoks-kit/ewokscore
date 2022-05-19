@@ -6,7 +6,9 @@ from .hashing import UniversalHashable
 from .variable import VariableContainer
 from .variable import VariableContainerNamespace
 from .variable import ReadOnlyVariableContainerNamespace
+from .variable import VariableContainerMissingNamespace
 from .registration import Registered
+from . import missing_data
 from . import events
 from . import node
 
@@ -95,8 +97,15 @@ class Task(Registered, UniversalHashable, register=False):
             varinfo=varinfo,
         )
 
-        self.__public_inputs = ReadOnlyVariableContainerNamespace(self.__inputs)
-        self.__public_outputs = VariableContainerNamespace(self.__outputs)
+        self.__inputs_namespace = ReadOnlyVariableContainerNamespace(self.__inputs)
+        self.__outputs_namespace = VariableContainerNamespace(self.__outputs)
+
+        self.__missing_inputs_namespace = VariableContainerMissingNamespace(
+            self.__inputs
+        )
+        self.__missing_outputs_namespace = VariableContainerMissingNamespace(
+            self.__outputs
+        )
 
         # The task class has the same hash as its output
         super().__init__(pre_uhash=self.__outputs)
@@ -178,7 +187,16 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def inputs(self):
-        return self.__public_inputs
+        return self.__inputs_namespace
+
+    @property
+    def missing_inputs(self):
+        return self.__missing_inputs_namespace
+
+    def get_input_value(self, key, default=missing_data.MISSING_DATA):
+        if self.missing_inputs[key]:
+            return default
+        return self.inputs[key]
 
     @property
     def input_uhashes(self):
@@ -205,8 +223,17 @@ class Task(Registered, UniversalHashable, register=False):
         return self.__outputs
 
     @property
+    def missing_outputs(self):
+        return self.__missing_outputs_namespace
+
+    @property
     def outputs(self):
-        return self.__public_outputs
+        return self.__outputs_namespace
+
+    def get_output_value(self, key, default=missing_data.MISSING_DATA):
+        if self.missing_outputs[key]:
+            return default
+        return self.outputs[key]
 
     @property
     def output_uhashes(self):
@@ -353,7 +380,8 @@ class Task(Registered, UniversalHashable, register=False):
         Side effect: fixes the uhash of the task and outputs
         """
         self.__inputs = None
-        self.__public_inputs = None
+        self.__inputs_namespace = None
+        self.__missing_inputs_namespace = None
         self.__outputs.cleanup_references()
         super().cleanup_references()
 

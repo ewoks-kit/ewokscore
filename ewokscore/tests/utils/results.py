@@ -3,8 +3,8 @@ from ewokscore.graph import load_graph
 from ewokscore.graph.taskgraph import TaskGraph
 from ewokscore.node import NodeIdType
 from ewokscore.task import Task
+from ewokscore import missing_data
 from ewokscore.variable import value_from_transfer
-from ewokscore import hashing
 from ewokscore.graph.analysis import end_nodes
 from ewokscore.graph.execute.sequential import instantiate_task_static
 
@@ -101,7 +101,7 @@ def assert_execute_graph_values(
 
 def assert_task_result(task: Task, node_id: NodeIdType, expected: dict, loaded: bool):
     expected_value = expected.get(node_id)
-    if expected_value == hashing.UniversalHashable.MISSING_DATA:
+    if missing_data.is_missing_data(expected_value):
         if loaded:
             expected_value = None
         else:

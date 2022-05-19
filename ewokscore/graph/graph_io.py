@@ -5,7 +5,7 @@ from .analysis import start_nodes
 from .analysis import end_nodes
 from ..node import NodeIdType
 from ..node import get_node_label
-from .. import hashing
+from .. import missing_data
 from ..task import Task
 
 
@@ -141,7 +141,7 @@ def extract_output_values(
         if name:
             new_name = output_item.get("new_name", name)
             output_values[new_name] = task_output_values.get(
-                name, hashing.UniversalHashable.MISSING_DATA
+                name, missing_data.MISSING_DATA
             )
         else:
             output_values.update(task_output_values)

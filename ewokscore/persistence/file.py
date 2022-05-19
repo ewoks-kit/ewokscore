@@ -3,7 +3,7 @@ from pathlib import Path
 from urllib.parse import ParseResult
 from .uri import path_from_uri
 from . import proxy
-from ..hashing import UniversalHashable
+from .. import missing_data
 from silx.utils.proxy import docstring
 
 
@@ -158,7 +158,7 @@ class FileProxy(proxy.DataProxy, register=False):
     def load(self, raise_error=True, **kw):
         path = self.path
         if path is None:
-            return UniversalHashable.MISSING_DATA
+            return missing_data.MISSING_DATA
         try:
             return self._load(path, **kw)
         except FileNotFoundError as e:
@@ -167,7 +167,7 @@ class FileProxy(proxy.DataProxy, register=False):
         except Exception as e:
             if raise_error:
                 raise proxy.PersistenceError(path) from e
-        return UniversalHashable.MISSING_DATA
+        return missing_data.MISSING_DATA
 
     def _dump(self, path: Path, data: Any) -> None:
         raise NotImplementedError
