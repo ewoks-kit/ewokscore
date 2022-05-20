@@ -4,6 +4,7 @@ from typing import Any, Optional, Type, Union
 from collections.abc import Mapping, Iterable, Set
 import numpy
 from .utils import qualname
+from . import missing_data
 
 
 def classhashdata(cls: Type) -> bytes:
@@ -150,17 +151,6 @@ class HasUhash:
             return qualname(type(self))
 
 
-class MissingData:
-    def __bool__(self):
-        return False
-
-    def __repr__(self):
-        return "<MISSING_DATA>"
-
-    def __eq__(self, other) -> bool:
-        return isinstance(other, type(self))
-
-
 PreUhashTypes = Union[str, bytes, UniversalHash, HasUhash]
 
 
@@ -177,7 +167,7 @@ class UniversalHashable(HasUhash):
 
     __CLASS_NONCE = None
     __VERSION = None
-    MISSING_DATA = MissingData()
+    MISSING_DATA = missing_data.MISSING_DATA
 
     def __init__(
         self,
@@ -264,7 +254,7 @@ class UniversalHashable(HasUhash):
         _uhash = self.__pre_uhash
         if _uhash is None:
             data = self._uhash_data()
-            if data is self.MISSING_DATA:
+            if missing_data.is_missing_data(data):
                 return None
             cnonce = self.class_nonce()
             inonce = self.instance_nonce()

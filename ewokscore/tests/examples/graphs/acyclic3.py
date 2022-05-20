@@ -1,5 +1,5 @@
 from . import graph
-from ewokscore import hashing
+from ewokscore import missing_data
 
 
 @graph
@@ -103,8 +103,8 @@ def acyclic3():
         "task4": {"result": 6},
         "task5": {"result": 10},
         "task6": {"result": 16},
-        "task7": hashing.UniversalHashable.MISSING_DATA,
-        "task8": hashing.UniversalHashable.MISSING_DATA,
+        "task7": missing_data.MISSING_DATA,
+        "task8": missing_data.MISSING_DATA,
     }
 
     return graph, expected_results
