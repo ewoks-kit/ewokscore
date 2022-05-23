@@ -1,4 +1,4 @@
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Union
 from .graph import load_graph as _load_graph
 from .graph import TaskGraph
 from .graph.execute import sequential
@@ -24,7 +24,9 @@ def load_graph(
     return taskgraph
 
 
-def save_graph(graph: TaskGraph, destination, **save_options) -> Optional[str]:
+def save_graph(
+    graph: TaskGraph, destination, **save_options
+) -> Optional[Union[str, dict]]:
     return graph.dump(destination, **save_options)
 
 
