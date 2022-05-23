@@ -58,7 +58,7 @@ def dump(
     destination=None,
     representation: Optional[Union[GraphRepresentation, str]] = None,
     **kw,
-) -> Optional[str]:
+) -> Optional[Union[str, dict]]:
     """From runtime to persistent representation"""
     if isinstance(representation, str):
         representation = GraphRepresentation.__members__[representation]

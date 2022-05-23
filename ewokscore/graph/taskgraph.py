@@ -160,7 +160,7 @@ class TaskGraph:
         destination=None,
         representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
         **kw,
-    ) -> Optional[str]:
+    ) -> Optional[Union[str, dict]]:
         return serialize.dump(
             self.graph, destination=destination, representation=representation, **kw
         )
