@@ -1,3 +1,4 @@
+import os
 import importlib
 from datetime import datetime
 from collections.abc import Mapping, Sequence
@@ -71,3 +72,9 @@ def fromisoformat(s: str) -> datetime:
     else:
         # python < 3.7
         return datetime.strptime(s[:-3] + s[-2:], "%Y-%m-%dT%H:%M:%S.%f%z")
+
+
+def makedirs_from_filename(filename: str):
+    dirname = os.path.dirname(filename)
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)

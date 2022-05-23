@@ -7,6 +7,7 @@ from typing import Optional, Union
 from collections.abc import Mapping
 
 from ..node import node_id_from_json
+from ..utils import makedirs_from_filename
 
 GraphRepresentation = enum.Enum(
     "GraphRepresentation", "json json_dict json_string yaml"
@@ -74,6 +75,7 @@ def dump(
         return networkx.readwrite.json_graph.node_link_data(graph)
     elif representation == GraphRepresentation.json:
         dictrepr = dump(graph)
+        makedirs_from_filename(destination)
         with open(destination, mode="w") as f:
             json.dump(dictrepr, f, **kw)
     elif representation == GraphRepresentation.json_string:
@@ -81,6 +83,7 @@ def dump(
         return json.dumps(dictrepr, **kw)
     elif representation == GraphRepresentation.yaml:
         dictrepr = dump(graph)
+        makedirs_from_filename(destination)
         with open(destination, mode="w") as f:
             yaml.dump(dictrepr, f, **kw)
     else:
