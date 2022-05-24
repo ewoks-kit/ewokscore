@@ -58,7 +58,7 @@ def dump(
     destination=None,
     representation: Optional[Union[GraphRepresentation, str]] = None,
     **kw,
-) -> Optional[Union[str, dict]]:
+) -> Union[str, dict]:
     """From runtime to persistent representation"""
     if isinstance(representation, str):
         representation = GraphRepresentation.__members__[representation]
@@ -78,6 +78,7 @@ def dump(
         makedirs_from_filename(destination)
         with open(destination, mode="w") as f:
             json.dump(dictrepr, f, **kw)
+        return destination
     elif representation == GraphRepresentation.json_string:
         dictrepr = dump(graph)
         return json.dumps(dictrepr, **kw)
@@ -86,6 +87,7 @@ def dump(
         makedirs_from_filename(destination)
         with open(destination, mode="w") as f:
             yaml.dump(dictrepr, f, **kw)
+        return destination
     else:
         raise TypeError(representation, type(representation))
 

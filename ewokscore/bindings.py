@@ -24,9 +24,7 @@ def load_graph(
     return taskgraph
 
 
-def save_graph(
-    graph: TaskGraph, destination, **save_options
-) -> Optional[Union[str, dict]]:
+def save_graph(graph: TaskGraph, destination, **save_options) -> Union[str, dict]:
     return graph.dump(destination, **save_options)
 
 
@@ -36,7 +34,7 @@ def convert_graph(
     inputs: Optional[List[dict]] = None,
     load_options: Optional[dict] = None,
     save_options: Optional[dict] = None,
-):
+) -> Union[str, dict]:
     if load_options is None:
         load_options = dict()
     if save_options is None:
