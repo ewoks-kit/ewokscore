@@ -1,20 +1,3 @@
-# EwoksCore: API for graphs and tasks in Ewoks
-
-## Install
-
-```bash
-python -m pip install ewokscore[test]
-```
-
-## Test
-
-```bash
-pytest --pyargs ewokscore.tests
-```
-
-## Getting started
-
-```python
 from ewokscore import Task
 from ewokscore import execute_graph
 
@@ -72,8 +55,3 @@ inputs = [{"id": "task1", "name": "a", "value": 10}]
 varinfo = {"root_uri": "/tmp/myresults"}  # optionally save all task outputs
 result = execute_graph(workflow, varinfo=varinfo, inputs=inputs)
 print(result)
-```
-
-## Documentation
-
-https://ewokscore.readthedocs.io/

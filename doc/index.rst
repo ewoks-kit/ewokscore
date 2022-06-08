@@ -8,6 +8,7 @@ ewokscore has been developed by the `Software group <http://www.esrf.eu/Instrume
 .. toctree::
     :maxdepth: 2
 
+    hello_world
     definitions
     implementation
     events
