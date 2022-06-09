@@ -2,12 +2,17 @@ import os
 import enum
 import json
 import yaml
-import networkx
+import logging
 from typing import Optional, Union
 from collections.abc import Mapping
 
+import networkx
+
 from ..node import node_id_from_json
 from ..utils import makedirs_from_filename
+from .schema import normalize_schema_version
+
+logger = logging.getLogger(__name__)
 
 GraphRepresentation = enum.Enum(
     "GraphRepresentation", "json json_dict json_string yaml"
@@ -47,12 +52,6 @@ def graph_full_path(path, root_dir=None, possible_extensions=tuple()):
     raise FileNotFoundError(path)
 
 
-def set_graph_defaults(graph_as_dict):
-    graph_as_dict.setdefault("directed", True)
-    graph_as_dict.setdefault("nodes", list())
-    graph_as_dict.setdefault("links", list())
-
-
 def dump(
     graph: networkx.DiGraph,
     destination=None,
@@ -72,7 +71,7 @@ def dump(
         else:
             representation = GraphRepresentation.json_dict
     if representation == GraphRepresentation.json_dict:
-        return networkx.readwrite.json_graph.node_link_data(graph)
+        return _networkx_to_dict(graph)
     elif representation == GraphRepresentation.json:
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
@@ -96,7 +95,7 @@ def load(
     source=None,
     representation: Optional[Union[GraphRepresentation, str]] = None,
     root_dir: Optional[str] = None,
-) -> None:
+) -> networkx.DiGraph:
     """From persistent to runtime representation"""
     if isinstance(representation, str):
         representation = GraphRepresentation.__members__[representation]
@@ -121,26 +120,22 @@ def load(
     elif hasattr(source, "graph") and isinstance(source.graph, networkx.Graph):
         graph = source.graph
     elif representation == GraphRepresentation.json_dict:
-        set_graph_defaults(source)
-        graph = networkx.readwrite.json_graph.node_link_graph(source)
+        graph = _dict_to_networkx(source)
     elif representation == GraphRepresentation.json:
         source = graph_full_path(source, root_dir, possible_extensions=(".json",))
         with open(source, mode="r") as f:
             source = json.load(f, object_pairs_hook=ewoks_jsonload_hook)
-        set_graph_defaults(source)
-        graph = networkx.readwrite.json_graph.node_link_graph(source)
+        graph = _dict_to_networkx(source)
     elif representation == GraphRepresentation.json_string:
         source = json.loads(source, object_pairs_hook=ewoks_jsonload_hook)
-        set_graph_defaults(source)
-        graph = networkx.readwrite.json_graph.node_link_graph(source)
+        graph = _dict_to_networkx(source)
     elif representation == GraphRepresentation.yaml:
         source = graph_full_path(
             source, root_dir, possible_extensions=(".yml", ".yaml")
         )
         with open(source, mode="r") as f:
             source = yaml.load(f, yaml.Loader)
-        set_graph_defaults(source)
-        graph = networkx.readwrite.json_graph.node_link_graph(source)
+        graph = _dict_to_networkx(source)
     else:
         raise TypeError(representation, type(representation))
 
@@ -148,3 +143,18 @@ def load(
         raise TypeError(graph, type(graph))
 
     return graph
+
+
+def _dict_to_networkx(graph: dict) -> networkx.DiGraph:
+    graph.setdefault("directed", True)
+    graph.setdefault("nodes", list())
+    graph.setdefault("links", list())
+    graph.setdefault("graph", dict())
+
+    normalize_schema_version(graph)
+
+    return networkx.readwrite.json_graph.node_link_graph(graph)
+
+
+def _networkx_to_dict(graph: networkx.DiGraph) -> dict:
+    return networkx.readwrite.json_graph.node_link_data(graph)

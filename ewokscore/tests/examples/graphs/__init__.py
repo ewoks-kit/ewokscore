@@ -31,7 +31,7 @@ def graph(graph_method):
         attrs = g.setdefault("graph", dict())
         attrs.setdefault("id", name)
         attrs.setdefault("label", name)
-        attrs.setdefault("version", "1.0")
+        attrs.setdefault("schema_version", "1.0")
         return g, result
 
     if ALL_GRAPHS is None:
