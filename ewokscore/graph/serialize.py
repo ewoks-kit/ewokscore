@@ -151,6 +151,9 @@ def _dict_to_networkx(graph: dict) -> networkx.DiGraph:
     graph.setdefault("links", list())
     graph.setdefault("graph", dict())
 
+    if not graph["graph"].get("id"):
+        logger.warning('Graph has no "id": use "notspecified"')
+        graph["graph"]["id"] = "notspecified"
     normalize_schema_version(graph)
 
     return networkx.readwrite.json_graph.node_link_graph(graph)
