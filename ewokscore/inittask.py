@@ -80,22 +80,24 @@ def task_executable_info(
         else:
             task_type = key
         node_attrs["task_type"] = task_type
+
+    has_task_generator = bool(node_attrs.get("task_generator"))
     if task_type == "generated":
-        if "task_generator" not in node_attrs:
+        if not has_task_generator:
             raise ValueError("node attribute 'task_generator' is missing")
-    else:
-        if "task_generator" in node_attrs:
-            raise ValueError(
-                "node attribute 'task_generator' should only be specified when 'task_type' is 'generated'"
-            )
+    elif has_task_generator:
+        raise ValueError(
+            "node attribute 'task_generator' should only be specified when 'task_type' is 'generated'"
+        )
+
+    has_task_identifier = bool(node_attrs.get("task_identifier"))
     if task_type == "ppfport":
-        if "task_identifier" in node_attrs:
+        if has_task_identifier:
             raise ValueError(
                 "node attribute 'task_identifier' should not be used when 'task_type' is 'ppfport'"
             )
-    else:
-        if "task_identifier" not in node_attrs:
-            raise ValueError("node attribute 'task_identifier' is missing")
+    elif not has_task_identifier:
+        raise ValueError("node attribute 'task_identifier' is missing")
 
     info = dict()
     if task_type != "ppfport":
