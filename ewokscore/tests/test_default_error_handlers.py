@@ -46,7 +46,7 @@ def subsubmodel1():
             "on_error": True,
         },
     ]
-    return {"nodes": nodes, "links": links}
+    return {"graph": {"id": "subsubmodel1"}, "nodes": nodes, "links": links}
 
 
 def submodel1():
@@ -88,7 +88,7 @@ def submodel1():
             "on_error": True,
         },
     ]
-    return {"nodes": nodes, "links": links}
+    return {"graph": {"id": "submodel1"}, "nodes": nodes, "links": links}
 
 
 def model1():
@@ -130,7 +130,7 @@ def model1():
             "on_error": True,
         },
     ]
-    return {"nodes": nodes, "links": links}
+    return {"graph": {"id": "model1"}, "nodes": nodes, "links": links}
 
 
 def test_default_error_handlers1():
@@ -182,6 +182,7 @@ def test_default_error_handlers1():
 
 def submodel2():
     graph = {
+        "id": "submodel2",
         "input_nodes": [{"id": "in", "node": "a"}],
         "output_nodes": [{"id": "out", "node": "c"}],
     }
@@ -231,7 +232,7 @@ def model2():
     links = [
         {"source": "start", "target": "end", "map_all_data": True},
     ]
-    return {"nodes": nodes, "links": links}
+    return {"graph": {"id": "model2"}, "nodes": nodes, "links": links}
 
 
 def test_default_error_handlers2():
