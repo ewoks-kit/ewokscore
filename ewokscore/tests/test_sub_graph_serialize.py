@@ -8,6 +8,7 @@ from ewokscore.graph import load_graph
 def subsubsubgraph():
     return {
         "graph": {
+            "id": "subsubsubgraph",
             "input_nodes": [{"id": "in", "node": "task1"}],
             "output_nodes": [{"id": "out", "node": "task2"}],
         },
@@ -36,6 +37,7 @@ def subsubsubgraph():
 def subsubgraph(_subsubsubgraph):
     return {
         "graph": {
+            "id": "subsubgraph",
             "input_nodes": [{"id": "in", "node": "task1"}],
             "output_nodes": [
                 {"id": "out", "node": "subsubsubgraph", "sub_node": "out"}
@@ -77,6 +79,7 @@ def subsubgraph(_subsubsubgraph):
 def subgraph(_subsubgraph):
     return {
         "graph": {
+            "id": "subgraph",
             "input_nodes": [{"id": "in", "node": "task1"}],
             "output_nodes": [{"id": "out", "node": "subsubgraph", "sub_node": "out"}],
         },
@@ -115,6 +118,7 @@ def subgraph(_subsubgraph):
 
 def graph(_subgraph):
     return {
+        "graph": {"id": "graph"},
         "nodes": [
             {"id": "subgraph1", "task_type": "graph", "task_identifier": _subgraph},
             {"id": "subgraph2", "task_type": "graph", "task_identifier": _subgraph},

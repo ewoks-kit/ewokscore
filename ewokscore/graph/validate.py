@@ -2,11 +2,11 @@ import networkx
 
 from ..inittask import validate_task_executable
 from .analysis import required_predecessors
-from .update import update_graph
+from .schema import update_graph_schema
 
 
 def validate_graph(graph: networkx.DiGraph) -> None:
-    while update_graph(graph):
+    while update_graph_schema(graph):
         pass
     _validate_nodes(graph)
     _validate_links(graph)

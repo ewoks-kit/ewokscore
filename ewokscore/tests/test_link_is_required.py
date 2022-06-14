@@ -33,7 +33,7 @@ def test_graph_link_is_required_conditions1():
         {"source": "on_true2", "target": "merge", "map_all_data": True},
         {"source": "merge", "target": "end", "map_all_data": True},
     ]
-    taskgraph = load_graph({"nodes": nodes, "links": links})
+    taskgraph = load_graph({"graph": {"id": "test"}, "nodes": nodes, "links": links})
 
     assert link_is_required(taskgraph.graph, "start", "fan")
     assert not link_is_required(taskgraph.graph, "fan", "on_false1")
@@ -73,7 +73,7 @@ def test_graph_link_is_required_conditions2():
         {"source": "on_true2", "target": "merge", "map_all_data": True},
         {"source": "merge", "target": "end_always", "map_all_data": True},
     ]
-    taskgraph = load_graph({"nodes": nodes, "links": links})
+    taskgraph = load_graph({"graph": {"id": "test"}, "nodes": nodes, "links": links})
 
     assert link_is_required(taskgraph.graph, "start", "fan")
     assert link_is_required(taskgraph.graph, "fan", "always1")
@@ -125,7 +125,7 @@ def test_graph_link_is_required_errors():
         {"source": "merge", "target": "end_always", "map_all_data": True},
         {"source": "on_error2", "target": "end_on_error", "map_all_data": True},
     ]
-    taskgraph = load_graph({"nodes": nodes, "links": links})
+    taskgraph = load_graph({"graph": {"id": "test"}, "nodes": nodes, "links": links})
 
     assert link_is_required(taskgraph.graph, "start", "fan")
     assert link_is_required(taskgraph.graph, "fan", "always1")

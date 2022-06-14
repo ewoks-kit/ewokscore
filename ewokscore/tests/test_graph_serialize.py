@@ -8,7 +8,7 @@ from ewokscore.graph import load_graph
 @pytest.mark.parametrize("representation", ["json", "yaml", None])
 def test_graph_discovery(representation, with_ext, tmpdir):
     subgraph = {
-        "graph": {"input_nodes": [{"id": "in", "node": "subnode1"}]},
+        "graph": {"id": "subgraph", "input_nodes": [{"id": "in", "node": "subnode1"}]},
         "nodes": [
             {
                 "id": "subnode1",
@@ -23,6 +23,7 @@ def test_graph_discovery(representation, with_ext, tmpdir):
     }
 
     graph = {
+        "graph": {"id": "graph"},
         "nodes": [
             {
                 "id": "node1",
