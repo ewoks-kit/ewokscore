@@ -11,12 +11,12 @@ def parse_value(value: str) -> Any:
 
 def parse_parameter(input_item: str):
     node_and_name, _, value = input_item.partition("=")
-    label, _, name = node_and_name.partition(":")
-    value = parse_value(value)
-    if name:
-        return {"label": label, "name": name, "value": value}
+    node_id_or_var_name, _, var_name = node_and_name.partition(":")
+    var_value = parse_value(value)
+    if var_name:
+        return {"id": node_id_or_var_name, "name": var_name, "value": var_value}
     else:
-        return {"name": label, "value": value}  # all input nodes
+        return {"name": node_id_or_var_name, "value": var_value}  # all input nodes
 
 
 def parse_option(option: str) -> Tuple[str, Any]:
