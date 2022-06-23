@@ -205,10 +205,12 @@ def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]
     Nodes in sub-graphs are defines in the `link_attrs_subgraph_keys` link attribute.
     For example:
 
+    .. code: python
+
         link_attrs = {
             "source": "subgraph1",
             "target": "subgraph2",
-            "data_mapping": [{"target_input": 0, "source_output":"return_value"}],
+            "data_mapping": [{"source_output":"return_value", "target_input": 0}],
             "link_attrs_subgraph_keys": {
                 "sub_source": ("subsubgraph", ("subsubsubgraph", "task2")),
                 "sub_target": "task1",

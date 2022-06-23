@@ -68,12 +68,12 @@ def test_wrong_argument_definitions():
         {
             "source": "source1",
             "target": "target",
-            "data_mapping": [{"target_input": "a", "source_output": "a"}],
+            "data_mapping": [{"source_output": "a", "target_input": "a"}],
         },
         {
             "source": "source2",
             "target": "target",
-            "data_mapping": [{"target_input": "a", "source_output": "a"}],
+            "data_mapping": [{"source_output": "a", "target_input": "a"}],
         },
     ]
     graph = {"graph": {"id": "test"}, "nodes": nodes, "links": links}

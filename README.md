@@ -1,4 +1,6 @@
-# EwoksCore: API for graphs and tasks in Ewoks
+# ewokscore
+
+*ewokscore* provides an API to define workflows and implement tasks in [ewoks](https://ewoks.readthedocs.io/).
 
 ## Install
 
@@ -55,12 +57,12 @@ links = [
     {
         "source": "task1",
         "target": "task2",
-        "data_mapping": [{"target_input": "a", "source_output": "result"}],
+        "data_mapping": [{"source_output": "result", "target_input": "a"}],
     },
     {
         "source": "task2",
         "target": "task3",
-        "data_mapping": [{"target_input": "a", "source_output": "result"}],
+        "data_mapping": [{"source_output": "result", "target_input": "a"}],
     },
 ]
 workflow = {"graph": {"id": "testworkflow"}, "nodes": nodes, "links": links}
