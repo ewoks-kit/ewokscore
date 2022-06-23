@@ -80,17 +80,17 @@ def demo():
         {
             "source": "task1",
             "target": "task3",
-            "data_mapping": [{"target_input": "a", "source_output": "result"}],
+            "data_mapping": [{"source_output": "result", "target_input": "a"}],
         },
         {
             "source": "task2",
             "target": "task4",
-            "data_mapping": [{"target_input": "a", "source_output": "result"}],
+            "data_mapping": [{"source_output": "result", "target_input": "a"}],
         },
         {
             "source": "task3",
             "target": "task5",
-            "data_mapping": [{"target_input": "a", "source_output": "result"}],
+            "data_mapping": [{"source_output": "result", "target_input": "a"}],
         },
         {
             "source": "task4",
@@ -100,7 +100,7 @@ def demo():
         {
             "source": "task5",
             "target": "task6",
-            "data_mapping": [{"target_input": "a", "source_output": "result"}],
+            "data_mapping": [{"source_output": "result", "target_input": "a"}],
         },
     ]
 

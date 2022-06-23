@@ -156,13 +156,16 @@ PreUhashTypes = Union[str, bytes, UniversalHash, HasUhash]
 
 class UniversalHashable(HasUhash):
     """The universal hash of an instance of this class is based on:
-        * pre-uhash
-        * instance nonce (if any)
+
+     * pre-uhash
+     * instance nonce (if any)
+
     The universal hash is equal to the pre-hash when an instance nonce is not provided.
 
     The pre-uhash is either provided or based on:
-        * data
-        * class nonce (class qualifier name, class version, superclass nonce)
+
+     * data
+     * class nonce (class qualifier name, class version, superclass nonce)
     """
 
     __CLASS_NONCE = None
