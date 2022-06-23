@@ -20,7 +20,7 @@ Execute a workflow
 
     from ewokscore import execute_graph
 
-    result = execute_graph("/path/to/graph.json", binding=None)
+    result = execute_graph("/path/to/graph.json")
 
 Run the tests
 
