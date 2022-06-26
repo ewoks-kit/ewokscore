@@ -48,7 +48,8 @@ def add_execute_parameters(parser):
         help="Execution options",
     )
     parser.add_argument(
-        "-j" "--jobid",
+        "-j",
+        "--jobid",
         dest="job_id",
         type=str,
         default=None,
