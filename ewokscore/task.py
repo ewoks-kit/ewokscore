@@ -47,7 +47,7 @@ class Task(Registered, UniversalHashable, register=False):
         if inputs is None:
             inputs = dict()
         elif not isinstance(inputs, Mapping):
-            raise TypeError(inputs, type(inputs))
+            raise TypeError(f"inputs type is a {type(inputs)} when Mapping or None expected. (inputs is) {inputs}")
 
         # Check required inputs
         missing_required = set(self._INPUT_NAMES) - set(inputs.keys())
