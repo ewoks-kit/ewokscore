@@ -47,7 +47,7 @@ class BasePercentageProgress(BaseProgress):
         if not (0 <= progress <= 100):
             _logger.warning("progress is expected to be in [0, 100]. Clip it")
             progress = min(max(0, progress), 100)
-        BaseProgress.progress.fset(self, int(progress))
+        BaseProgress.progress.fset(self, progress)
 
     def reset(self):
         self._lastUpdate = None
