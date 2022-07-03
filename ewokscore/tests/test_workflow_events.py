@@ -3,9 +3,13 @@ from pprint import pformat
 import sqlite3
 from time import sleep
 from typing import Dict, List, Optional
+
+from ewoksutils.import_utils import qualname
+from ewoksutils.sqlite3_utils import select
+from ewoksutils.event_utils import FIELD_TYPES
+
 from ewokscore import execute_graph
 from ewokscore import Task
-from ewokscore.utils import qualname
 from ewokscore.events import cleanup as cleanup_events
 
 
@@ -132,16 +136,36 @@ def run_failed_workfow(tmpdir, execute_graph, **execute_options):
 
 def assert_failed_workfow_events(events):
     expected = [
-        {"context": "job", "node_id": None, "type": "start", "error_message": None},
+        {
+            "context": "job",
+            "node_id": None,
+            "type": "start",
+            "error_message": None,
+        },
         {
             "context": "workflow",
             "node_id": None,
             "type": "start",
             "error_message": None,
         },
-        {"context": "node", "node_id": "node1", "type": "start", "error_message": None},
-        {"context": "node", "node_id": "node1", "type": "end", "error_message": None},
-        {"context": "node", "node_id": "node2", "type": "start", "error_message": None},
+        {
+            "context": "node",
+            "node_id": "node1",
+            "type": "start",
+            "error_message": None,
+        },
+        {
+            "context": "node",
+            "node_id": "node1",
+            "type": "end",
+            "error_message": None,
+        },
+        {
+            "context": "node",
+            "node_id": "node2",
+            "type": "start",
+            "error_message": None,
+        },
         {"context": "node", "node_id": "node2", "type": "end", "error_message": "abc"},
         {
             "context": "workflow",
@@ -204,14 +228,9 @@ def fetch_events(uri: str, nevents: int) -> List[Dict[str, Optional[str]]]:
         events = list()
         for _ in range(30):
             try:
-                conn = sqlite3.connect(uri, uri=True)
-                c = conn.cursor()
-                c.execute("SELECT * FROM ewoks_events")
-                fields = [description[0] for description in c.description]
-                rows = c.fetchall()
-                conn.commit()
-                conn.close()
-                events = [dict(zip(fields, values)) for values in rows]
+                with sqlite3.connect(uri, uri=True) as conn:
+                    events = list(select(conn, "ewoks_events", field_types=FIELD_TYPES))
+
                 if len(events) != nevents:
                     raise RuntimeError(
                         f"{len(events)} ewoks events instead of {nevents}"

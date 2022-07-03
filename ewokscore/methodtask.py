@@ -1,5 +1,5 @@
 from .task import Task
-from .utils import import_method
+from ewoksutils.import_utils import import_method
 
 METHOD_ARGUMENT = "_method"
 

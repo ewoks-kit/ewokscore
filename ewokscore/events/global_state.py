@@ -5,9 +5,11 @@ import os
 import logging
 from contextlib import contextmanager
 from typing import Dict, Iterable, List, Optional, Tuple
+
+from ewoksutils.logging_utils.asyncwrapper import AsyncHandlerWrapper
+from ewoksutils.logging_utils.cleanup import cleanup_logger
+
 from .handlers import is_ewoks_event_handler, instantiate_handler
-from ..logging_utils import handlers
-from ..logging_utils.cleanup import cleanup_logger
 
 EWOKS_EVENT_LOGGER_NAME = __name__
 ENABLE_EWOKS_EVENTS_BY_DEFAULT = True
@@ -35,7 +37,7 @@ def add_handler(
         if asynchronous is None and is_ewoks_event_handler(handler):
             asynchronous = handler.BLOCKING
         if asynchronous:
-            handler = handlers.AsyncHandlerWrapper(handler)
+            handler = AsyncHandlerWrapper(handler)
         logger.addHandler(handler)
 
 
@@ -139,7 +141,7 @@ def _iter_handler_owners(
         for handler in _logger.handlers:
             if handler is instance:
                 yield _logger, instance
-            elif isinstance(handler, handlers.AsyncHandlerWrapper):
+            elif isinstance(handler, AsyncHandlerWrapper):
                 instance2 = handler.wrapped_handler
                 if instance2 is instance:
                     yield _logger, instance2

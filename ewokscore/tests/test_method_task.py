@@ -1,4 +1,4 @@
-from ewokscore.utils import qualname
+from ewoksutils.import_utils import qualname
 from ewokscore.task import Task
 
 
