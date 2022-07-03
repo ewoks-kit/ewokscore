@@ -1,5 +1,5 @@
 from typing import Optional, List
-from . import utils
+from ewoksutils import import_utils
 
 
 class Registered:
@@ -18,10 +18,10 @@ class Registered:
 
         # Register the subclass
         if not registry_name:
-            registry_name = utils.qualname(cls)
+            registry_name = import_utils.qualname(cls)
         ecls = cls._SUBCLASS_REGISTRY.get(registry_name)
         if ecls is not None:
-            if utils.qualname(cls) == utils.qualname(ecls):
+            if import_utils.qualname(cls) == import_utils.qualname(ecls):
                 return
             raise NotImplementedError(
                 f"Registry name {registry_name} is already taken by {repr(ecls)}"
@@ -59,6 +59,6 @@ class Registered:
                     f"Class {repr(registry_name)} is not imported. Imported classes are {repr(lst)}"
                 )
             else:
-                utils.import_qualname(registry_name)
+                import_utils.import_qualname(registry_name)
                 subclass = cls.get_subclass(registry_name, _second_attempt=True)
         return subclass

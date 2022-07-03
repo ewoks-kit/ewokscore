@@ -1,8 +1,8 @@
 from typing import Hashable, Optional, Union
 import networkx
+from ewoksutils.import_utils import qualname
 
 from .. import inittask
-from ..utils import qualname
 from .subgraph import extract_graph_nodes
 from .subgraph import add_subgraph_links
 from . import analysis

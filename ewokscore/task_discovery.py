@@ -3,7 +3,7 @@ import importlib
 import importlib.util
 from typing import Callable, Iterable, Optional
 from .task import Task
-from .utils import qualname
+from ewoksutils.import_utils import qualname
 
 
 def discover_tasks_from_modules(

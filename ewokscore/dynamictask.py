@@ -1,6 +1,6 @@
 from typing import Callable, Optional
 from .task import Task
-from .utils import import_method
+from ewoksutils.import_utils import import_method
 
 
 _GENERATORS = dict()

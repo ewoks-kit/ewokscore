@@ -1,14 +1,16 @@
 from functools import partial
 from typing import Optional, Tuple
 import warnings
+
+from ewoksutils.import_utils import import_method
+from ewoksutils.import_utils import import_qualname
+
 from .task import Task
 from .methodtask import MethodExecutorTask
 from .scripttask import ScriptExecutorTask
 from .ppftasks import PpfMethodExecutorTask
 from .ppftasks import PpfPortTask
 from .dynamictask import get_dynamically_task_class
-from .utils import import_method
-from .utils import import_qualname
 from .node import get_node_label
 from .node import NodeIdType
 

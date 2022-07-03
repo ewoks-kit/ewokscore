@@ -7,9 +7,9 @@ from typing import Optional, Union
 from collections.abc import Mapping
 
 import networkx
+from ewoksutils.path_utils import makedirs_from_filename
 
 from ..node import node_id_from_json
-from ..utils import makedirs_from_filename
 from .schema import normalize_schema_version
 
 logger = logging.getLogger(__name__)

@@ -5,29 +5,10 @@ from numbers import Number
 from typing import Dict, List, Mapping, Optional
 from datetime import datetime
 import traceback
+from ewoksutils.event_utils import FIELD_TYPES
+
 from . import global_state
 from .initialize_events import ExecInfoType
-
-FIELDS = (
-    "host_name",
-    "process_id",
-    "user_name",
-    "job_id",
-    "binding",
-    "context",
-    "workflow_id",
-    "type",
-    "time",
-    "error",
-    "error_message",
-    "error_traceback",
-    "node_id",
-    "task_id",
-    "progress",
-    "task_uri",
-    "input_uris",
-    "output_uris",
-)
 
 
 def send_job_event(**kw):
@@ -217,7 +198,7 @@ def _extract_task_fields(
 
 
 def _validate_event(event_data: dict) -> str:
-    event_data.update((field, None) for field in set(FIELDS) - set(event_data))
+    event_data.update((field, None) for field in set(FIELD_TYPES) - set(event_data))
     event = event_data["type"]
     if event_data["context"] == "job":
         obj = "job"
