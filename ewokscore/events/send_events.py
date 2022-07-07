@@ -139,8 +139,8 @@ def _extract_common_fields(
     event: str,
     binding: Optional[str] = None,
     time: Optional[str] = None,
-    error: Optional[str] = None,
-    error_message: Optional[bool] = None,
+    error: Optional[bool] = None,
+    error_message: Optional[str] = None,
     error_traceback: Optional[str] = None,
     **logkwargs,
 ):
