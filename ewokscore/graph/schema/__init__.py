@@ -87,19 +87,19 @@ def update_graph_schema(graph: networkx.DiGraph) -> bool:
     lbound, ubound = get_version_bounds().get(schema_version, (None, None))
     if lbound and ubound:
         raise ValueError(
-            f'Graph schema version "{schema_version}" requires another library version: python -m pip install "ewokscore>={lbound},<{ubound}"`'
+            f'Graph schema version "{schema_version}" requires another library version: python3 -m pip install "ewokscore>={lbound},<{ubound}"`'
         )
     elif lbound:
         raise ValueError(
-            f'Graph schema version "{schema_version}" requires another library version: python -m pip install "ewokscore>={lbound}"'
+            f'Graph schema version "{schema_version}" requires another library version: python3 -m pip install "ewokscore>={lbound}"'
         )
     elif ubound:
         raise ValueError(
-            f'Graph schema version "{schema_version}" requires another library version: python -m pip install "ewokscore<{ubound}"'
+            f'Graph schema version "{schema_version}" requires another library version: python3 -m pip install "ewokscore<{ubound}"'
         )
     else:
         raise ValueError(
-            f'Graph schema version "{schema_version}" is either invalid or requires a newer library version: python -m pip install --upgrade ewokscore'
+            f'Graph schema version "{schema_version}" is either invalid or requires a newer library version: python3 -m pip install --upgrade ewokscore'
         )
 
 

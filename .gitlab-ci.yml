@@ -16,8 +16,8 @@ test-3.9:
 test-3.8-examples:
   extends: .test-3.8
   script:
-    - python -m pip install --pre .
-    - python examples/helloworld.py
+    - python3 -m pip install --pre .
+    - python3 examples/helloworld.py
 
 build_sdist:
   extends: .build_sdist
