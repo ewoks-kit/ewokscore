@@ -17,7 +17,7 @@ def test_graph_version(caplog):
     # Update method which raises an exception
     with pytest.raises(
         ValueError,
-        match='Graph schema version "0.0" requires another library version: python -m pip install "ewokscore>=0.0,<0.0.1"',
+        match='Graph schema version "0.0" requires another library version: python3 -m pip install "ewokscore>=0.0,<0.0.1"',
     ):
         load_graph({"graph": {"id": "test", "schema_version": "0.0"}})
 
@@ -34,7 +34,7 @@ def test_graph_version(caplog):
     # Version does not exist
     with pytest.raises(
         ValueError,
-        match='Graph schema version "99999.0" is either invalid or requires a newer library version: python -m pip install --upgrade ewokscore',
+        match='Graph schema version "99999.0" is either invalid or requires a newer library version: python3 -m pip install --upgrade ewokscore',
     ):
         load_graph({"graph": {"id": "test", "schema_version": "99999.0"}})
 
