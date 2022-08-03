@@ -5,6 +5,7 @@ import yaml
 import logging
 from typing import Optional, Union
 from collections.abc import Mapping
+import importlib
 
 import networkx
 from ewoksutils.path_utils import makedirs_from_filename
@@ -15,7 +16,7 @@ from .schema import normalize_schema_version
 logger = logging.getLogger(__name__)
 
 GraphRepresentation = enum.Enum(
-    "GraphRepresentation", "json json_dict json_string yaml"
+    "GraphRepresentation", "json json_dict json_string json_module yaml"
 )
 
 
@@ -38,7 +39,9 @@ def ewoks_jsonload_hook(items):
     return dict(map(_ewoks_jsonload_hook_pair, items))
 
 
-def graph_full_path(path, root_dir=None, possible_extensions=tuple()):
+def graph_full_path(path, root_dir=None, root_module=None, possible_extensions=tuple()):
+    if not root_dir and root_module:
+        root_dir = _package_path(root_module)
     if not os.path.isabs(path) and root_dir:
         path = os.path.join(root_dir, path)
     path = os.path.abspath(path)
@@ -87,6 +90,11 @@ def dump(
         with open(destination, mode="w") as f:
             yaml.dump(dictrepr, f, **kw)
         return destination
+    elif representation == GraphRepresentation.json_module:
+        package, _, file = destination.rpartition(".")
+        assert package, f"No package provided when saving graph to '{destination}'"
+        destination = os.path.join(_package_path(package), f"{file}.json")
+        return dump(graph, destination=destination, representation="json", **kw)
     else:
         raise TypeError(representation, type(representation))
 
@@ -95,6 +103,7 @@ def load(
     source=None,
     representation: Optional[Union[GraphRepresentation, str]] = None,
     root_dir: Optional[str] = None,
+    root_module: Optional[str] = None,
 ) -> networkx.DiGraph:
     """From persistent to runtime representation"""
     if isinstance(representation, str):
@@ -122,7 +131,12 @@ def load(
     elif representation == GraphRepresentation.json_dict:
         graph = _dict_to_networkx(source)
     elif representation == GraphRepresentation.json:
-        source = graph_full_path(source, root_dir, possible_extensions=(".json",))
+        source = graph_full_path(
+            source,
+            root_dir=root_dir,
+            root_module=root_module,
+            possible_extensions=(".json",),
+        )
         with open(source, mode="r") as f:
             source = json.load(f, object_pairs_hook=ewoks_jsonload_hook)
         graph = _dict_to_networkx(source)
@@ -131,11 +145,24 @@ def load(
         graph = _dict_to_networkx(source)
     elif representation == GraphRepresentation.yaml:
         source = graph_full_path(
-            source, root_dir, possible_extensions=(".yml", ".yaml")
+            source,
+            root_dir=root_dir,
+            root_module=root_module,
+            possible_extensions=(".yml", ".yaml"),
         )
         with open(source, mode="r") as f:
             source = yaml.load(f, yaml.Loader)
         graph = _dict_to_networkx(source)
+    elif representation == GraphRepresentation.json_module:
+        package, _, source = source.rpartition(".")
+        if package:
+            source = os.path.join(_package_path(package), source)
+        return load(
+            source,
+            representation="json",
+            root_dir=root_dir,
+            root_module=root_module,
+        )
     else:
         raise TypeError(representation, type(representation))
 
@@ -143,6 +170,11 @@ def load(
         raise TypeError(graph, type(graph))
 
     return graph
+
+
+def _package_path(package: str) -> str:
+    package = importlib.import_module(package)
+    return package.__path__[0]
 
 
 def _dict_to_networkx(graph: dict) -> networkx.DiGraph:
