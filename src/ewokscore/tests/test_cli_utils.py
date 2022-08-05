@@ -6,7 +6,7 @@ def test_cli_execute_workflow():
     parser = argparse.ArgumentParser()
     cliutils.add_execute_parameters(parser)
     argv = ["acyclic1", "--test", "-p", "a=1", "-p", "task1:b=test"]
-    args, _ = parser.parse_known_args(argv)
+    args = parser.parse_args(argv)
     cliutils.apply_execute_parameters(args)
 
     assert args.graph["graph"]["id"] == "acyclic1"
@@ -41,7 +41,7 @@ def test_cli_convert_workflow():
         "--dst-format",
         "json",
     ]
-    args, _ = parser.parse_known_args(argv)
+    args = parser.parse_args(argv)
     cliutils.apply_convert_parameters(args)
 
     assert args.graph["graph"]["id"] == "acyclic1"
