@@ -2,6 +2,11 @@
 
 ## 0.2.0 (unreleased)
 
+## 0.1.1
+
+Bug fixes:
+   - Add missing `packaging` dependency
+
 ## 0.1.0
 
 Added:
