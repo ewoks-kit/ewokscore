@@ -11,7 +11,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.viewcode",
     "sphinxcontrib.mermaid",
-    "sphinx_autodoc_typehints"
+    "sphinx_autodoc_typehints",
 ]
 templates_path = ["_templates"]
 exclude_patterns = []
