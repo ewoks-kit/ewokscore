@@ -11,7 +11,7 @@ in the graph representation. (OOP analogy: a task is a node instance).
 
 A **link** connects a source node to a target node. A link can have the following properties:
   * **conditional**: has a set of statements that combined are either True or False
-  * **required**: either marked as “required” in the graph representation or “unconditional
+  * **required**: either "marked as required” in the graph representation" or “unconditional
     and all ancestors of the source node are required”
   * **data_mapping**: describes data transfer from source to target.
 
@@ -150,8 +150,8 @@ Node attributes
         {
             "default_inputs": [{"name":"a", "value":1}]
         }
-* *inputs_complete* (optional): set to `True` when the default input covers all required input
-  (used for method and script as the required inputs are unknown)
+* *inputs_complete* (optional): set to `True` when the default inputs cover all required inputs
+  (used for *method* and *script* as their required inputs are unknown)
 * *conditions_else_value* (optional): value used in conditional links to indicate the *else* value (Default: `None`)
 * *default_error_node* (optional): when set to `True` all nodes without error handler will be linked to this node.
 * *default_error_attributes* (optional): when `default_error_node=True` this dictionary is used as attributes for the
@@ -183,7 +183,10 @@ Link attributes
         {
             "conditions": [{"source_output": "result", "value": 10}]
         }
-* *on_error* (optional): a special condition: task raises an exception. Cannot be used in combination with *conditions*.
+* *on_error* (optional): a special condition "the source task raises an exception". Cannot be used in combination with *conditions*.
+* *required* (optional): setting this to `True` marks the link as *required*. When a target receives multiple links, it will be executed
+  (perhaps multiple times) when all the sources connected to the target with *required* links have been executed. A link is required when
+  it is either "marked as required" (link attribute `required=True`) or “unconditional and all ancestors of the source node are required”.
 
 Task implementation
 -------------------
