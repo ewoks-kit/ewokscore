@@ -1,4 +1,4 @@
-from typing import Dict, List, Mapping, Optional, Union
+from typing import Dict, Iterator, List, Mapping, Optional, Union
 import networkx
 
 from .analysis import start_nodes
@@ -9,121 +9,152 @@ from .. import missing_data
 from ..task import Task
 
 
-def update_default_inputs(graph: networkx.DiGraph, default_inputs: List[dict]) -> None:
+def update_default_inputs(
+    graph: networkx.DiGraph, inputs: Optional[List[dict]] = None
+) -> None:
     """Input items have the following keys:
-    * id: node id
-    * label (optional): used when id is missing
-    * name: input variable name
-    * value: input variable value
-    * all (optional): used when id and label is missing (True: all nodes, False: start nodes)
+
+    - name: input variable name
+    - value: input variable value
+    - id (optional): node id
+    - label (optional): used when `id` is missing
+    - task_identifier (optional): used when `id` is missing
+    - all (optional): used when `id`, `label` and `task_identifier` are missing (`True`: all nodes, `False`: start nodes)
     """
-    parse_default_inputs(graph, default_inputs)
-    for input_item in default_inputs:
+    inputs = parse_inputs(graph, inputs)
+    for input_item in inputs:
         node_id = input_item.get("id")
         if node_id is None:
             continue
         node_attrs = graph.nodes[node_id]
-        existing_inputs = node_attrs.get("default_inputs")
-        if existing_inputs:
-            for existing_input_item in existing_inputs:
+        default_inputs = node_attrs.get("default_inputs")
+        if default_inputs:
+            for existing_input_item in default_inputs:
                 if existing_input_item["name"] == input_item["name"]:
                     existing_input_item["value"] = input_item["value"]
                     break
             else:
-                existing_inputs.append(input_item)
+                default_inputs.append(input_item)
         else:
             node_attrs["default_inputs"] = [input_item]
 
 
-def parse_default_inputs(graph: networkx.DiGraph, default_inputs: List[dict]) -> None:
+def parse_inputs(
+    graph: networkx.DiGraph, inputs: Optional[List[dict]] = None
+) -> List[dict]:
     """Input items have the following keys:
-    * id: node id
-    * label (optional): used when id is missing
-    * name: input variable name
-    * value: input variable value
-    * all (optional): used when id and label is missing (True: all nodes, False: start nodes)
+
+    - name: input variable name
+    - value: input variable value
+    - id (optional): node id
+    - label (optional): used when `id` is missing
+    - task_identifier (optional): used when `id` is missing
+    - all (optional): used when `id`, `label` and `task_identifier` are missing (`True`: all nodes, `False`: start nodes)
     """
-    extra = list()
+    if not inputs:
+        return list()
     required = {"name", "value"}
-    for input_item in default_inputs:
+    returned = {"id", "name", "value"}
+    parsed = list()
+    for input_item in list(inputs):
         missing = required - input_item.keys()
         if missing:
             raise ValueError(f"missing keys in one of the graph inputs: {missing}")
         if "id" in input_item:
+            parsed.append({k: v for k, v in input_item.items() if k in returned})
             continue
-        elif "label" in input_item:
-            node_label = input_item["label"]
-            node_id = get_node_id(graph, node_label)
-            if node_id is None:
-                raise ValueError(f"Node label '{node_label}' does not exist")
-            input_item["id"] = node_id
+
+        node_filters = dict()
+        for k in ("label", "task_identifier"):
+            if k in input_item:
+                node_filters[k] = input_item[k]
+
+        if node_filters:
+            node_ids = iter_node_ids(graph, **node_filters)
+        elif input_item.get("all"):
+            node_ids = graph.nodes
         else:
-            if input_item.get("all"):
-                nodes = graph.nodes
-            else:
-                nodes = start_nodes(graph)
-            for node_id in nodes:
-                input_item = dict(input_item)
-                input_item["id"] = node_id
-                extra.append(input_item)
-    default_inputs += extra
+            node_ids = start_nodes(graph)
+
+        for node_id in node_ids:
+            input_item = {k: v for k, v in input_item.items() if k in returned}
+            input_item["id"] = node_id
+            parsed.append(input_item)
+    return parsed
 
 
 def parse_outputs(
     graph: networkx.DiGraph, outputs: Optional[List[dict]] = None
-) -> None:
+) -> List[dict]:
     """Output items have the following keys:
-    * id: node id
-    * label (optional): used when id is missing
-    * name (optional): output variable name (all outputs when missing)
-    * new_name (optional): optional renaming when name is defined
-    * all (optional): used when id and label is missing (True: all nodes, False: end nodes)
+
+    - name (optional): output variable name (all outputs when missing)
+    - new_name (optional): optional renaming when `name` is defined
+    - id (optional): node id
+    - label (optional): used when `id` is missing
+    - task_identifier (optional): used when `id` is missing
+    - all (optional): used when `id`, `label` and `task_identifier` are missing (`True`: all nodes, `False`: end nodes)
     """
     if outputs is None:
         outputs = [{"all": False}]
     parsed = list()
+    returned = {"id", "name", "new_name"}
     for output_item in outputs:
         if "id" in output_item:
-            parsed.append(dict(output_item))
+            parsed.append({k: v for k, v in output_item.items() if k in returned})
             continue
-        elif "label" in output_item:
-            node_label = output_item["label"]
-            node_id = get_node_id(graph, node_label)
-            if node_id is None:
-                raise ValueError(f"Node label '{node_label}' does not exist")
-            output_item = dict(output_item)
+
+        node_filters = dict()
+        for k in ("label", "task_identifier"):
+            if k in output_item:
+                node_filters[k] = output_item[k]
+
+        if node_filters:
+            node_ids = iter_node_ids(graph, **node_filters)
+        elif output_item.get("all"):
+            node_ids = graph.nodes
+        else:
+            node_ids = end_nodes(graph)
+
+        for node_id in node_ids:
+            output_item = {k: v for k, v in output_item.items() if k in returned}
             output_item["id"] = node_id
             parsed.append(output_item)
-        else:
-            if output_item.get("all"):
-                nodes = graph.nodes
-            else:
-                nodes = end_nodes(graph)
-            output_item = dict(output_item)
-            output_item.pop("all", None)
-            for node_id in nodes:
-                output_item = dict(output_item)
-                output_item["id"] = node_id
-                parsed.append(output_item)
 
     return parsed
 
 
-def get_node_id(graph: networkx.DiGraph, label: str) -> Optional[NodeIdType]:
+def iter_node_ids(
+    graph: networkx.DiGraph,
+    label: Optional[str] = None,
+    task_identifier: Optional[str] = None,
+) -> Iterator[NodeIdType]:
+    """Yield nodes with matching `label` AND `task_identifier`"""
     for node_id, node_attrs in graph.nodes.items():
-        node_label = get_node_label(node_id, node_attrs)
-        if label == node_label:
-            return node_id
+        return_id = False
+        if label is not None:
+            node_label = get_node_label(node_id, node_attrs)
+            if label != node_label:
+                continue
+            return_id = True
+        if task_identifier is not None:
+            s = node_attrs.get("task_identifier")
+            if not s or not s.endswith(task_identifier):
+                continue
+            return_id = True
+        if return_id:
+            yield node_id
 
 
 def extract_output_values(
     node_id: NodeIdType, task_or_outputs: Union[Task, Mapping], outputs: List[dict]
 ) -> Optional[dict]:
     """Output items have the following keys:
-    * id: node id
-    * label (optional): used when id is missing
-    * name (optional): output variable name (all outputs when missing)
-    * new_name (optional): optional renaming when name is defined
+
+    - id: node id
+    - label (optional): used when `id` is missing
+    - name (optional): output variable name (all outputs when missing)
+    - new_name (optional): optional renaming when name is defined
     """
     output_values = None
     if isinstance(task_or_outputs, Task):
@@ -156,10 +187,11 @@ def add_output_values(
     merge_outputs: Optional[bool] = True,
 ) -> None:
     """Output items have the following keys:
-    * id: node id
-    * label (optional): used when id is missing
-    * name (optional): output variable name (all outputs when missing)
-    * new_name (optional): optional renaming when name is defined
+
+    - id: node id
+    - label (optional): used when `id` is missing
+    - name (optional): output variable name (all outputs when missing)
+    - new_name (optional): optional renaming when name is defined
     """
     task_output_values = extract_output_values(node_id, task_or_outputs, outputs)
     if task_output_values is not None:
