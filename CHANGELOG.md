@@ -1,6 +1,11 @@
 # CHANGELOG.md
 
-## 0.2.0 (unreleased)
+## 0.3.0 (unreleased)
+
+## 0.2.0
+
+New features:
+   - Workflow inputs and outputs: use `task_identifier` to select nodes
 
 ## 0.1.1
 
@@ -9,7 +14,7 @@ Bug fixes:
 
 ## 0.1.0
 
-Added:
+New features:
   - `Graph` class as an API for all task graphs
   - `Task` class as an API for all tasks
   - `Variable` class for task parameters, hashing and
