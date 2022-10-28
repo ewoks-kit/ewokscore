@@ -172,7 +172,8 @@ class Variable(hashing.UniversalHashable):
 
     def deserialize(self, data: dict):
         """Deserialize data after loading from persistent storage"""
-        self._runtime_value = data.pop("value")
+        # When the value is `None`, the backup may not store it (e.g. HDF5)
+        self._runtime_value = data.pop("value", None)
         self._runtime_metadata = data
 
     @property

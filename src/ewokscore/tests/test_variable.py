@@ -380,3 +380,10 @@ def test_variable_container_uri(tmpdir):
     assert var1.variable_values == {"a": 1, "b": 2}
     assert var1.value == var2.value
     assert var1 == var2
+
+
+@pytest.mark.parametrize("scheme", ("json", "nexus"))
+def test_variable_none_dump(scheme, tmpdir):
+    var = Variable(value=None, varinfo={"root_uri": str(tmpdir), "scheme": scheme})
+    var.dump()
+    var.load()
