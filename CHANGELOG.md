@@ -2,6 +2,11 @@
 
 ## 0.3.0 (unreleased)
 
+## 0.1.2
+
+Bug fixes:
+   - Store only "name" and "value" of dynamic inputs in node default inputs
+
 ## 0.2.0
 
 New features:
