@@ -22,6 +22,7 @@ def update_default_inputs(
     - all (optional): used when `id`, `label` and `task_identifier` are missing (`True`: all nodes, `False`: start nodes)
     """
     inputs = parse_inputs(graph, inputs)
+    keys_to_update = "name", "value"
     for input_item in inputs:
         node_id = input_item.get("id")
         if node_id is None:
@@ -34,7 +35,7 @@ def update_default_inputs(
                     existing_input_item["value"] = input_item["value"]
                     break
             else:
-                default_inputs.append(input_item)
+                default_inputs.append({k: input_item[k] for k in keys_to_update})
         else:
             node_attrs["default_inputs"] = [input_item]
 
