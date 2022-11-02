@@ -1,4 +1,7 @@
 from . import utils
+from ..graph.serialize import GraphRepresentation
+
+_REPRESENTATIONS = [str(s).split(".")[-1] for s in GraphRepresentation]
 
 
 def add_execute_parameters(parser):
@@ -11,8 +14,23 @@ def add_execute_parameters(parser):
         "--workflow-dir",
         type=str,
         default="",
-        dest="workflow_dir",
+        dest="root_dir",
         help="Directory of sub-workflows (current working directory by default)",
+    )
+    parser.add_argument(
+        "--workflow-module",
+        type=str,
+        default="",
+        dest="root_module",
+        help="Python module of sub-workflows (current working directory by default)",
+    )
+    parser.add_argument(
+        "--workflow-format",
+        type=str.lower,
+        default="",
+        dest="representation",
+        choices=_REPRESENTATIONS,
+        help="Source format",
     )
     parser.add_argument(
         "--data-root-uri",
@@ -109,7 +127,14 @@ def apply_execute_parameters(args):
         "root_uri": args.data_root_uri,
         "scheme": args.data_scheme,
     }
-    execute_options["load_options"] = {"root_dir": args.workflow_dir}
+    load_options = dict()
+    execute_options["load_options"] = load_options
+    if args.root_module:
+        load_options["root_module"] = args.root_module
+    if args.root_dir:
+        load_options["root_dir"] = args.root_dir
+    if args.representation:
+        load_options["representation"] = args.representation
 
     if not args.disable_events:
         execinfo = dict()
