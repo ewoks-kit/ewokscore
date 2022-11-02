@@ -5,7 +5,16 @@ from ewokscore import cliutils
 def test_cli_execute_workflow():
     parser = argparse.ArgumentParser()
     cliutils.add_execute_parameters(parser)
-    argv = ["acyclic1", "--test", "-p", "a=1", "-p", "task1:b=test"]
+    argv = [
+        "acyclic1",
+        "--test",
+        "-p",
+        "a=1",
+        "-p",
+        "task1:b=test",
+        "--workflow-dir",
+        "/tmp",
+    ]
     args = parser.parse_args(argv)
     cliutils.apply_execute_parameters(args)
 
@@ -19,7 +28,7 @@ def test_cli_execute_workflow():
         "merge_outputs": False,
         "outputs": [],
         "varinfo": {"root_uri": "", "scheme": "nexus"},
-        "load_options": {"root_dir": ""},
+        "load_options": {"root_dir": "/tmp"},
         "execinfo": {},
     }
     assert args.execute_options == execute_options

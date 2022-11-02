@@ -1,5 +1,6 @@
 from . import utils
 from ..graph.serialize import GraphRepresentation
+
 _REPRESENTATIONS = [str(s).split(".")[-1] for s in GraphRepresentation]
 
 
