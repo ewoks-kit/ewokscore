@@ -1,4 +1,6 @@
 from . import utils
+from ..graph.serialize import GraphRepresentation
+_REPRESENTATIONS = [str(s).split(".")[-1] for s in GraphRepresentation]
 
 
 def add_convert_parameters(parser):
@@ -17,21 +19,30 @@ def add_convert_parameters(parser):
         type=str.lower,
         default="",
         dest="source_representation",
-        help="Source format (json, yaml, ows, ...)",
+        choices=_REPRESENTATIONS,
+        help="Source format",
     )
     parser.add_argument(
         "--dst-format",
         type=str.lower,
         default="",
         dest="destination_representation",
-        help="Destination format (json, yaml, ows, ...)",
+        choices=_REPRESENTATIONS,
+        help="Destination format",
     )
     parser.add_argument(
         "--workflow-dir",
         type=str,
         default="",
-        dest="workflow_dir",
+        dest="root_dir",
         help="Directory of sub-workflows (current working directory by default)",
+    )
+    parser.add_argument(
+        "--workflow-module",
+        type=str,
+        default="",
+        dest="root_module",
+        help="Python module of sub-workflows (current working directory by default)",
     )
     parser.add_argument(
         "-p",
@@ -75,8 +86,10 @@ def apply_convert_parameters(args):
     load_options = dict(utils.parse_option(item) for item in args.load_options)
     if args.source_representation:
         load_options["representation"] = args.source_representation
-    if args.workflow_dir:
-        load_options["root_dir"] = args.workflow_dir
+    if args.root_module:
+        load_options["root_module"] = args.root_module
+    if args.root_dir:
+        load_options["root_dir"] = args.root_dir
 
     save_options = dict(utils.parse_option(item) for item in args.save_options)
     if args.destination_representation:
