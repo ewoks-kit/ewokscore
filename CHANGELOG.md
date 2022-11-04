@@ -1,8 +1,14 @@
 # CHANGELOG.md
 
-## 0.3.0 (unreleased)
+## 0.4.0 (unreleased)
 
-## 0.1.2
+## 0.3.0
+
+Breaking changes:
+   - `Variable` methods `variable_values`, `named_variable_values`, `positional_variable_values`
+     no longer values of type `MissingData`.
+
+## 0.2.1
 
 Bug fixes:
    - Store only "name" and "value" of dynamic inputs in node default inputs
