@@ -1,6 +1,7 @@
 import gc
 import pytest
 from contextlib import contextmanager
+from ewokscore.missing_data import MISSING_DATA
 from ewokscore.variable import Variable, VariableContainer
 from ewokscore.variable import MutableVariableContainer
 
@@ -387,3 +388,34 @@ def test_variable_none_dump(scheme, tmpdir):
     var = Variable(value=None, varinfo={"root_uri": str(tmpdir), "scheme": scheme})
     var.dump()
     var.load()
+
+
+def test_variable_container_values():
+    c = MutableVariableContainer(
+        value={"a": None, "b": MISSING_DATA, 2: "Two", 3: MISSING_DATA}
+    )
+    assert not c["a"].is_missing()
+    assert c["b"].is_missing()
+    assert c.variable_values == {"a": None, 2: "Two"}
+    assert c.named_variable_values == {"a": None}
+    assert c.positional_variable_values == (
+        MISSING_DATA,
+        MISSING_DATA,
+        "Two",
+        MISSING_DATA,
+    )
+
+    c["a"] = MISSING_DATA
+    c["b"] = None
+    c[1] = "One"
+    c[2] = MISSING_DATA
+    assert c["a"].is_missing()
+    assert not c["b"].is_missing()
+    assert c.variable_values == {"b": None, 1: "One"}
+    assert c.named_variable_values == {"b": None}
+    assert c.positional_variable_values == (
+        MISSING_DATA,
+        "One",
+        MISSING_DATA,
+        MISSING_DATA,
+    )

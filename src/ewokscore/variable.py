@@ -37,8 +37,8 @@ class Variable(hashing.UniversalHashable):
 
     def __init__(
         self,
-        value=missing_data.MISSING_DATA,
-        metadata=missing_data.MISSING_DATA,
+        value: Any = missing_data.MISSING_DATA,
+        metadata: Any = missing_data.MISSING_DATA,
         varinfo: Optional[dict] = None,
         data_uri: Union[DataUri, str, None] = None,
         data_proxy: Optional[DataProxy] = None,
@@ -204,7 +204,7 @@ class VariableContainer(Variable, Mapping):
 
     def __init__(
         self,
-        value=missing_data.MISSING_DATA,
+        value: Any = missing_data.MISSING_DATA,
         varinfo: Optional[dict] = None,
         data_uri: Optional[DataUri] = None,
         data_proxy: Optional[DataProxy] = None,
@@ -424,7 +424,7 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def variable_values(self):
-        return {k: v.value for k, v in self.items()}
+        return {k: v.value for k, v in self.items() if not v.is_missing()}
 
     @property
     def variable_data_proxies(self):
@@ -455,7 +455,11 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def named_variable_values(self):
-        return {k: v.value for k, v in self.items() if isinstance(k, str)}
+        return {
+            k: v.value
+            for k, v in self.items()
+            if isinstance(k, str) and not v.is_missing()
+        }
 
     @property
     def positional_variable_values(self):
