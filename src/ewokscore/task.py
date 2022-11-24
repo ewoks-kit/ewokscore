@@ -295,6 +295,20 @@ class Task(Registered, UniversalHashable, register=False):
         else:
             return str(self)
 
+    @property
+    def node_id(self):
+        return self.__node_id
+
+    @property
+    def job_id(self) -> Optional[str]:
+        if self.__execinfo:
+            return self.__execinfo.get("job_id")
+
+    @property
+    def workflow_id(self) -> Optional[str]:
+        if self.__execinfo:
+            return self.__execinfo.get("workflow_id")
+
     def _iter_missing_input_values(self):
         for iname in self._INPUT_NAMES:
             var = self.input_variables.get(iname)
