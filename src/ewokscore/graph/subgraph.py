@@ -252,7 +252,7 @@ def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]
                 links = _get_subnode_links(
                     source_id, target_id, link_attrs_subgraph_keys, subgraphs
                 )
-                for (source, target, default_link_attrs, target_is_graph) in links:
+                for source, target, default_link_attrs, target_is_graph in links:
                     link_attrs = deepcopy(original_link_attrs)
                     if default_link_attrs:
                         link_attrs = {**default_link_attrs, **link_attrs}
