@@ -79,11 +79,11 @@ def dump(
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
         with open(destination, mode="w") as f:
-            json.dump(dictrepr, f, **kw)
+            json.dump(dictrepr, f, indent=4, **kw)
         return destination
     elif representation == GraphRepresentation.json_string:
         dictrepr = dump(graph)
-        return json.dumps(dictrepr, **kw)
+        return json.dumps(dictrepr, indent=4, **kw)
     elif representation == GraphRepresentation.yaml:
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
