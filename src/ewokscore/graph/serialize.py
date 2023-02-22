@@ -84,7 +84,6 @@ def dump(
         return destination
     elif representation == GraphRepresentation.json_string:
         dictrepr = dump(graph)
-        kw.setdefault("indent", 2)
         return json.dumps(dictrepr, **kw)
     elif representation == GraphRepresentation.yaml:
         dictrepr = dump(graph)
