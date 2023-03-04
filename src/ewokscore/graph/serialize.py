@@ -78,6 +78,7 @@ def dump(
     elif representation == GraphRepresentation.json:
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
+        kw.setdefault("indent", 2)
         with open(destination, mode="w") as f:
             json.dump(dictrepr, f, **kw)
         return destination
