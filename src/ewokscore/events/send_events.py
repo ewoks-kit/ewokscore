@@ -5,6 +5,7 @@ from numbers import Number
 from typing import Dict, List, Mapping, Optional
 from datetime import datetime
 import traceback
+from warnings import warn
 from ewoksutils.event_utils import FIELD_TYPES
 
 from . import global_state
@@ -137,6 +138,7 @@ def _extract_common_fields(
     user_name: str,
     job_id: str,
     event: str,
+    engine: Optional[str] = None,
     binding: Optional[str] = None,
     time: Optional[str] = None,
     error: Optional[bool] = None,
@@ -144,12 +146,22 @@ def _extract_common_fields(
     error_traceback: Optional[str] = None,
     **logkwargs,
 ):
+    if "engine" in FIELD_TYPES:
+        engine_field = "engine"
+    else:
+        engine_field = "binding"
+    if binding:
+        if engine:
+            raise ValueError("'binding' and 'engine' cannot be used together")
+        engine = binding
+        if engine_field == "engine":
+            warn("'binding' is deprecated in favor of 'engine'", FutureWarning)
     event_data = {
         "host_name": host_name,
         "process_id": process_id,
         "user_name": user_name,
         "job_id": job_id,
-        "binding": binding,
+        engine_field: engine,
         "type": event,
         "time": time,
         "error": error,
