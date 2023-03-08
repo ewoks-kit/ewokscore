@@ -2,6 +2,11 @@
 
 ## 0.4.0 (unreleased)
 
+## 0.3.1
+
+Deprecations:
+   - ewoks event field "binding" is deprecated in favor of "engine"
+
 ## 0.3.0
 
 Breaking changes:
