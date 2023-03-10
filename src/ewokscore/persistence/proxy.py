@@ -47,8 +47,7 @@ class DataUri(HasUhash):
     def __copy__(self):
         return type(self)(self.__uri, self.__uhash)
 
-    @property
-    def uhash(self) -> UniversalHash:
+    def __uhash__(self) -> UniversalHash:
         return self.__uhash
 
     def serialize(self) -> Dict[str, str]:
@@ -134,8 +133,7 @@ class DataProxy(Registered, HasUhash, register=False):
             return None
         return self.instantiate(uri=uri)
 
-    @property
-    def uhash(self) -> Optional[UniversalHash]:
+    def __uhash__(self) -> Optional[UniversalHash]:
         if self.is_fixed_uri:
             return self.__fixed_uri.uhash
         elif isinstance(self.__uhash_source, HasUhash):
