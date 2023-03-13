@@ -8,9 +8,9 @@ class TaskWithProgress(Task, register=False):
     Task within a progress to display task advancement
     """
 
-    def __init__(self, progress: Optional[BaseProgress] = None, **kw):
-        super().__init__(**kw)
-        self._task_progress = progress
+    def __init__(self, *args, **kw):
+        self._task_progress: Optional[BaseProgress] = kw.pop("progress", None)
+        super().__init__(*args, **kw)
 
     @property
     def progress(self) -> Optional[int]:
