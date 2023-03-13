@@ -11,6 +11,7 @@ def acyclic1():
             "task_type": "class",
             "task_identifier": task,
             "ows": {"position": "(323.0, 166.0)"},
+            "uiProps": {"position": {"x": 323, "y": 166}},
         },
         {
             "id": "task2",
@@ -18,6 +19,7 @@ def acyclic1():
             "task_type": "class",
             "task_identifier": task,
             "ows": {"position": "(317.0, 320.0)"},
+            "uiProps": {"position": {"x": 317, "y": 320}},
         },
         {
             "id": "task3",
@@ -25,6 +27,7 @@ def acyclic1():
             "task_type": "class",
             "task_identifier": task,
             "ows": {"position": "(575.0, 164.0)"},
+            "uiProps": {"position": {"x": 575, "y": 164}},
         },
         {
             "id": "task4",
@@ -32,6 +35,7 @@ def acyclic1():
             "task_type": "class",
             "task_identifier": task,
             "ows": {"position": "(577.0, 321.0)"},
+            "uiProps": {"position": {"x": 577, "y": 321}},
         },
         {
             "id": "task5",
@@ -39,6 +43,7 @@ def acyclic1():
             "task_type": "class",
             "task_identifier": task,
             "ows": {"position": "(808.0, 231.0)"},
+            "uiProps": {"position": {"x": 808, "y": 231}},
         },
         {
             "id": "task6",
@@ -46,6 +51,7 @@ def acyclic1():
             "task_type": "class",
             "task_identifier": task,
             "ows": {"position": "(1042.0, 234.0)"},
+            "uiProps": {"position": {"x": 1042, "y": 234}},
         },
     ]
 
