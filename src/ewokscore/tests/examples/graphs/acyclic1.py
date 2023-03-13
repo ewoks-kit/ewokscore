@@ -77,7 +77,59 @@ def acyclic1():
         },
     ]
 
+    ows = {
+        "annotations": [
+            {
+                "id": "0",
+                "type": "text",
+                "params": {
+                    "geometry": [92.0, 137.0, 150.0, 67.0],
+                    "text": 'Double-click to "trigger" the workflow',
+                    "font": {"family": "Ubuntu", "size": 16},
+                    "content_type": "text/plain",
+                },
+            },
+            {
+                "id": "1",
+                "type": "arrow",
+                "params": {
+                    "geometry": [[222.0, 167.0], [281.0, 168.0]],
+                    "color": "#C1272D",
+                },
+            },
+            {
+                "id": "2",
+                "type": "text",
+                "params": {
+                    "geometry": [84.0, 299.0, 150.0, 68.0],
+                    "text": 'Double-click to\n"trigger" the workflow',
+                    "font": {"family": "Ubuntu", "size": 16},
+                    "content_type": "text/plain",
+                },
+            },
+            {
+                "id": "3",
+                "type": "arrow",
+                "params": {
+                    "geometry": [[217.0, 319.0], [275.0, 319.0]],
+                    "color": "#C1272D",
+                },
+            },
+            {
+                "id": "4",
+                "type": "text",
+                "params": {
+                    "geometry": [369.0, 10.0, 499.0, 68.0],
+                    "text": 'Double-click any node to see the\n - "Execute" button: execute only the task\n - "Trigger" button: execute the task end all downstream tasks',
+                    "font": {"family": "Ubuntu", "size": 16},
+                    "content_type": "text/plain",
+                },
+            },
+        ]
+    }
+
     graph = {
+        "graph": {"ows": ows},
         "links": links,
         "nodes": nodes,
     }
