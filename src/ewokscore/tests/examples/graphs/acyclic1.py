@@ -10,36 +10,42 @@ def acyclic1():
             "default_inputs": [{"name": "a", "value": 1}],
             "task_type": "class",
             "task_identifier": task,
+            "ows": {"position": "(323.0, 166.0)"},
         },
         {
             "id": "task2",
             "default_inputs": [{"name": "a", "value": 2}],
             "task_type": "class",
             "task_identifier": task,
+            "ows": {"position": "(317.0, 320.0)"},
         },
         {
             "id": "task3",
             "default_inputs": [{"name": "b", "value": 3}],
             "task_type": "class",
             "task_identifier": task,
+            "ows": {"position": "(575.0, 164.0)"},
         },
         {
             "id": "task4",
             "default_inputs": [{"name": "b", "value": 4}],
             "task_type": "class",
             "task_identifier": task,
+            "ows": {"position": "(577.0, 321.0)"},
         },
         {
             "id": "task5",
             "default_inputs": [{"name": "b", "value": 5}],
             "task_type": "class",
             "task_identifier": task,
+            "ows": {"position": "(808.0, 231.0)"},
         },
         {
             "id": "task6",
             "default_inputs": [{"name": "b", "value": 6}],
             "task_type": "class",
             "task_identifier": task,
+            "ows": {"position": "(1042.0, 234.0)"},
         },
     ]
 
