@@ -120,7 +120,7 @@ def acyclic1():
                 "type": "text",
                 "params": {
                     "geometry": [369.0, 10.0, 499.0, 68.0],
-                    "text": 'Double-click any node to see the\n - "Execute" button: execute only the task\n - "Trigger" button: execute the task end all downstream tasks',
+                    "text": 'Double-click any node to see the\n - "Execute" button: execute only the task\n - "Trigger" button: execute the task and all downstream tasks',
                     "font": {"family": "Ubuntu", "size": 16},
                     "content_type": "text/plain",
                 },
