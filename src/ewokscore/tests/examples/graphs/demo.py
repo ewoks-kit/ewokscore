@@ -14,6 +14,8 @@ def demo():
             ],
             "task_type": "class",
             "task_identifier": sumlist,
+            "ows": {"position": "(200.0, 433.0)"},
+            "uiProps": {"position": {"x": 200, "y": 433}},
         },
         {
             "id": "task1",
@@ -23,6 +25,8 @@ def demo():
             ],
             "task_type": "class",
             "task_identifier": sumtask,
+            "ows": {"position": "(456.0, 431.0)"},
+            "uiProps": {"position": {"x": 456, "y": 431}},
         },
         {
             "id": "task2",
@@ -32,6 +36,8 @@ def demo():
             ],
             "task_type": "class",
             "task_identifier": sumtask,
+            "ows": {"position": "(450.0, 155.0)"},
+            "uiProps": {"position": {"x": 450, "y": 155}},
         },
         {
             "id": "task3",
@@ -41,6 +47,8 @@ def demo():
             ],
             "task_type": "class",
             "task_identifier": sumtask,
+            "ows": {"position": "(709.0, 432.0)"},
+            "uiProps": {"position": {"x": 709, "y": 432}},
         },
         {
             "id": "task4",
@@ -50,6 +58,8 @@ def demo():
             ],
             "task_type": "class",
             "task_identifier": sumtask,
+            "ows": {"position": "(705.0, 152.0)"},
+            "uiProps": {"position": {"x": 705, "y": 152}},
         },
         {
             "id": "task5",
@@ -59,6 +69,8 @@ def demo():
             ],
             "task_type": "class",
             "task_identifier": sumtask,
+            "ows": {"position": "(902.0, 264.0)"},
+            "uiProps": {"position": {"x": 902, "y": 264}},
         },
         {
             "id": "task6",
@@ -68,6 +80,8 @@ def demo():
             ],
             "task_type": "class",
             "task_identifier": sumtask,
+            "ows": {"position": "(1113.0, 263.0)"},
+            "uiProps": {"position": {"x": 1113, "y": 263}},
         },
     ]
 
