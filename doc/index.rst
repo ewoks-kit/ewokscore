@@ -12,7 +12,7 @@ Install requirements
 
 .. code:: bash
 
-    python3 -m pip install ewokscore
+    pip install ewokscore
 
 Execute a workflow
 
@@ -26,8 +26,8 @@ Run the tests
 
 .. code:: bash
 
-    python3 -m pip install ewokscore[test]
-    python3 -m pytest --pyargs ewokscore.tests
+    pip install ewokscore[test]
+    pytest --pyargs ewokscore.tests
 
 Documentation
 -------------

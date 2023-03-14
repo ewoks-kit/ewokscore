@@ -5,13 +5,13 @@
 ## Install
 
 ```bash
-python3 -m pip install ewokscore[test]
+pip install ewokscore[test]
 ```
 
 ## Test
 
 ```bash
-python3 -m pytest --pyargs ewokscore.tests
+pytest --pyargs ewokscore.tests
 ```
 
 ## Getting started
