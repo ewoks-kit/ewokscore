@@ -1,16 +1,14 @@
 from typing import Optional, Union, Mapping
 
-from ewokscore.events import node_context
-
 from .hashing import UniversalHashable
+from .registration import Registered
 from .variable import VariableContainer
 from .variable import VariableContainerNamespace
 from .variable import ReadOnlyVariableContainerNamespace
 from .variable import VariableContainerMissingNamespace
-from .registration import Registered
+from . import node
 from . import missing_data
 from . import events
-from . import node
 
 
 class TaskInputError(ValueError):
@@ -336,7 +334,7 @@ class Task(Registered, UniversalHashable, register=False):
         raise_on_error: Optional[bool] = True,
         cleanup_references: Optional[bool] = False,
     ):
-        with node_context(
+        with events.node_context(
             self.__execinfo, node_id=self.__node_id, task_id=self.__task_id
         ) as execinfo:
             self.__execinfo = execinfo
