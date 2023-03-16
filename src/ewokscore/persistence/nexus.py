@@ -1,12 +1,13 @@
 from typing import Any, List, Mapping
 from pathlib import Path
-import h5py
 
-from .file import FileProxy
-from . import atomic
+import h5py
 from silx.io.dictdump import dicttonx, nxtodict
 from silx.io import h5py_utils
 from silx.utils.proxy import docstring
+
+from .file import FileProxy
+from . import atomic
 
 
 # @h5py_utils.retry(retry_period=1)
