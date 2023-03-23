@@ -9,6 +9,12 @@ from ewoksutils.import_utils import qualname
 def discover_tasks_from_modules(
     *module_names: Iterable[str], task_type="class"
 ) -> Iterable[dict]:
+    return list(iter_discover_tasks_from_modules(*module_names, task_type=task_type))
+
+
+def iter_discover_tasks_from_modules(
+    *module_names: Iterable[str], task_type="class"
+) -> Iterable[dict]:
     if task_type == "method":
         yield from _iter_method_tasks(*module_names)
     elif task_type == "ppfmethod":
