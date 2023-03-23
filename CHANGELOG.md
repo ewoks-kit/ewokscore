@@ -2,6 +2,11 @@
 
 ## 0.4.0 (unreleased)
 
+## 0.3.2
+
+Changes:
+   - make discover_tasks_from_modules pickelable
+
 ## 0.3.1
 
 Deprecations:
