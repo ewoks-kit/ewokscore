@@ -2,6 +2,11 @@
 
 ## 0.4.0 (unreleased)
 
+## 0.3.3
+
+Changes:
+   - tasks discovery includes the current working directory
+
 ## 0.3.2
 
 Changes:
