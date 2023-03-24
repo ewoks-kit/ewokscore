@@ -1,3 +1,4 @@
+import sys
 import inspect
 import importlib
 import importlib.util
@@ -15,6 +16,11 @@ def discover_tasks_from_modules(
 def iter_discover_tasks_from_modules(
     *module_names: Iterable[str], task_type="class"
 ) -> Iterable[dict]:
+    if "" not in sys.path:
+        # This happens when the python process was launched
+        # through a python console script
+        sys.path.append("")
+
     if task_type == "method":
         yield from _iter_method_tasks(*module_names)
     elif task_type == "ppfmethod":
