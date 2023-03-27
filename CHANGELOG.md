@@ -1,6 +1,14 @@
 # CHANGELOG.md
 
-## 0.4.0 (unreleased)
+## 0.5.0 (unreleased)
+
+## 0.4.0
+
+New features:
+   - CLI support inputs by label or task identifier
+
+Breaking changes:
+   - CLI option "--output" renamed to "--outputs"
 
 ## 0.3.3
 
