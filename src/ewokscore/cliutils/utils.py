@@ -9,14 +9,27 @@ def parse_value(value: str) -> Any:
         return value
 
 
-def parse_parameter(input_item: str):
+_NODE_ATTR_MAP = {"id": "id", "label": "label", "taskid": "task_identifier"}
+
+
+def parse_parameter(input_item: str, node_attr: str, all: bool) -> dict:
+    """The format of `input_item` is `"[NODE]:name=value"`"""
     node_and_name, _, value = input_item.partition("=")
-    node_id_or_var_name, _, var_name = node_and_name.partition(":")
-    var_value = parse_value(value)
-    if var_name:
-        return {"id": node_id_or_var_name, "name": var_name, "value": var_value}
+    a, sep, b = node_and_name.partition(":")
+    if sep:
+        node = a
+        var_name = b
     else:
-        return {"name": node_id_or_var_name, "value": var_value}  # all input nodes
+        node = None
+        var_name = a
+    var_value = parse_value(value)
+    if node is None:
+        return {"all": all, "name": var_name, "value": var_value}
+    return {
+        _NODE_ATTR_MAP[node_attr]: node,
+        "name": var_name,
+        "value": var_value,
+    }
 
 
 def parse_option(option: str) -> Tuple[str, Any]:
