@@ -82,7 +82,9 @@ def add_convert_parameters(parser):
 def apply_convert_parameters(args):
     args.graph = utils.parse_workflow(args)
 
-    inputs = [utils.parse_parameter(input_item) for input_item in args.parameters]
+    inputs = [
+        utils.parse_parameter(input_item, "id", False) for input_item in args.parameters
+    ]
 
     load_options = dict(utils.parse_option(item) for item in args.load_options)
     if args.source_representation:

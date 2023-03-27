@@ -92,11 +92,26 @@ def add_execute_parameters(parser):
         help="The 'workflow' argument refers to the name of a test graph",
     )
     parser.add_argument(
-        "--output",
+        "--outputs",
         type=str,
         choices=["none", "end", "all"],
         default="none",
         help="Log outputs (per task or merged values dictionary)",
+    )
+    parser.add_argument(
+        "--input-node-id",
+        dest="node_attr",
+        type=str,
+        choices=["id", "label", "taskid"],
+        default="id",
+        help="The NODE attribute used when specifying an input parameter with [NODE:]NAME=VALUE",
+    )
+    parser.add_argument(
+        "--inputs",
+        type=str,
+        choices=["start", "all"],
+        default="start",
+        help="Inputs without a specific node are given to either all start nodes or all nodes",
     )
     parser.add_argument(
         "--merge-outputs",
@@ -112,12 +127,13 @@ def apply_execute_parameters(args):
     execute_options = dict(utils.parse_option(item) for item in args.options)
 
     execute_options["inputs"] = [
-        utils.parse_parameter(input_item) for input_item in args.parameters
+        utils.parse_parameter(input_item, args.node_attr, args.inputs == "all")
+        for input_item in args.parameters
     ]
 
-    if args.output == "all":
+    if args.outputs == "all":
         execute_options["outputs"] = [{"all": True}]
-    elif args.output == "end":
+    elif args.outputs == "end":
         execute_options["outputs"] = [{"all": False}]
     else:
         execute_options["outputs"] = []

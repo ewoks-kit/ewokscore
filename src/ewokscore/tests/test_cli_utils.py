@@ -22,7 +22,7 @@ def test_cli_execute_workflow():
 
     execute_options = {
         "inputs": [
-            {"name": "a", "value": 1},
+            {"all": False, "name": "a", "value": 1},
             {"id": "task1", "name": "b", "value": "test"},
         ],
         "merge_outputs": False,
@@ -57,7 +57,7 @@ def test_cli_convert_workflow():
 
     convert_options = {
         "inputs": [
-            {"name": "a", "value": 1},
+            {"all": False, "name": "a", "value": 1},
             {"id": "task1", "name": "b", "value": "test"},
         ],
         "load_options": {"representation": "yaml"},
