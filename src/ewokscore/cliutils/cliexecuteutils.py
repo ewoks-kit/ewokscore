@@ -74,8 +74,7 @@ def add_execute_parameters(parser):
         help="Job id for ewoks events",
     )
     parser.add_argument(
-        "--disable_events",
-        dest="disable_events",
+        "--disable-events",
         action="store_true",
         help="Disable ewoks events",
     )
@@ -152,19 +151,18 @@ def apply_execute_parameters(args):
     if args.representation:
         load_options["representation"] = args.representation
 
-    if not args.disable_events:
-        execinfo = dict()
-        execute_options["execinfo"] = execinfo
-        if args.job_id:
-            execinfo["job_id"] = args.job_id
-        if args.sqlite3_uri:
-            # TODO: asynchronous handling may loose events
-            execinfo["asynchronous"] = False
-            execinfo["handlers"] = [
-                {
-                    "class": "ewokscore.events.handlers.Sqlite3EwoksEventHandler",
-                    "arguments": [{"name": "uri", "value": args.sqlite3_uri}],
-                }
-            ]
+    execinfo = dict()
+    execute_options["execinfo"] = execinfo
+    if args.job_id:
+        execinfo["job_id"] = args.job_id
+    if args.sqlite3_uri:
+        # TODO: asynchronous handling may loose events
+        execinfo["asynchronous"] = False
+        execinfo["handlers"] = [
+            {
+                "class": "ewokscore.events.handlers.Sqlite3EwoksEventHandler",
+                "arguments": [{"name": "uri", "value": args.sqlite3_uri}],
+            }
+        ]
 
     args.execute_options = execute_options
