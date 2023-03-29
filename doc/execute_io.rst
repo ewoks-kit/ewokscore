@@ -69,8 +69,8 @@ An example where we use the return value of two tasks as the workflow output
 
     results = execute_graph(
         "/path/to/file.json",
-        inputs=[{"id": "task1", "name":return_value", "new_name": "return_value1"},
-                {"id": "task2", "name":return_value", "new_name": "return_value2"}]
+        inputs=[{"id": "task1", "name": "return_value", "new_name": "return_value1"},
+                {"id": "task2", "name": "return_value", "new_name": "return_value2"}]
     )
 
     assert set(results) == {"return_value1", "return_value2"}
