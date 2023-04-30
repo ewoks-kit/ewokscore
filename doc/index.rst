@@ -1,4 +1,4 @@
-ewokscore |release|
+ewokscore |version|
 ===================
 
 *ewokscore* provides an API to define workflows and implement tasks in `ewoks <https://ewoks.readthedocs.io/>`_.
