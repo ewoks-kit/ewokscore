@@ -29,13 +29,14 @@ def update_default_inputs(
             continue
         node_attrs = graph.nodes[node_id]
         default_inputs = node_attrs.get("default_inputs")
+        input_item = {k: input_item[k] for k in keys_to_update}
         if default_inputs:
             for existing_input_item in default_inputs:
                 if existing_input_item["name"] == input_item["name"]:
-                    existing_input_item["value"] = input_item["value"]
+                    existing_input_item.update(input_item)
                     break
             else:
-                default_inputs.append({k: input_item[k] for k in keys_to_update})
+                default_inputs.append(input_item)
         else:
             node_attrs["default_inputs"] = [input_item]
 
