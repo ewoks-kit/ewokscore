@@ -167,7 +167,7 @@ def extract_output_values(
         if output_item.get("id") != node_id:
             continue
         if task_output_values is None:
-            task_output_values = task_or_outputs.output_values
+            task_output_values = task_or_outputs.get_output_values()
         if output_values is None:
             output_values = dict()
         name = output_item.get("name")

@@ -1,3 +1,4 @@
+import warnings
 from typing import Optional, Union, Mapping
 
 from .hashing import UniversalHashable
@@ -198,23 +199,47 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def input_uhashes(self):
-        return self.input_variables.variable_uhashes
+        return self.get_input_uhashes()
+
+    def get_input_uhashes(self):
+        return self.__inputs.get_variable_uhashes()
 
     @property
     def input_values(self):
-        return self.input_variables.variable_values
+        warnings.warn(
+            "the property 'input_values' is deprecated in favor of the function 'get_input_values'",
+            DeprecationWarning,
+        )
+        return self.get_input_values()
+
+    def get_input_values(self):
+        return self.__inputs.get_variable_values()
 
     @property
     def named_input_values(self):
-        return self.input_variables.named_variable_values
+        warnings.warn(
+            "the property 'named_input_values' is deprecated in favor of the function 'get_named_input_values'",
+            DeprecationWarning,
+        )
+        return self.get_named_input_values()
+
+    def get_named_input_values(self):
+        return self.__inputs.get_named_variable_values()
 
     @property
     def positional_input_values(self):
-        return self.input_variables.positional_variable_values
+        warnings.warn(
+            "the property 'positional_input_values' is deprecated in favor of the function 'get_positional_input_values'",
+            DeprecationWarning,
+        )
+        return self.__inputs.get_positional_input_values()
+
+    def get_positional_input_values(self):
+        return self.__inputs.get_positional_variable_values()
 
     @property
     def npositional_inputs(self):
-        return self.input_variables.n_positional_variables
+        return self.__inputs.n_positional_variables
 
     @property
     def output_variables(self):
@@ -235,16 +260,37 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def output_uhashes(self):
-        return self.__outputs.variable_uhashes
+        warnings.warn(
+            "the property 'output_uhashes' is deprecated in favor of the function 'get_output_uhashes'",
+            DeprecationWarning,
+        )
+        return self.get_output_uhashes()
+
+    def get_output_uhashes(self):
+        return self.__outputs.get_variable_uhashes()
 
     @property
     def output_values(self):
-        return self.__outputs.variable_values
+        warnings.warn(
+            "the property 'output_values' is deprecated in favor of the function 'get_output_values'",
+            DeprecationWarning,
+        )
+        return self.get_output_values()
+
+    def get_output_values(self):
+        return self.__outputs.get_variable_values()
 
     @property
     def output_transfer_data(self):
+        warnings.warn(
+            "the property 'output_transfer_data' is deprecated in favor of the function 'get_output_transfer_data'",
+            DeprecationWarning,
+        )
+        return self.get_output_transfer_data()
+
+    def get_output_transfer_data(self):
         """The values are either `DataUri` or `Variable`"""
-        return self.__outputs.variable_transfer_data
+        return self.__outputs.get_variable_transfer_data()
 
     @property
     def output_metadata(self) -> Union[dict, None]:
@@ -309,7 +355,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     def _iter_missing_input_values(self):
         for iname in self._INPUT_NAMES:
-            var = self.input_variables.get(iname)
+            var = self.__inputs.get(iname)
             if var is None or not var.has_value:
                 yield iname
 
@@ -368,13 +414,13 @@ class Task(Registered, UniversalHashable, register=False):
     def _send_start_event(self):
         input_uris = [
             {"name": name, "value": str(uri) if uri else None}
-            for name, uri in self.input_variables.variable_uris.items()
+            for name, uri in self.__inputs.get_variable_uris().items()
         ]
         output_uris = [
             {"name": name, "value": str(uri) if uri else None}
-            for name, uri in self.output_variables.variable_uris.items()
+            for name, uri in self.__outputs.get_variable_uris().items()
         ]
-        task_uri = self.output_variables.data_uri
+        task_uri = self.__outputs.data_uri
         if task_uri:
             task_uri = str(task_uri)
         self._send_event(

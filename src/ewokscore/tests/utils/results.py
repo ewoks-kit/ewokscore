@@ -112,7 +112,7 @@ def assert_task_result(task: Task, node_id: NodeIdType, expected: dict, loaded: 
     else:
         assert task.done, node_id
         try:
-            assert task.output_values == expected_value, node_id
+            assert task.get_output_values() == expected_value, node_id
         except AssertionError:
             raise
         except Exception as e:

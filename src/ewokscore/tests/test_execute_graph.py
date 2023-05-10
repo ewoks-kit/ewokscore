@@ -14,7 +14,7 @@ class SumTask(
         if self.inputs.b:
             result += self.inputs.b
         self.outputs.result = result
-        self.outputs.inputs = {k: v for k, v in self.input_values.items() if v}
+        self.outputs.inputs = {k: v for k, v in self.get_input_values().items() if v}
         self.outputs.label = self.label
 
 
@@ -107,7 +107,7 @@ def create_graph():
 def test_execute_graph_outputs():
     # All task instances
     results = execute_graph(create_graph(), output_tasks=True)
-    results = {k: v.output_values for k, v in results.items()}
+    results = {k: v.get_output_values() for k, v in results.items()}
     expected = {
         "task1": {"inputs": {"a": 1}, "result": 1, "label": "task1"},
         "task3": {"inputs": {"a": 1, "b": 3}, "result": 4, "label": "task3"},
@@ -195,7 +195,7 @@ def test_execute_graph_inputs():
         inputs=[{"id": "task1", "name": "b", "value": 1}],
         output_tasks=True,
     )
-    results = {k: v.output_values for k, v in results.items()}
+    results = {k: v.get_output_values() for k, v in results.items()}
     expected = {
         "task1": {"inputs": {"a": 1, "b": 1}, "result": 2, "label": "task1"},
         "task3": {"inputs": {"a": 2, "b": 3}, "result": 5, "label": "task3"},
@@ -212,7 +212,7 @@ def test_execute_graph_inputs():
         inputs=[{"name": "b", "value": 1}],
         output_tasks=True,
     )
-    results = {k: v.output_values for k, v in results.items()}
+    results = {k: v.get_output_values() for k, v in results.items()}
     expected = {
         "task1": {"inputs": {"a": 1, "b": 1}, "result": 2, "label": "task1"},
         "task3": {"inputs": {"a": 2, "b": 3}, "result": 5, "label": "task3"},

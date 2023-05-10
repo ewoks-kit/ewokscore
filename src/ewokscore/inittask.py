@@ -72,7 +72,7 @@ def task_executable_info(
     else:
         warnings.warn(
             f"'{key}' is deprecated in favor of 'task_type' with 'task_identifier'",
-            FutureWarning,
+            DeprecationWarning,
         )
         value = node_attrs.pop(key)
         if key != "ppfport":

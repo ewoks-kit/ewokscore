@@ -20,7 +20,7 @@ class PpfMethodExecutorTask(
     PPF_DICT_ARGUMENT = PPF_DICT_ARGUMENT
 
     def run(self):
-        method_kwargs = self.input_values
+        method_kwargs = self.get_input_values()
         fullname = method_kwargs.pop(self.METHOD_ARGUMENT)
         method = import_method(fullname)
         ppfdict = method_kwargs.pop(self.PPF_DICT_ARGUMENT, None)
@@ -41,7 +41,7 @@ class PpfPortTask(
     PPF_DICT_ARGUMENT = PPF_DICT_ARGUMENT
 
     def run(self):
-        method_kwargs = self.input_values
+        method_kwargs = self.get_input_values()
         ppfdict = method_kwargs.pop(self.PPF_DICT_ARGUMENT, None)
         if ppfdict:
             method_kwargs.update(ppfdict)

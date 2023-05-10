@@ -24,7 +24,7 @@ class ScriptExecutorTask(
             if not WIN32:
                 args.append("bash")
         args.append(fullname)
-        for k, v in self.input_values.items():
+        for k, v in self.get_input_values().items():
             if k != self.SCRIPT_ARGUMENT:
                 args.extend((argmarker + k, str(v)))
         result = subprocess.run(args)
