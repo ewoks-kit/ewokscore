@@ -421,6 +421,7 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def variable_uhashes(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'variable_uhashes' is deprecated in favor of the function 'get_variable_uhashes'",
             DeprecationWarning,
@@ -432,6 +433,7 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def variable_values(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'variable_values' is deprecated in favor of the function 'get_variable_values'",
             DeprecationWarning,
@@ -443,6 +445,7 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def variable_data_proxies(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'variable_data_proxies' is deprecated in favor of the function 'get_variable_data_proxies'",
             DeprecationWarning,
@@ -454,6 +457,7 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def variable_uris(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'variable_uris' is deprecated in favor of the function 'get_variable_uris'",
             DeprecationWarning,
@@ -470,6 +474,7 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def variable_transfer_data(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'variable_transfer_data' is deprecated in favor of the function 'get_variable_transfer_data'",
             DeprecationWarning,
@@ -491,6 +496,7 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def named_variable_values(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'named_variable_values' is deprecated in favor of the function 'get_named_variable_values'",
             DeprecationWarning,
@@ -506,6 +512,7 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def positional_variable_values(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'positional_variable_values' is deprecated in favor of the function 'get_positional_variable_values'",
             DeprecationWarning,
