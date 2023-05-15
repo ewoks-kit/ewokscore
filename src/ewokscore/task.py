@@ -206,6 +206,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def input_values(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'input_values' is deprecated in favor of the function 'get_input_values'",
             DeprecationWarning,
@@ -217,6 +218,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def named_input_values(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'named_input_values' is deprecated in favor of the function 'get_named_input_values'",
             DeprecationWarning,
@@ -228,6 +230,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def positional_input_values(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'positional_input_values' is deprecated in favor of the function 'get_positional_input_values'",
             DeprecationWarning,
@@ -260,6 +263,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def output_uhashes(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'output_uhashes' is deprecated in favor of the function 'get_output_uhashes'",
             DeprecationWarning,
@@ -271,6 +275,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def output_values(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'output_values' is deprecated in favor of the function 'get_output_values'",
             DeprecationWarning,
@@ -282,6 +287,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def output_transfer_data(self):
+        """DEPRECATED"""
         warnings.warn(
             "the property 'output_transfer_data' is deprecated in favor of the function 'get_output_transfer_data'",
             DeprecationWarning,
