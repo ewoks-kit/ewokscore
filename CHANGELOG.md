@@ -2,6 +2,11 @@
 
 ## 0.5.0 (unreleased)
 
+## 0.4.1
+
+Deprecations:
+   - Task properties that instantiate objects whenever used are replaced by functions
+
 ## 0.4.0
 
 New features:
