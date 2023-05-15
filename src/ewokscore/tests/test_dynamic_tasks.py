@@ -26,4 +26,4 @@ def test_task_class_generator():
         },
     )
     task.execute()
-    assert task.output_values == {"result": task_name}
+    assert task.get_output_values() == {"result": task_name}

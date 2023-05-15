@@ -268,16 +268,21 @@ def test_variable_container_metadata(scheme, root_uri_type, tmpdir):
     # Common ways to receive data
     ref_uri = MutableVariableContainer(data_uri=container.data_uri)
     ref_transfer_data = MutableVariableContainer(
-        value=container.variable_transfer_data, varinfo={"has_data_proxy": True}
+        value=container.get_variable_transfer_data(), varinfo={"has_data_proxy": True}
     )
     assert ref_uri.uhash == container.uhash
     assert ref_transfer_data.uhash == container.uhash
 
     # Check data
-    assert container.variable_values == ref_transfer_data.variable_values
-    assert container.variable_transfer_data == ref_transfer_data.variable_transfer_data
-    assert container.variable_values == ref_uri.variable_values
-    assert container.variable_transfer_data == ref_uri.variable_transfer_data
+    assert container.get_variable_values() == ref_transfer_data.get_variable_values()
+    assert (
+        container.get_variable_transfer_data()
+        == ref_transfer_data.get_variable_transfer_data()
+    )
+    assert container.get_variable_values() == ref_uri.get_variable_values()
+    assert (
+        container.get_variable_transfer_data() == ref_uri.get_variable_transfer_data()
+    )
 
     # Check metadata
     if scheme == "nexus":
@@ -378,7 +383,7 @@ def test_variable_container_uri(tmpdir):
     var1.dump()
 
     var2 = VariableContainer(data_uri=str(var1.data_uri))
-    assert var1.variable_values == {"a": 1, "b": 2}
+    assert var1.get_variable_values() == {"a": 1, "b": 2}
     assert var1.value == var2.value
     assert var1 == var2
 
@@ -396,9 +401,9 @@ def test_variable_container_values():
     )
     assert not c["a"].is_missing()
     assert c["b"].is_missing()
-    assert c.variable_values == {"a": None, 2: "Two"}
-    assert c.named_variable_values == {"a": None}
-    assert c.positional_variable_values == (
+    assert c.get_variable_values() == {"a": None, 2: "Two"}
+    assert c.get_named_variable_values() == {"a": None}
+    assert c.get_positional_variable_values() == (
         MISSING_DATA,
         MISSING_DATA,
         "Two",
@@ -411,9 +416,9 @@ def test_variable_container_values():
     c[2] = MISSING_DATA
     assert c["a"].is_missing()
     assert not c["b"].is_missing()
-    assert c.variable_values == {"b": None, 1: "One"}
-    assert c.named_variable_values == {"b": None}
-    assert c.positional_variable_values == (
+    assert c.get_variable_values() == {"b": None, 1: "One"}
+    assert c.get_named_variable_values() == {"b": None}
+    assert c.get_positional_variable_values() == (
         MISSING_DATA,
         "One",
         MISSING_DATA,

@@ -155,7 +155,7 @@ def _extract_common_fields(
             raise ValueError("'binding' and 'engine' cannot be used together")
         engine = binding
         if engine_field == "engine":
-            warn("'binding' is deprecated in favor of 'engine'", FutureWarning)
+            warn("'binding' is deprecated in favor of 'engine'", DeprecationWarning)
     event_data = {
         "host_name": host_name,
         "process_id": process_id,

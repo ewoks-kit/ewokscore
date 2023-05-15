@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, Dict, Optional, Union
 from numbers import Integral
 from collections.abc import Mapping, MutableMapping, Iterable, Sequence
@@ -420,18 +421,46 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def variable_uhashes(self):
+        warnings.warn(
+            "the property 'variable_uhashes' is deprecated in favor of the function 'get_variable_uhashes'",
+            DeprecationWarning,
+        )
+        return self.get_variable_uhashes()
+
+    def get_variable_uhashes(self):
         return {name: var.uhash for name, var in self.items()}
 
     @property
     def variable_values(self):
+        warnings.warn(
+            "the property 'variable_values' is deprecated in favor of the function 'get_variable_values'",
+            DeprecationWarning,
+        )
+        return self.get_variable_values()
+
+    def get_variable_values(self):
         return {k: v.value for k, v in self.items() if not v.is_missing()}
 
     @property
     def variable_data_proxies(self):
+        warnings.warn(
+            "the property 'variable_data_proxies' is deprecated in favor of the function 'get_variable_data_proxies'",
+            DeprecationWarning,
+        )
+        return self.get_variable_data_proxies()
+
+    def get_variable_data_proxies(self):
         return {k: v.data_proxy for k, v in self.items()}
 
     @property
     def variable_uris(self):
+        warnings.warn(
+            "the property 'variable_uris' is deprecated in favor of the function 'get_variable_uris'",
+            DeprecationWarning,
+        )
+        return self.get_variable_uris()
+
+    def get_variable_uris(self):
         uris = dict()
         for k, v in self.items():
             proxy = v.data_proxy
@@ -441,6 +470,13 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def variable_transfer_data(self):
+        warnings.warn(
+            "the property 'variable_transfer_data' is deprecated in favor of the function 'get_variable_transfer_data'",
+            DeprecationWarning,
+        )
+        return self.get_variable_transfer_data()
+
+    def get_variable_transfer_data(self):
         """Transfer data by variable or URI"""
         data = dict()
         for name, var in self.items():
@@ -455,6 +491,13 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def named_variable_values(self):
+        warnings.warn(
+            "the property 'named_variable_values' is deprecated in favor of the function 'get_named_variable_values'",
+            DeprecationWarning,
+        )
+        return self.get_named_variable_values()
+
+    def get_named_variable_values(self):
         return {
             k: v.value
             for k, v in self.items()
@@ -463,6 +506,13 @@ class VariableContainer(Variable, Mapping):
 
     @property
     def positional_variable_values(self):
+        warnings.warn(
+            "the property 'positional_variable_values' is deprecated in favor of the function 'get_positional_variable_values'",
+            DeprecationWarning,
+        )
+        return self.get_positional_variable_values()
+
+    def get_positional_variable_values(self):
         values = [self.MISSING_DATA] * self.__npositional_vars
         for i, var in self.items():
             if isinstance(i, int):

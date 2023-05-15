@@ -10,8 +10,8 @@ class MethodExecutorTask(
     METHOD_ARGUMENT = METHOD_ARGUMENT
 
     def run(self):
-        kwargs = self.named_input_values
-        args = self.positional_input_values
+        kwargs = self.get_named_input_values()
+        args = self.get_positional_input_values()
         fullname = kwargs.pop(self.METHOD_ARGUMENT)
         method = import_method(fullname)
 

@@ -160,9 +160,9 @@ def test_task_cleanup_references():
     assert len(gc.get_referrers(obj)) > nref_start
 
     uhash1 = task1.uhash
-    uhashes1 = task1.output_uhashes
+    uhashes1 = task1.get_output_uhashes()
     uhash2 = task2.uhash
-    uhashes2 = task2.output_uhashes
+    uhashes2 = task2.get_output_uhashes()
 
     task1.cleanup_references()
 
@@ -171,6 +171,6 @@ def test_task_cleanup_references():
     assert len(gc.get_referrers(obj)) == nref_start
 
     assert uhash1 == task1.uhash
-    assert uhashes1 == task1.output_uhashes
+    assert uhashes1 == task1.get_output_uhashes()
     assert uhash2 == task2.uhash
-    assert uhashes2 == task2.output_uhashes
+    assert uhashes2 == task2.get_output_uhashes()

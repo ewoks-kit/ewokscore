@@ -14,7 +14,7 @@ def test_method_task1(varinfo):
     )
     task.execute()
     assert task.done
-    assert task.output_values == {"return_value": 8}
+    assert task.get_output_values() == {"return_value": 8}
 
 
 def mymethod2(*args):
@@ -29,7 +29,7 @@ def test_method_task2(varinfo):
     )
     task.execute()
     assert task.done
-    assert task.output_values == {"return_value": 8}
+    assert task.get_output_values() == {"return_value": 8}
 
 
 def mymethod3(a, *args, b=None, c=3, **kw):
@@ -49,7 +49,7 @@ def test_method_task3(varinfo):
     )
     task.execute()
     assert task.done
-    assert task.output_values == {"return_value": 26}
+    assert task.get_output_values() == {"return_value": 26}
 
 
 def myppfmethod(a=0, b=0, **kw):
@@ -64,4 +64,4 @@ def test_ppfmethod_task(varinfo):
     )
     task.execute()
     assert task.done
-    assert task.output_values == {"_ppfdict": {"a": 8, "b": 5}}
+    assert task.get_output_values() == {"_ppfdict": {"a": 8, "b": 5}}
