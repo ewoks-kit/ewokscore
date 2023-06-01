@@ -46,10 +46,11 @@ class Registered:
         """Retrieving a derived class"""
         subclass = cls._SUBCLASS_REGISTRY.get(registry_name)
         if subclass is None:
-            candidates = []
-            for name, value in cls._SUBCLASS_REGISTRY.items():
-                if name.endswith("." + registry_name):
-                    candidates.append(name)
+            candidates = [
+                name
+                for name in cls._SUBCLASS_REGISTRY
+                if name.endswith("." + registry_name)
+            ]
             if len(candidates) == 1:
                 subclass = cls._SUBCLASS_REGISTRY.get(candidates[0])
         if subclass is None:
