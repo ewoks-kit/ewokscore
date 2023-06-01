@@ -41,7 +41,7 @@ def init_workflow(
         execinfo["workflow_id"] = workflow
     else:
         try:
-            execinfo["workflow_id"] = workflow.graph["id"]
+            execinfo["workflow_id"] = str(workflow.graph["id"])
         except KeyError:
             raise ValueError("the graph needs an 'id' for execution events")
     execinfo.update(static_workflow_info)

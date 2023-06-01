@@ -105,7 +105,7 @@ class TaskGraph:
 
     @property
     def graph_label(self) -> str:
-        return self.graph.graph.get("label", self.graph_id)
+        return str(self.graph.graph.get("label", self.graph_id))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
