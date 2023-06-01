@@ -2,6 +2,11 @@
 
 ## 0.5.0 (unreleased)
 
+## 0.4.2
+
+New features:
+   - Module can optionally be reloaded when discovering tasks
+
 ## 0.4.1
 
 Deprecations:
