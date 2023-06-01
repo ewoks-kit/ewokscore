@@ -9,9 +9,13 @@ from .task import Task
 
 
 def discover_tasks_from_modules(
-    *module_names: Iterable[str], task_type="class"
+    *module_names: Iterable[str], task_type="class", reload: bool = False
 ) -> Iterable[dict]:
-    return list(iter_discover_tasks_from_modules(*module_names, task_type=task_type))
+    return list(
+        iter_discover_tasks_from_modules(
+            *module_names, task_type=task_type, reload=reload
+        )
+    )
 
 
 def iter_discover_tasks_from_modules(
