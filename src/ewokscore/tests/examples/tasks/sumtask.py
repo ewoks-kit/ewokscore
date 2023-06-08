@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep as _sleep  # hide from task discovery
 from ewokscore.taskwithprogress import TaskWithProgress
 
 
@@ -8,6 +8,8 @@ class SumTask(
     optional_input_names=["b", "delay"],
     output_names=["result"],
 ):
+    """Demo task: add two numbers with a sleep"""
+
     def run(self):
         result = self.inputs.a
         if self.inputs.b:
@@ -16,7 +18,7 @@ class SumTask(
         if self.inputs.delay:
             dt = self.inputs.delay / 100
             for i in range(100):
-                sleep(dt)
+                _sleep(dt)
                 self.progress = i + 1
         else:
             self.progress = 100

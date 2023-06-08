@@ -40,4 +40,5 @@ Documentation
     execute_io
     implementation
     events
+    task_discovery
     api
