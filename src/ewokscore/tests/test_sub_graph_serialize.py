@@ -9,8 +9,8 @@ def subsubsubgraph():
     return {
         "graph": {
             "id": "subsubsubgraph",
-            "input_nodes": [{"id": "in", "node": "task1"}],
-            "output_nodes": [{"id": "out", "node": "task2"}],
+            "input_nodes": [{"id": "in", "node": "task1"}, {"id": "notconnected"}],
+            "output_nodes": [{"id": "out", "node": "task2"}, {"id": "notconnected"}],
         },
         "nodes": [
             {
@@ -38,9 +38,10 @@ def subsubgraph(_subsubsubgraph):
     return {
         "graph": {
             "id": "subsubgraph",
-            "input_nodes": [{"id": "in", "node": "task1"}],
+            "input_nodes": [{"id": "in", "node": "task1"}, {"id": "notconnected"}],
             "output_nodes": [
-                {"id": "out", "node": "subsubsubgraph", "sub_node": "out"}
+                {"id": "out", "node": "subsubsubgraph", "sub_node": "out"},
+                {"id": "notconnected"},
             ],
         },
         "nodes": [
