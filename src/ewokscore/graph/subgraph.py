@@ -173,7 +173,9 @@ def _replace_aliases(
 
     new_aliases = list()
     for alias_attrs in aliases:
-        node_id = alias_attrs["node"]
+        node_id = alias_attrs.get("node")
+        if node_id is None:
+            continue
         sub_node = alias_attrs.pop("sub_node", None)
         if sub_node:
             node_id = node_id, sub_node
