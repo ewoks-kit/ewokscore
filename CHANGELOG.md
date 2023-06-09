@@ -1,6 +1,11 @@
 # CHANGELOG.md
 
-## 0.5.0 (unreleased)
+## 0.6.0 (unreleased)
+
+## 0.5.0
+
+New features:
+   - Task discovery without the need to specify modules (using package entry points)
 
 ## 0.4.3
 
