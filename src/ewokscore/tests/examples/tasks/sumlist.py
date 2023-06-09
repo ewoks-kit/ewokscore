@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep as _sleep  # hide from task discovery
 from ewokscore.taskwithprogress import TaskWithProgress
 
 
@@ -8,9 +8,7 @@ class SumList(
     optional_input_names=["delay"],
     output_names=["sum"],
 ):
-    """
-    Simple Task processing summation of a list
-    """
+    """Demo task: processing summation of a list"""
 
     def run(self):
         if self.inputs.list is None:
@@ -24,6 +22,6 @@ class SumList(
         for i_elmt, elmt in enumerate(self.inputs.list):
             sum_ += elmt
             self.progress = (i_elmt / n_elmt) * 100.0
-            sleep(delay)
+            _sleep(delay)
         self.progress = 100.0
         self.outputs.sum = sum_
