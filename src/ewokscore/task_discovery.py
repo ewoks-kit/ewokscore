@@ -18,17 +18,26 @@ logger = logging.getLogger(__name__)
 
 
 def discover_tasks_from_modules(
-    *module_names: Iterable[str], task_type="class", reload: bool = False
+    *module_names: Iterable[str],
+    task_type="class",
+    reload: bool = False,
+    raise_import_failure: bool = True,
 ) -> List[Dict[str, str]]:
     return list(
         iter_discover_tasks_from_modules(
-            *module_names, task_type=task_type, reload=reload
+            *module_names,
+            task_type=task_type,
+            reload=reload,
+            raise_import_failure=raise_import_failure,
         )
     )
 
 
 def iter_discover_tasks_from_modules(
-    *module_names: Iterable[str], task_type="class", reload: bool = False
+    *module_names: Iterable[str],
+    task_type="class",
+    reload: bool = False,
+    raise_import_failure: bool = True,
 ) -> Generator[Dict[str, str], None, None]:
     if "" not in sys.path:
         # This happens when the python process was launched
@@ -36,14 +45,21 @@ def iter_discover_tasks_from_modules(
         sys.path.append("")
 
     if task_type == "method":
-        yield from _iter_method_tasks(*module_names, reload=reload)
+        yield from _iter_method_tasks(
+            *module_names, reload=reload, raise_import_failure=raise_import_failure
+        )
     elif task_type == "ppfmethod":
         yield from _iter_method_tasks(
-            *module_names, filter_method_name=lambda name: name == "run", reload=reload
+            *module_names,
+            filter_method_name=lambda name: name == "run",
+            reload=reload,
+            raise_import_failure=raise_import_failure,
         )
     elif task_type == "class":
         for module_name in module_names:
-            _safe_import_module(module_name, reload=reload)
+            _safe_import_module(
+                module_name, reload=reload, raise_import_failure=raise_import_failure
+            )
         yield from _iter_registered_tasks(*module_names)
     else:
         raise ValueError("Class type does not support discovery")
@@ -76,12 +92,15 @@ def _iter_method_tasks(
     *module_names: Iterable[str],
     filter_method_name: Optional[Callable[[str], bool]] = None,
     reload: bool = False,
+    raise_import_failure: bool = False,
 ) -> Generator[Dict[str, str], None, None]:
     """Yields all task methods from the provided module_names. The module_names will be will
     imported for discovery.
     """
     for module_name in module_names:
-        mod = _safe_import_module(module_name, reload=reload)
+        mod = _safe_import_module(
+            module_name, reload=reload, raise_import_failure=raise_import_failure
+        )
         if mod is None:
             continue
         for method in inspect.getmembers(mod, inspect.isfunction):
@@ -108,7 +127,7 @@ def _iter_method_tasks(
 
 
 def iter_discover_all_tasks(
-    reload: bool = False,
+    reload: bool = False, raise_import_failure: bool = False
 ) -> Generator[Dict[str, str], None, None]:
     visited = set()
     for task_type in ("class", "ppfmethod", "method"):
@@ -119,39 +138,61 @@ def iter_discover_all_tasks(
                 continue
             visited.add(module_pattern)
             for module_name in _iter_modules_from_pattern(
-                module_pattern, reload=reload
+                module_pattern, reload=reload, raise_import_failure=raise_import_failure
             ):
                 yield from iter_discover_tasks_from_modules(
-                    module_name, task_type=task_type, reload=reload
+                    module_name,
+                    task_type=task_type,
+                    reload=reload,
+                    raise_import_failure=raise_import_failure,
                 )
 
 
-def discover_all_tasks(reload: bool = False) -> Generator[Dict[str, str], None, None]:
-    return list(iter_discover_all_tasks(reload=reload))
+def discover_all_tasks(
+    reload: bool = False, raise_import_failure: bool = False
+) -> Generator[Dict[str, str], None, None]:
+    return list(
+        iter_discover_all_tasks(
+            reload=reload, raise_import_failure=raise_import_failure
+        )
+    )
 
 
 def _iter_modules_from_pattern(
-    module_pattern: str, reload: bool = False
+    module_pattern: str, reload: bool = False, raise_import_failure: bool = False
 ) -> Generator[str, None, None]:
     if "*" not in module_pattern:
         yield module_pattern
         return
     ndots = module_pattern.count(".")
     parts = module_pattern.split(".")
-    pkg = _safe_import_module(parts[0], reload=reload)
+    pkg = _safe_import_module(
+        parts[0], reload=reload, raise_import_failure=raise_import_failure
+    )
     if pkg is None:
         return
+    if raise_import_failure:
+
+        def onerror(module_name):
+            raise
+
+    else:
+        onerror = _onerror
     for pkginfo in pkgutil.walk_packages(
-        pkg.__path__, pkg.__name__ + ".", onerror=_onerror
+        pkg.__path__, pkg.__name__ + ".", onerror=onerror
     ):
         if pkginfo.name.count(".") == ndots and fnmatch(pkginfo.name, module_pattern):
             yield pkginfo.name
 
 
-def _safe_import_module(module_name: str, reload: bool = False) -> Optional[ModuleType]:
+def _safe_import_module(
+    module_name: str, reload: bool = False, raise_import_failure: bool = False
+) -> Optional[ModuleType]:
     try:
         return import_module(module_name, reload=reload)
-    except ImportError as e:
+    except Exception as e:
+        if raise_import_failure:
+            raise
         _onerror(module_name, exception=e)
 
 
@@ -176,3 +217,6 @@ def _method_arguments(method) -> Tuple[List[str], List[str]]:
         else:
             optional_input_names.append(name)
     return required_input_names, optional_input_names
+
+
+print(discover_all_tasks(raise_import_failure=True))

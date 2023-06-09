@@ -2,6 +2,12 @@
 
 ## 0.6.0 (unreleased)
 
+## 0.5.1
+
+Changes:
+   - By default, task discovery raises import errors when modules are specified and
+     logs import errors when importing all tasks
+
 ## 0.5.0
 
 New features:
