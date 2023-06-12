@@ -217,6 +217,3 @@ def _method_arguments(method) -> Tuple[List[str], List[str]]:
         else:
             optional_input_names.append(name)
     return required_input_names, optional_input_names
-
-
-print(discover_all_tasks(raise_import_failure=True))
