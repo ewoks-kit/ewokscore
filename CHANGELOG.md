@@ -2,6 +2,11 @@
 
 ## 0.6.0 (unreleased)
 
+## 0.5.2
+
+Changes:
+   - remove print statement from the task_discovery module
+
 ## 0.5.1
 
 Changes:
