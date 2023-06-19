@@ -3,7 +3,7 @@ from ewokscore import Task
 
 
 class NoOutputTask(Task):
-    """Demo task: a task without outputs"""
+    """A task without outputs"""
 
     def run(self):
         input_values = self.get_input_values()

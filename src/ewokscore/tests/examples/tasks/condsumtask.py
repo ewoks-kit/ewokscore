@@ -2,7 +2,7 @@ from .sumtask import SumTask
 
 
 class CondSumTask(SumTask, output_names=["too_small"]):
-    """Demo task: check whether a value is too small"""
+    """Check whether a value is too small"""
 
     def run(self):
         super().run()

@@ -4,7 +4,7 @@ from ewokscore import Task
 class ErrorSumTask(
     Task, optional_input_names=["a", "b", "raise_error"], output_names=["result"]
 ):
-    """Demo task: add two number with intentional exception"""
+    """Add two number with intentional exception"""
 
     def run(self):
         result = self.get_input_value("a", default=0)

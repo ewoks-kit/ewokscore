@@ -8,7 +8,7 @@ class SumList(
     optional_input_names=["delay"],
     output_names=["sum"],
 ):
-    """Demo task: processing summation of a list"""
+    """Add items from a list"""
 
     def run(self):
         if self.inputs.list is None:
