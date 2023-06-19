@@ -1,3 +1,3 @@
 def addfunc(arg):
-    """Demo task: add 1 to argument"""
+    """Add 1 to the first argument"""
     return arg + 1

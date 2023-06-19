@@ -8,7 +8,7 @@ class SumTask(
     optional_input_names=["b", "delay"],
     output_names=["result"],
 ):
-    """Demo task: add two numbers with a sleep"""
+    """Add two numbers with a delay"""
 
     def run(self):
         result = self.inputs.a

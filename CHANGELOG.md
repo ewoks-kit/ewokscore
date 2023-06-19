@@ -2,6 +2,11 @@
 
 ## 0.6.0 (unreleased)
 
+## 0.5.3
+
+Changes:
+   - modify task doc strings
+
 ## 0.5.2
 
 Changes:

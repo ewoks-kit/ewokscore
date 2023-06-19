@@ -93,7 +93,7 @@ def test_task_discovery():
             "required_input_names": ["a"],
             "task_identifier": "ewokscore.tests.examples.tasks.condsumtask.CondSumTask",
             "task_type": "class",
-            "description": "Demo task: check whether a value is too small",
+            "description": "Check whether a value is too small",
         },
         {
             "category": "ewokscore",
@@ -102,7 +102,7 @@ def test_task_discovery():
             "required_input_names": [],
             "task_identifier": "ewokscore.tests.examples.tasks.errorsumtask.ErrorSumTask",
             "task_type": "class",
-            "description": "Demo task: add two number with intentional exception",
+            "description": "Add two number with intentional exception",
         },
         {
             "category": "ewokscore",
@@ -111,7 +111,7 @@ def test_task_discovery():
             "required_input_names": [],
             "task_identifier": "ewokscore.tests.examples.tasks.nooutputtask.NoOutputTask",
             "task_type": "class",
-            "description": "Demo task: a task without outputs",
+            "description": "A task without outputs",
         },
         {
             "category": "ewokscore",
@@ -120,7 +120,7 @@ def test_task_discovery():
             "required_input_names": ["list"],
             "task_identifier": "ewokscore.tests.examples.tasks.sumlist.SumList",
             "task_type": "class",
-            "description": "Demo task: processing summation of a list",
+            "description": "Add items from a list",
         },
         {
             "category": "ewokscore",
@@ -129,7 +129,7 @@ def test_task_discovery():
             "required_input_names": ["a"],
             "task_identifier": "ewokscore.tests.examples.tasks.sumtask.SumTask",
             "task_type": "class",
-            "description": "Demo task: add two numbers with a sleep",
+            "description": "Add two numbers with a delay",
         },
         {
             "category": "ewokscore",
@@ -138,7 +138,7 @@ def test_task_discovery():
             "required_input_names": ["arg"],
             "optional_input_names": [],
             "output_names": ["return_value"],
-            "description": "Demo task: add 1 to argument",
+            "description": "Add 1 to the first argument",
         },
         {
             "category": "ewokscore",
@@ -147,7 +147,7 @@ def test_task_discovery():
             "required_input_names": [],
             "optional_input_names": [],
             "output_names": ["return_value"],
-            "description": "Demo task: add objects to 1",
+            "description": "Sum objects and add 1",
         },
         {
             "category": "ewokscore",
@@ -156,7 +156,7 @@ def test_task_discovery():
             "required_input_names": [],
             "optional_input_names": [],
             "output_names": ["return_value"],
-            "description": "Demo task: pack object in a tuple",
+            "description": "Return positional arguments as a tuple",
         },
     ]
 
