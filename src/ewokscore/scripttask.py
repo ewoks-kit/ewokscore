@@ -23,9 +23,10 @@ class ScriptExecutorTask(
         # Python or shell script
         is_python = fullname.endswith(".py")
 
-        # Script is executable
+        # Is script executable?
         if os.path.isfile(fullname):
             # existing python or shell script
+            fullname = os.path.abspath(fullname)
             if WIN32:
                 is_executable = not is_python
             else:
