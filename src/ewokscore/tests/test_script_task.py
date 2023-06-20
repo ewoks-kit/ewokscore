@@ -1,5 +1,6 @@
 import os
 import sys
+import pytest
 from ewokscore.task import Task
 
 WIN32 = sys.platform == "win32"
@@ -16,22 +17,37 @@ if __name__ == "__main__":
 """
 
 
-def test_python_script_task(tmpdir, varinfo, capsys):
+@pytest.mark.parametrize("shebang", [True, False])
+@pytest.mark.parametrize("fail", [True, False])
+def test_python_script_task(tmpdir, varinfo, shebang, fail):
+    if WIN32 and shebang:
+        pytest.skip("windows does not have shebangs")
+
     pyscriptname = tmpdir / "test.py"
     with open(pyscriptname, mode="w") as f:
+        if shebang:
+            f.write(f"#!{sys.executable}\n")
         f.writelines(pyscript)
+    if not WIN32:
+        os.chmod(pyscriptname, 0o755)
+
+    if fail:
+        a = 11
+    else:
+        a = 10
 
     task = Task.instantiate(
         "ScriptExecutorTask",
-        inputs={"a": 10, "_script": str(pyscriptname)},
+        inputs={
+            "a": a,
+            "_script": str(pyscriptname),
+            "_capture_output": True,
+            "_raise_on_error": False,
+        },
         varinfo=varinfo,
     )
     task.execute()
-    assert task.done
-    assert task.outputs.return_code == 0
-    captured = capsys.readouterr()
-    # assert captured.out == "10\n"
-    assert captured.err == ""
+    _assert_outputs(task, a, fail)
 
 
 if WIN32:
@@ -55,9 +71,10 @@ goto initial
 
 echo input a = %a%
 if %a%==10 (
-    echo exit 0
+    exit 0
 ) else (
-    echo exit 1
+    echo "failure" 1>&2
+    exit 1
 )
 """
 else:
@@ -74,30 +91,75 @@ echo "input a = "$a
 if [[ $a == "10" ]]; then
     exit 0
 else
+    echo "failure" 1>&2
     exit 1
 fi
 """
 
 
-def test_shell_script_task(tmpdir, varinfo, capsys):
+@pytest.mark.parametrize("shebang", [True, False])
+@pytest.mark.parametrize("fail", [True, False])
+def test_shell_script_task(tmpdir, varinfo, shebang, fail):
     if WIN32:
+        if shebang:
+            pytest.skip("windows does not have shebangs")
         ext = ".bat"
     else:
         ext = ".sh"
     filename = tmpdir / f"test{ext}"
     with open(filename, mode="w") as f:
+        if shebang:
+            f.write("#!/bin/bash\n")
         f.writelines(shellscript)
     if not WIN32:
         os.chmod(filename, 0o755)
 
+    if fail:
+        a = 11
+    else:
+        a = 10
+
     task = Task.instantiate(
         "ScriptExecutorTask",
-        inputs={"a": 10, "_script": str(filename)},
+        inputs={
+            "a": a,
+            "_script": str(filename),
+            "_capture_output": True,
+            "_raise_on_error": False,
+        },
+        varinfo=varinfo,
+    )
+    task.execute()
+    _assert_outputs(task, a, fail)
+
+
+def test_command_task(tmpdir, varinfo):
+    filename = tmpdir / "test.txt"
+    with open(filename, mode="w"):
+        pass
+
+    task = Task.instantiate(
+        "ScriptExecutorTask",
+        inputs={
+            "_script": f"dir {tmpdir}",
+            "_capture_output": True,
+            "_raise_on_error": False,
+        },
         varinfo=varinfo,
     )
     task.execute()
     assert task.done
-    assert task.outputs.return_code == 0
-    captured = capsys.readouterr()
-    # assert captured.out == "10\n"
-    assert captured.err == ""
+    assert "test.txt" in task.outputs.out
+
+
+def _assert_outputs(task, a, fail):
+    assert task.done
+    out = "".join(task.outputs.out)
+    assert f"input a = {a}" in out
+    err = "".join(task.outputs.err)
+    if fail:
+        assert task.outputs.return_code != 0
+        assert err
+    else:
+        assert task.outputs.return_code == 0
+        assert not err
