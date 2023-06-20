@@ -2,6 +2,11 @@
 
 ## 0.7.0 (unreleased)
 
+## 0.6.1
+
+Changes:
+   - executable scripts absolute path before execution
+
 ## 0.6.0
 
 Changes:
