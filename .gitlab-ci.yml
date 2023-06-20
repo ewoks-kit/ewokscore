@@ -17,6 +17,9 @@ test-3.8-examples:
     - python -m pip install --pre .
     - python examples/helloworld.py
 
+test-3.10-win:
+  extends: .test-3.10-win
+
 build_sdist:
   extends: .build_sdist
 
