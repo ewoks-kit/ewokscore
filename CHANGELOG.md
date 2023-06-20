@@ -1,6 +1,11 @@
 # CHANGELOG.md
 
-## 0.6.0 (unreleased)
+## 0.7.0 (unreleased)
+
+## 0.6.0
+
+Changes:
+   - support executable scripts on linux (scripts that have a shebang)
 
 ## 0.5.3
 
