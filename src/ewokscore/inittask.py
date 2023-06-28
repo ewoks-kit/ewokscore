@@ -10,6 +10,7 @@ from .methodtask import MethodExecutorTask
 from .scripttask import ScriptExecutorTask
 from .ppftasks import PpfMethodExecutorTask
 from .ppftasks import PpfPortTask
+from .notebooktask import NotebookExecutorTask
 from .dynamictask import get_dynamically_task_class
 from .node import get_node_label
 from .node import NodeIdType
@@ -21,6 +22,7 @@ TASK_EXECUTABLE_ATTRIBUTE = (
     "ppfmethod",
     "ppfport",
     "script",
+    "notebook",
     "task",
     "task_type",
 )
@@ -146,27 +148,38 @@ def instantiate_task(
     }
     if task_type == "class":
         return Task.instantiate(task_info["task_identifier"], **task_kwargs)
-    elif task_type == "method":
+
+    if task_type == "method":
         task_inputs[MethodExecutorTask.METHOD_ARGUMENT] = task_info["task_identifier"]
         return MethodExecutorTask(**task_kwargs)
-    elif task_type == "ppfmethod":
+
+    if task_type == "ppfmethod":
         task_inputs[PpfMethodExecutorTask.METHOD_ARGUMENT] = task_info[
             "task_identifier"
         ]
         return PpfMethodExecutorTask(**task_kwargs)
-    elif task_type == "ppfport":
+
+    if task_type == "ppfport":
         return PpfPortTask(**task_kwargs)
-    elif task_type == "script":
+
+    if task_type == "script":
         task_inputs[ScriptExecutorTask.SCRIPT_ARGUMENT] = task_info["task_identifier"]
         return ScriptExecutorTask(**task_kwargs)
-    elif task_type == "generated":
+
+    if task_type == "method":
+        task_inputs[NotebookExecutorTask.NOTEBOOK_ARGUMENT] = task_info[
+            "task_identifier"
+        ]
+        return NotebookExecutorTask(**task_kwargs)
+
+    if task_type == "generated":
         task_class = get_dynamically_task_class(
             node_attrs.get("task_generator"), task_info["task_identifier"]
         )
         return task_class(**task_kwargs)
-    else:
-        node_label = get_node_label(node_id, node_attrs)
-        raise_task_error(node_label, all=False)
+
+    node_label = get_node_label(node_id, node_attrs)
+    raise_task_error(node_label, all=False)
 
 
 def add_dynamic_inputs(
@@ -213,39 +226,42 @@ def task_executable(node_id: NodeIdType, node_attrs: dict):
     task_type, task_info = task_executable_info(node_id, node_attrs)
     if task_type == "class":
         return task_info["task_identifier"], import_qualname
-    elif task_type == "method":
+    if task_type == "method":
         return task_info["task_identifier"], import_method
-    elif task_type == "ppfmethod":
+    if task_type == "ppfmethod":
         return task_info["task_identifier"], import_method
-    elif task_type == "ppfport":
+    if task_type == "ppfport":
         return None, None
-    elif task_type == "script":
+    if task_type == "script":
         return task_info["task_identifier"], None
-    elif task_type == "generated":
+    if task_type == "notebook":
+        return task_info["task_identifier"], None
+    if task_type == "generated":
         return task_info["task_identifier"], partial(
             get_dynamically_task_class, node_attrs.get("task_generator")
         )
-    else:
-        node_label = get_node_label(node_id, node_attrs)
-        raise_task_error(node_label, all=False)
+    node_label = get_node_label(node_id, node_attrs)
+    raise_task_error(node_label, all=False)
 
 
 def get_task_class(node_id: NodeIdType, node_attrs: dict):
     task_type, task_info = task_executable_info(node_id, node_attrs)
     if task_type == "class":
         return Task.get_subclass(task_info["task_identifier"])
-    elif task_type == "method":
+    if task_type == "method":
         return MethodExecutorTask
-    elif task_type == "ppfmethod":
+    if task_type == "ppfmethod":
         return PpfMethodExecutorTask
-    elif task_type == "ppfport":
+    if task_type == "ppfport":
         return PpfPortTask
-    elif task_type == "script":
+    if task_type == "script":
         return ScriptExecutorTask
-    elif task_type == "task":
+    if task_type == "notebook":
+        return NotebookExecutorTask
+    if task_type == "task":
         return get_dynamically_task_class(
             node_attrs.get("task_generator"), task_info["task_identifier"]
         )
-    else:
-        node_label = get_node_label(node_id, node_attrs)
-        raise_task_error(node_label, all=False)
+
+    node_label = get_node_label(node_id, node_attrs)
+    raise_task_error(node_label, all=False)
