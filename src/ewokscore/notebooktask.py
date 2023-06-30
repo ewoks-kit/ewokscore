@@ -10,6 +10,7 @@ except ImportError:
 from .task import Task
 
 NOTEBOOK_ARGUMENT = "_notebook"
+RESULT_TAG = "results"
 
 logger = logging.getLogger(__name__)
 
@@ -61,11 +62,11 @@ def _execute_notebook(
     return _extract_results(nb)
 
 
-def _extract_results(nb, result_tag: str = "results") -> dict:
+def _extract_results(nb) -> dict:
     results = dict()
     for cell in nb.cells:
         metadata = cell["metadata"]
-        if "tags" not in metadata or result_tag not in metadata["tags"]:
+        if "tags" not in metadata or RESULT_TAG not in metadata["tags"]:
             continue
         for output in cell["outputs"]:
             if output["output_type"] != "execute_result":
