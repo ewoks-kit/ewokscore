@@ -12,6 +12,8 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxcontrib.mermaid",
     "sphinx_autodoc_typehints",
+    "nbsphinx",
+    "nbsphinx_link",
 ]
 templates_path = ["_templates"]
 exclude_patterns = []

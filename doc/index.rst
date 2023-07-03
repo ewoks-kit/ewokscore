@@ -41,4 +41,5 @@ Documentation
     implementation
     events
     task_discovery
+    notebook_task
     api

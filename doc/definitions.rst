@@ -142,6 +142,7 @@ Node attributes
   * *ppfmethod*: *task_identifier* is the full qualifier name of a *pypushflow* function (special input/output convention)
   * *ppfport*: special *ppfmethod* which is the *identify mapping*. *task_identifier* should not be specified.
   * *script*: *task_identifier* is the absolute path of a python or shell script
+  * *notebook*: *task_identifier* is the absolute path of a jupyter notebook
 * *task_generator* (optional): the full qualifier name of a method that generates a task at runtime
   based on *task_identifier*. Only used when *task_type* is *generated*.
 * *default_inputs* (optional): default input arguments (used when not provided by the output of other tasks). For example:
@@ -151,7 +152,7 @@ Node attributes
             "default_inputs": [{"name":"a", "value":1}]
         }
 * *inputs_complete* (optional): set to `True` when the default inputs cover all required inputs
-  (used for *method* and *script* as their required inputs are unknown)
+  (used for *method*, *script* and *notebook* as their required inputs are unknown)
 * *conditions_else_value* (optional): value used in conditional links to indicate the *else* value (Default: `None`)
 * *default_error_node* (optional): when set to `True` all nodes without error handler will be linked to this node.
 * *default_error_attributes* (optional): when `default_error_node=True` this dictionary is used as attributes for the
@@ -216,7 +217,7 @@ For example
                 result += self.inputs.b
             self.outputs.result = result
 
-When a task is defined as a method or a script, a class wrapper will be generated automatically:
+When a task is defined as a method, script or notebook, a class wrapper will be generated automatically:
 
 * *method*: defined by a `Task` class with one required input argument ("_method": full qualifier name of the method)
   and one output argument ("return_value")
@@ -226,3 +227,5 @@ When a task is defined as a method or a script, a class wrapper will be generate
 * *ppfport*: *ppfmethod* which is the identity mapping
 * *script*: defined by a `Task` class with one required input argument ("_script": path to the script)
   and one output argument ("return_code")
+* *notebook*: defined by a `Task` class with one required input argument ("_notebook": path to the notebook)
+  and two output arguments ("results" and "output_notebook")
