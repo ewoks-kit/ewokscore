@@ -1,4 +1,5 @@
 import os
+import sys
 import pytest
 from ewokscore.task import Task
 from .examples import tasks
@@ -9,6 +10,7 @@ def notebook():
     return os.path.join(tasks.__path__[0], "notebooktask.ipynb")
 
 
+@pytest.mark.xfail(sys.version_info < (3, 8), reason="papermill #711", strict=False)
 def test_notebook_task(notebook, testkernel):
     task = Task.instantiate(
         "NotebookExecutorTask",
@@ -30,6 +32,7 @@ def test_notebook_task(notebook, testkernel):
     assert task.get_output_values() == expected
 
 
+@pytest.mark.xfail(sys.version_info < (3, 8), reason="papermill #711", strict=False)
 def test_notebook_task_save(tmpdir, notebook, testkernel):
     output_notebook = tmpdir / "nb.ipynb"
     notebook = os.path.join(tasks.__path__[0], "notebooktask.ipynb")
@@ -55,6 +58,7 @@ def test_notebook_task_save(tmpdir, notebook, testkernel):
     assert output_notebook.exists()
 
 
+@pytest.mark.xfail(sys.version_info < (3, 8), reason="papermill #711", strict=False)
 def test_notebook_task_failure(notebook, testkernel):
     task = Task.instantiate(
         "NotebookExecutorTask",
