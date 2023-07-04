@@ -2,6 +2,11 @@
 
 ## 0.8.0 (unreleased)
 
+## 0.7.1
+
+Changes:
+   - make notebook test flaky for python 3.7
+
 ## 0.7.0
 
 New features:
