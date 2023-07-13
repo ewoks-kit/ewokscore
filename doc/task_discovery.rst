@@ -32,16 +32,16 @@ via the entry point mechanism.
 
     [options.entry_points]
     ewoks.tasks.class =
-        myproject.module1.submoduleA=myproject
-        myproject.*.tasks=myproject
+        myproject.module1.submoduleA=myproject1
+        myproject.*.tasks=myproject2
     ewoks.tasks.method =
-        myproject.module3.submodule=myproject
+        myproject.module3.submodule=myproject3
     ewoks.tasks.ppfmethod =
-        myproject.actors.*=myproject
+        myproject.actors.*=myproject4
 
 The group names can be `"ewoks.tasks.class"`, `"ewoks.tasks.method"` or `"ewoks.tasks.ppfmethod"`.
-The key are the modules in which to discover tasks. The values are ignored but need to be any importable module
-(typically the package). Module names can contain wildcards `"*"`.
+The key are the modules in which to discover tasks. The values are ignored but need to be globally
+unique because of the way entry points work. Module names can contain wildcards `"*"`.
 
 A project that provides ewoks tasks can also add the `"ewoks"` keyword to be discoverable in
 a package repository like PyPi:
