@@ -6,7 +6,14 @@ from fnmatch import fnmatch
 from types import ModuleType
 from typing import Callable, Iterable, Generator, Optional, List, Dict, Tuple
 
-import pkg_resources
+if sys.version_info < (3, 8):
+    from pkg_resources import iter_entry_points
+else:
+    from importlib.metadata import entry_points as _entry_points
+
+    def iter_entry_points(group: str):
+        return _entry_points().get(group, [])
+
 
 from ewoksutils.import_utils import qualname
 from ewoksutils.import_utils import import_module
@@ -132,7 +139,7 @@ def iter_discover_all_tasks(
     visited = set()
     for task_type in ("class", "ppfmethod", "method"):
         group = "ewoks.tasks." + task_type
-        for entrypoint in pkg_resources.iter_entry_points(group):
+        for entrypoint in iter_entry_points(group):
             module_pattern = entrypoint.name
             if module_pattern is visited:
                 continue
