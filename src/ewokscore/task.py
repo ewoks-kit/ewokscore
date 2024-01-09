@@ -84,6 +84,8 @@ class Task(Registered, UniversalHashable, register=False):
         # Misc
         self.__exception = None
         self.__succeeded = None
+        self._cancelled = False
+        # if the task has been cancelled by the user
 
         # The output hash will update dynamically if any of the input
         # variables change
@@ -373,6 +375,14 @@ class Task(Registered, UniversalHashable, register=False):
             return True
         return False
 
+    @property
+    def cancelled(self) -> bool:
+        return self._cancelled
+
+    @cancelled.setter
+    def cancelled(self, cancelled: bool) -> None:
+        self._cancelled = cancelled
+
     def assert_ready_to_execute(self):
         lst = list(self._iter_missing_input_values())
         if lst:
@@ -451,4 +461,11 @@ class Task(Registered, UniversalHashable, register=False):
 
     def run(self):
         """To be implemented by the derived classes"""
+        raise NotImplementedError
+
+    def cancel(self):
+        """
+        Function called when a task is cancelled.
+        To be implemented by the derived classes
+        """
         raise NotImplementedError
