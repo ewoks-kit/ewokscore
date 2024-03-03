@@ -8,11 +8,17 @@ from typing import Callable, Iterable, Generator, Optional, List, Dict, Tuple
 
 if sys.version_info < (3, 8):
     from pkg_resources import iter_entry_points
-else:
+elif sys.version_info < (3, 10):
     from importlib.metadata import entry_points as _entry_points
 
     def iter_entry_points(group: str):
         return _entry_points().get(group, [])
+
+else:
+    from importlib.metadata import entry_points as _entry_points
+
+    def iter_entry_points(group: str):
+        return _entry_points(group=group)
 
 
 from ewoksutils.import_utils import qualname
