@@ -2,32 +2,68 @@ include:
   - project: workflow/ewoksadmin/ewoksci
     file: .gitlab-ci-template.yml
 
+.warnings:
+  papermill:
+    - pip install papermill
+    - python -c "import papermill;assert papermill.__version__=='2.5.0', 'remove from gitlab-ci.yml when fails'"
+    - pip install git+https://github.com/nteract/papermill.git --force  # traitlets deprecation warning (PR #740)
+
 test-3.7:
   extends: .test-3.7
+  variables:
+    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
+    PYTEST_WARNINGS: "default"  # papermill deprecation warning will never be fixed for 3.7
 
 test-3.8:
   extends: .test-3.8
+  script:
+    - !reference [.warnings, papermill]
+    - !reference [.test-3.8, script]
+  variables:
+    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
 
 test-3.9:
   extends: .test-3.9
+  script:
+    - !reference [.warnings, papermill]
+    - !reference [.test-3.9, script]
+  variables:
+    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
 
 test-3.8-examples:
   extends: .test-3.8
   script:
     - python -m pip install --pre .
     - python examples/helloworld.py
+  variables:
+    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
 
 test-3.10-win:
   extends: .test-3.10-win
+  script:
+    - !reference [.warnings, papermill]
+    - !reference [.test-3.10-win, script]
+  variables:
+    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
 
 build_sdist:
   extends: .build_sdist
 
 test_sdist-3.11:
   extends: .test_sdist-3.11
+  script:
+    - !reference [.warnings, papermill]
+    - !reference [.test_sdist-3.11, script]
+  variables:
+    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
 
 test_sdist-3.8-win:
   extends: .test_sdist-3.8-win
+  script:
+    - !reference [.warnings, papermill]
+    - !reference [.test_sdist-3.8-win, script]
+  variables:
+    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
 
 build_doc:
   extends: .build_doc
