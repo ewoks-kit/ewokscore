@@ -29,17 +29,11 @@ Run the tests
     pip install ewokscore[test]
     pytest --pyargs ewokscore.tests
 
-Documentation
--------------
-
 .. toctree::
-    :maxdepth: 2
+    :hidden:
 
-    hello_world
+    tutorials
     definitions
-    execute_io
+    howtoguides
     implementation
-    events
-    task_discovery
-    notebook_task
     api
