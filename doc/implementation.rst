@@ -30,36 +30,32 @@ in this class diagram:
 
 .. mermaid::
 
-  classDiagram
-  UniversalHashable <|-- Variable
-  Variable <|-- VariableContainer
-  Variable --o VariableContainer
-  UniversalHashable <|-- Task
-  Task o-- VariableContainer
-
-  class UniversalHashable{
-    -version
-    -class_nonce
-    #pre_uhash
-    #class_uhash
-    #instance_nonce
-    #data_uhash()
-    uhash() UniversalHash
-  }
-
-  class Variable{
-    value
-    data_proxy: DataProxy
-  }
-
-  class VariableContainer{
-    value: Dictionary<string|int, Variable>
-  }
-
-  class Task{
-    input_variables: VariableContainer
-    output_variables: VariableContainer
-  }
+   classDiagram
+      UniversalHashable <|-- Variable
+      Variable <|-- VariableContainer
+      Variable --o VariableContainer
+      UniversalHashable <|-- Task
+      Task o-- VariableContainer
+      class UniversalHashable{
+          -version
+          -class_nonce
+          #pre_uhash
+          #class_uhash
+          #instance_nonce
+          #data_uhash()
+          uhash() UniversalHash
+      }
+      class Variable{
+          value
+          data_proxy: DataProxy
+      }
+      class VariableContainer{
+          value: Dictionary<string|int, Variable>
+      }
+      class Task{
+          input_variables: VariableContainer
+          output_variables: VariableContainer
+      }
 
 UniversalHashable
 +++++++++++++++++
@@ -112,8 +108,8 @@ When instantiating `MyTask`, the following happens
 
 .. code:: python
 
-   self.input_variables = VariableContainer(value={“N”: N})
-   self.output_variables = VariableContainer(value={“array”: self.MISSING_DATA},
+   self.input_variables = VariableContainer(value={"N": N})
+   self.output_variables = VariableContainer(value={"array": self.MISSING_DATA},
                                              pre_uhash=input_variables,
                                              instance_nonce=self.class_nonce())
    self.pre_uhash = self.output_variables
