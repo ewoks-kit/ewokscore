@@ -146,10 +146,10 @@ class Task(Registered, UniversalHashable, register=False):
 
     @classmethod
     def instantiate(cls, registry_name: str, **kw):
-        """Factory method for instantiating a derived class.
+        r"""Factory method for instantiating a derived class.
 
         :param str registry_name: for example "tasklib.tasks.MyTask" or "MyTask"
-        :param **kw: `Task` constructor arguments
+        :param \**kw: `Task` constructor arguments
         :returns Task:
         """
         return cls.get_subclass(registry_name)(**kw)

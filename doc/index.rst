@@ -3,7 +3,7 @@ ewokscore |version|
 
 *ewokscore* provides an API to define workflows and implement tasks in `ewoks <https://ewoks.readthedocs.io/>`_.
 
-*ewokscore* has been developed by the `Software group <http://www.esrf.eu/Instrumentation/software>`_ of the `European Synchrotron <https://www.esrf.eu/>`_.
+*ewokscore* has been developed by the `Software group <https://www.esrf.fr/Instrumentation/software>`_ of the `European Synchrotron <https://www.esrf.fr/>`_.
 
 Getting started
 ---------------

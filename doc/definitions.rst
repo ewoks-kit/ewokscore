@@ -102,9 +102,9 @@ which in turn has an input node `"start"` and output node `"end"`:
             ]
         }
         "nodes": [
-            {"id": "id1", "task_type": "class", ...},
-            {"id": "id2", "task_type": "graph", ...},
-            {"id": "id3", "task_type": "class", ...},
+            {"id": "id1", "task_type": "class", "task_identifier": "..."},
+            {"id": "id2", "task_type": "graph", "task_identifier": "..."},
+            {"id": "id3", "task_type": "class", "task_identifier": "..."},
         ]
     }
 
@@ -117,9 +117,9 @@ The `"in*"` and `"out*"` id's can be used by a super-graph when making connectio
             "label": "supergraph"
         }
         "nodes": [
-            {"id": "id1", "task_type": "class", ...},
-            {"id": "id2", "task_type": "graph", "task_identifier": "subgraph.json", ...},
-            {"id": "id3", "task_type": "class", ...}
+            {"id": "id1", "task_type": "class", "task_identifier": "..."},
+            {"id": "id2", "task_type": "graph", "task_identifier": "subgraph.json"},
+            {"id": "id3", "task_type": "class", "task_identifier": "..."}
         ]
         "links": [
             {"source": "id1", "target": "id2", "sub_target":"in1"},
