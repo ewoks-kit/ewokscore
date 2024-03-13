@@ -6,8 +6,12 @@ from fnmatch import fnmatch
 from types import ModuleType
 from typing import Callable, Iterable, Generator, Optional, List, Dict, Tuple
 
-if sys.version_info < (3, 8):
-    from pkg_resources import iter_entry_points
+if sys.version_info < (3, 9):
+    from importlib_metadata import entry_points as _entry_points
+
+    def iter_entry_points(group: str):
+        return _entry_points(group=group)
+
 elif sys.version_info < (3, 10):
     from importlib.metadata import entry_points as _entry_points
 

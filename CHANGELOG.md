@@ -2,6 +2,11 @@
 
 ## 0.8.0 (unreleased)
 
+## 0.7.2
+
+Changes:
+   - replace deprecated pkg_resources
+
 ## 0.7.1
 
 Changes:
