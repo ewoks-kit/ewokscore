@@ -1,6 +1,6 @@
 import numpy
-from typing import Any, Dict, Union, Optional
 from urllib.parse import ParseResult
+from typing import Any, Dict, Union, Optional
 
 from .uri import parse_query, parse_uri, join_uri, uri_as_string
 from ..registration import Registered
