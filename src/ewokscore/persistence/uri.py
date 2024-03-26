@@ -8,21 +8,6 @@ from typing import Iterable, Tuple, Union
 _WIN32 = sys.platform == "win32"
 
 
-def _normalize(uri: str) -> Tuple[str, str]:
-    uri = uri.replace("\\", "/")
-    # Non-standard notation:
-    #   "/some/path::/another/path"
-    # means
-    #   "/some/path?path=/another/path"
-    query = ""
-    query_paths = re.findall("::([^;?#]*)", uri)
-    if query_paths:
-        for path in query_paths:
-            uri = uri.replace("::" + path, "")
-        query = _join_query(("path", path) for path in query_paths)
-    return uri, query
-
-
 def parse_uri(
     uri: str,
     default_scheme: str = "file",
@@ -55,6 +40,43 @@ def parse_query(uri: Union[str, urllib.parse.ParseResult], **parse_options) -> d
     if isinstance(uri, str):
         uri = parse_uri(uri, **parse_options)
     return _split_query(uri.query)
+
+
+def join_uri(
+    root: Union[str, urllib.parse.ParseResult],
+    relative: Union[str, urllib.parse.ParseResult],
+    **parse_options,
+) -> urllib.parse.ParseResult:
+    if isinstance(root, str):
+        root = parse_uri(root, **parse_options)
+    if isinstance(relative, str):
+        relative = parse_uri(relative, **parse_options)
+    if root.params or relative.params:
+        raise NotImplementedError()
+    path = os.path.join(root.path, relative.path)
+    query = _merge_query(root.query, relative.query)
+    return urllib.parse.ParseResult(root.scheme, root.netloc, path, "", query, "")
+
+
+def uri_as_string(uri: Union[str, urllib.parse.ParseResult]) -> str:
+    if isinstance(uri, urllib.parse.ParseResult):
+        return uri.geturl()
+    return uri
+
+
+def _normalize(uri: str) -> Tuple[str, str]:
+    uri = uri.replace("\\", "/")
+    # Non-standard notation:
+    #   "/some/path::/another/path"
+    # means
+    #   "/some/path?path=/another/path"
+    query = ""
+    query_paths = re.findall("::([^;?#]*)", uri)
+    if query_paths:
+        for path in query_paths:
+            uri = uri.replace("::" + path, "")
+        query = _join_query(("path", path) for path in query_paths)
+    return uri, query
 
 
 def _split_query(query: str) -> dict:
@@ -100,25 +122,3 @@ def _merge_query(query1: str, query2: str) -> str:
         elif value2:
             merged.append((name, value2))
     return _join_query(merged)
-
-
-def join_uri(
-    root: Union[str, urllib.parse.ParseResult],
-    relative: Union[str, urllib.parse.ParseResult],
-    **parse_options,
-) -> urllib.parse.ParseResult:
-    if isinstance(root, str):
-        root = parse_uri(root, **parse_options)
-    if isinstance(relative, str):
-        relative = parse_uri(relative, **parse_options)
-    if root.params or relative.params:
-        raise NotImplementedError()
-    path = os.path.join(root.path, relative.path)
-    query = _merge_query(root.query, relative.query)
-    return urllib.parse.ParseResult(root.scheme, root.netloc, path, "", query, "")
-
-
-def uri_as_string(uri: Union[str, urllib.parse.ParseResult]) -> str:
-    if isinstance(uri, urllib.parse.ParseResult):
-        return uri.geturl()
-    return uri
