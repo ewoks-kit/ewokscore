@@ -1,6 +1,12 @@
 # CHANGELOG.md
 
-## 0.8.0 (unreleased)
+## Unreleased
+
+## 0.7.4
+
+Big fixes:
+
+- the pyyaml 6.0.2rc1 package is broken for python 3.7 or lower
 
 ## 0.7.3
 
