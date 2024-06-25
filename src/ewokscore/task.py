@@ -85,7 +85,6 @@ class Task(Registered, UniversalHashable, register=False):
         self.__exception = None
         self.__succeeded = None
         self._cancelled = False
-        # if the task has been cancelled by the user
 
         # The output hash will update dynamically if any of the input
         # variables change
@@ -377,6 +376,7 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def cancelled(self) -> bool:
+        """Return True if the task has been cancelled by the user"""
         return self._cancelled
 
     @cancelled.setter
