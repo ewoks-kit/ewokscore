@@ -174,3 +174,9 @@ def test_task_cleanup_references():
     assert uhashes1 == task1.get_output_uhashes()
     assert uhash2 == task2.uhash
     assert uhashes2 == task2.get_output_uhashes()
+
+
+def test_task_cancel(varinfo):
+    task = SumTask(inputs={"a": 10}, varinfo=varinfo)
+    with pytest.raises(NotImplementedError):
+        task.cancel()
