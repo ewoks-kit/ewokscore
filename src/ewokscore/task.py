@@ -402,11 +402,11 @@ class Task(Registered, UniversalHashable, register=False):
         raise_on_error: Optional[bool] = True,
         cleanup_references: Optional[bool] = False,
     ):
-        self.reset_state()
         with events.node_context(
             self.__execinfo, node_id=self.__node_id, task_id=self.__task_id
         ) as execinfo:
             self.__execinfo = execinfo
+            self.reset_state()
             self._send_start_event()
             try:
                 if force_rerun:
