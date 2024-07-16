@@ -390,12 +390,19 @@ class Task(Registered, UniversalHashable, register=False):
                 "The following inputs could not be loaded: " + str(lst)
             )
 
+    def reset_state(self):
+        self._cancelled = False
+        self.__exception = None
+        self.__succeeded = None
+        self.__outputs.reset()
+
     def execute(
         self,
         force_rerun: Optional[bool] = False,
         raise_on_error: Optional[bool] = True,
         cleanup_references: Optional[bool] = False,
     ):
+        self.reset_state()
         with events.node_context(
             self.__execinfo, node_id=self.__node_id, task_id=self.__task_id
         ) as execinfo:
