@@ -84,6 +84,7 @@ class Task(Registered, UniversalHashable, register=False):
         # Misc
         self.__exception = None
         self.__succeeded = None
+        self._cancelled = False
 
         # The output hash will update dynamically if any of the input
         # variables change
@@ -373,12 +374,27 @@ class Task(Registered, UniversalHashable, register=False):
             return True
         return False
 
+    @property
+    def cancelled(self) -> bool:
+        """Return True if the task has been cancelled by the user"""
+        return self._cancelled
+
+    @cancelled.setter
+    def cancelled(self, cancelled: bool) -> None:
+        self._cancelled = cancelled
+
     def assert_ready_to_execute(self):
         lst = list(self._iter_missing_input_values())
         if lst:
             raise TaskInputError(
                 "The following inputs could not be loaded: " + str(lst)
             )
+
+    def reset_state(self):
+        self._cancelled = False
+        self.__exception = None
+        self.__succeeded = None
+        self.__outputs.reset()
 
     def execute(
         self,
@@ -390,6 +406,7 @@ class Task(Registered, UniversalHashable, register=False):
             self.__execinfo, node_id=self.__node_id, task_id=self.__task_id
         ) as execinfo:
             self.__execinfo = execinfo
+            self.reset_state()
             self._send_start_event()
             try:
                 if force_rerun:
@@ -451,4 +468,11 @@ class Task(Registered, UniversalHashable, register=False):
 
     def run(self):
         """To be implemented by the derived classes"""
+        raise NotImplementedError
+
+    def cancel(self):
+        """
+        Function called when a task is cancelled.
+        To be implemented by the derived classes
+        """
         raise NotImplementedError

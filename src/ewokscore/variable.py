@@ -241,6 +241,15 @@ class VariableContainer(Variable, Mapping):
             self.__varparams["pre_uhash"] = pre_uhash.uhash
         return super().cleanup_references()
 
+    def reset(self) -> None:
+        """Reset all variables to 'MISSING_DATA'"""
+        self._update(
+            {
+                key: missing_data.MISSING_DATA
+                for key in self.get_variable_values().keys()
+            }
+        )
+
     def copy_without_references(self):
         """The uhash of the copy is fixed thereby remove references to other uhashable objects."""
         return type(self)(
