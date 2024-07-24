@@ -1,5 +1,5 @@
 import warnings
-from typing import Optional, Union, Mapping
+from typing import Any, Optional, Union, Mapping
 
 from .hashing import UniversalHashable
 from .registration import Registered
@@ -193,7 +193,7 @@ class Task(Registered, UniversalHashable, register=False):
     def missing_inputs(self):
         return self.__missing_inputs_namespace
 
-    def get_input_value(self, key, default=missing_data.MISSING_DATA):
+    def get_input_value(self, key, default: Any = missing_data.MISSING_DATA):
         if self.missing_inputs[key]:
             return default
         return self.inputs[key]
@@ -257,7 +257,7 @@ class Task(Registered, UniversalHashable, register=False):
     def outputs(self):
         return self.__outputs_namespace
 
-    def get_output_value(self, key, default=missing_data.MISSING_DATA):
+    def get_output_value(self, key, default: Any = missing_data.MISSING_DATA):
         if self.missing_outputs[key]:
             return default
         return self.outputs[key]
