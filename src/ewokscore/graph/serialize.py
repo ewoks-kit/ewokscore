@@ -3,7 +3,7 @@ import enum
 import json
 import yaml
 import logging
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 from collections.abc import Mapping
 import importlib
 
@@ -18,41 +18,6 @@ logger = logging.getLogger(__name__)
 GraphRepresentation = enum.Enum(
     "GraphRepresentation", "json json_dict json_string json_module yaml"
 )
-
-
-def _ewoks_jsonload_hook_pair(item):
-    key, value = item
-    if key in (
-        "source",
-        "target",
-        "sub_source",
-        "sub_target",
-        "id",
-        "node",
-        "sub_node",
-    ):
-        value = node_id_from_json(value)
-    return key, value
-
-
-def ewoks_jsonload_hook(items):
-    return dict(map(_ewoks_jsonload_hook_pair, items))
-
-
-def graph_full_path(path, root_dir=None, root_module=None, possible_extensions=tuple()):
-    if not root_dir and root_module:
-        root_dir = _package_path(root_module)
-    if not os.path.isabs(path) and root_dir:
-        path = os.path.join(root_dir, path)
-    path = os.path.abspath(path)
-    if os.path.exists(path):
-        return path
-    root, _ = os.path.splitext(path)
-    for new_ext in possible_extensions:
-        new_full_path = root + new_ext
-        if os.path.exists(new_full_path):
-            return new_full_path
-    raise FileNotFoundError(path)
 
 
 def dump(
@@ -73,35 +38,40 @@ def dump(
                 representation = GraphRepresentation.yaml
         else:
             representation = GraphRepresentation.json_dict
+
     if representation == GraphRepresentation.json_dict:
         return _networkx_to_dict(graph)
-    elif representation == GraphRepresentation.json:
+
+    if representation == GraphRepresentation.json:
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
         kw.setdefault("indent", 2)
         with open(destination, mode="w") as f:
             json.dump(dictrepr, f, **kw)
         return destination
-    elif representation == GraphRepresentation.json_string:
+
+    if representation == GraphRepresentation.json_string:
         dictrepr = dump(graph)
         return json.dumps(dictrepr, **kw)
-    elif representation == GraphRepresentation.yaml:
+
+    if representation == GraphRepresentation.yaml:
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
         with open(destination, mode="w") as f:
             yaml.dump(dictrepr, f, **kw)
         return destination
-    elif representation == GraphRepresentation.json_module:
+
+    if representation == GraphRepresentation.json_module:
         package, _, file = destination.rpartition(".")
         assert package, f"No package provided when saving graph to '{destination}'"
         destination = os.path.join(_package_path(package), f"{file}.json")
         return dump(graph, destination=destination, representation="json", **kw)
-    else:
-        raise TypeError(representation, type(representation))
+
+    raise TypeError(representation, type(representation))
 
 
 def load(
-    source=None,
+    source: Union[str, Mapping, networkx.Graph, None] = None,
     representation: Optional[Union[GraphRepresentation, str]] = None,
     root_dir: Optional[str] = None,
     root_module: Optional[str] = None,
@@ -122,7 +92,11 @@ def load(
                 elif filename.endswith((".yml", ".yaml")):
                     representation = GraphRepresentation.yaml
                 else:
-                    representation = GraphRepresentation.json
+                    source = _read_any_file(
+                        source, root_dir=root_dir, root_module=root_module
+                    )
+                    representation = GraphRepresentation.json_dict
+
     if not source:
         graph = networkx.DiGraph()
     elif isinstance(source, networkx.Graph):
@@ -132,28 +106,14 @@ def load(
     elif representation == GraphRepresentation.json_dict:
         graph = _dict_to_networkx(source)
     elif representation == GraphRepresentation.json:
-        source = graph_full_path(
-            source,
-            root_dir=root_dir,
-            root_module=root_module,
-            possible_extensions=(".json",),
-        )
-        with open(source, mode="r") as f:
-            source = json.load(f, object_pairs_hook=ewoks_jsonload_hook)
-        graph = _dict_to_networkx(source)
+        graph_dict = _read_json_file(source, root_dir=root_dir, root_module=root_module)
+        graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.json_string:
-        source = json.loads(source, object_pairs_hook=ewoks_jsonload_hook)
-        graph = _dict_to_networkx(source)
+        graph_dict = _json_load(source)
+        graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.yaml:
-        source = graph_full_path(
-            source,
-            root_dir=root_dir,
-            root_module=root_module,
-            possible_extensions=(".yml", ".yaml"),
-        )
-        with open(source, mode="r") as f:
-            source = yaml.load(f, yaml.Loader)
-        graph = _dict_to_networkx(source)
+        graph_dict = _read_yaml_file(source, root_dir=root_dir, root_module=root_module)
+        graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.json_module:
         package, _, source = source.rpartition(".")
         if package:
@@ -171,6 +131,135 @@ def load(
         raise TypeError(graph, type(graph))
 
     return graph
+
+
+def _read_json_file(
+    filename: str, root_dir: Optional[str] = None, root_module: Optional[str] = None
+) -> dict:
+    filename = _find_graph_path(
+        filename,
+        root_dir=root_dir,
+        root_module=root_module,
+        possible_extensions=(".json",),
+    )
+    with open(filename, mode="r") as f:
+        return _json_load(f)
+
+
+def _read_yaml_file(
+    filename: str, root_dir: Optional[str] = None, root_module: Optional[str] = None
+) -> dict:
+    filename = _find_graph_path(
+        filename,
+        root_dir=root_dir,
+        root_module=root_module,
+        possible_extensions=(".yml", ".yaml"),
+    )
+    with open(filename, mode="r") as f:
+        return _yaml_load(f)
+
+
+def _read_any_file(
+    filename: str, root_dir: Optional[str] = None, root_module: Optional[str] = None
+) -> Optional[dict]:
+    filename = _find_graph_path(
+        filename,
+        root_dir=root_dir,
+        root_module=root_module,
+        possible_extensions=(".json", ".yml", ".yaml"),
+    )
+    with open(filename, mode="r") as f:
+        content = f.read()
+
+    try:
+        return _json_load(content)
+    except (json.JSONDecodeError, TypeError):
+        pass
+
+    try:
+        return _yaml_load(content)
+    except (yaml.YAMLError, TypeError):
+        pass
+
+    raise ValueError(f"File format of '{filename}' not supported")
+
+
+def _json_load(content) -> dict:
+    if isinstance(content, str):
+        result = json.loads(content, object_pairs_hook=_ewoks_jsonload_hook)
+    else:
+        result = json.load(content, object_pairs_hook=_ewoks_jsonload_hook)
+    if not isinstance(result, Mapping):
+        raise TypeError("graph must be a dictionary")
+    return result
+
+
+def _yaml_load(content) -> dict:
+    result = yaml.load(content, yaml.Loader)
+    if not isinstance(result, Mapping):
+        raise TypeError("graph must be a dictionary")
+    return result
+
+
+def _ewoks_jsonload_hook_pair(item):
+    key, value = item
+    if key in (
+        "source",
+        "target",
+        "sub_source",
+        "sub_target",
+        "id",
+        "node",
+        "sub_node",
+    ):
+        value = node_id_from_json(value)
+    return key, value
+
+
+def _ewoks_jsonload_hook(items):
+    return dict(map(_ewoks_jsonload_hook_pair, items))
+
+
+def _find_graph_path(
+    path: str,
+    root_dir: Optional[str] = None,
+    root_module: Optional[str] = None,
+    possible_extensions: Tuple[str] = tuple(),
+) -> str:
+    """When the :code:`path` is relative, the parent directory is assumed to be
+    (in order of priority):
+
+    * :code:`root_dir`
+    * :code:`root_module` directory
+    * current working directory
+
+    When :code:`path` is not found it tries to find the path with a different
+    extension from :code:`possible_extensions`.
+
+    :param path: could be a relative path, might have no extension
+    :param root_dir: in case :code:`path` is relative
+    :param root_module: in case :code:`root_module` is not provided
+    :param possible_extensions: in case :code:`path` is not found
+    :raises: FileNotFoundError
+    """
+    # Absolute path
+    if not root_dir and root_module:
+        root_dir = _package_path(root_module)
+    if not os.path.isabs(path) and root_dir:
+        path = os.path.join(root_dir, path)
+    path = os.path.abspath(path)
+
+    if os.path.exists(path):
+        return path
+
+    # Try different extensions
+    root, _ = os.path.splitext(path)
+    for new_ext in possible_extensions:
+        new_full_path = root + new_ext
+        if os.path.exists(new_full_path):
+            return new_full_path
+
+    raise FileNotFoundError(path)
 
 
 def _package_path(package: str) -> str:
