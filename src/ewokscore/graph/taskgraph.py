@@ -12,60 +12,7 @@ from .multigraph import flatten_multigraph
 from .error_handlers import connect_default_error_handlers
 from .execute.sequential import execute_graph
 from .compare import graphs_are_equal
-
-
-def load_graph(source=None, representation=None, **load_options):
-    if isinstance(source, TaskGraph):
-        return source
-    else:
-        return TaskGraph(source=source, representation=representation, **load_options)
-
-
-def node_has_links(graph, node_id):
-    try:
-        next(graph.successors(node_id))
-    except StopIteration:
-        try:
-            next(graph.predecessors(node_id))
-        except StopIteration:
-            return False
-    return True
-
-
-def merge_graphs(graphs, graph_attrs=None, rename_nodes=None, **load_options):
-    lst = list()
-    if rename_nodes is None:
-        rename_nodes = [True] * len(graphs)
-    else:
-        assert len(graphs) == len(rename_nodes)
-    for g, rename in zip(graphs, rename_nodes):
-        g = load_graph(g, **load_options)
-        gname = repr(g)
-        g = g.graph
-        if rename:
-            mapping = {s: (gname, s) for s in g.nodes}
-            g = networkx.relabel_nodes(g, mapping, copy=True)
-        lst.append(g)
-    ret = load_graph(networkx.compose_all(lst), **load_options)
-    if graph_attrs:
-        ret.graph.graph.update(graph_attrs)
-    return ret
-
-
-def get_subgraphs(graph: networkx.DiGraph, **load_options):
-    subgraphs = dict()
-    for node_id, node_attrs in graph.nodes.items():
-        task_type, task_info = inittask.task_executable_info(
-            node_id, node_attrs, all=True
-        )
-        if task_type == "graph":
-            g = load_graph(task_info["task_identifier"], **load_options)
-            g.graph.graph["id"] = node_id
-            node_label = node_attrs.get("label")
-            if node_label:
-                g.graph.graph["label"] = node_label
-            subgraphs[node_id] = g
-    return subgraphs
+from .models import GraphSource
 
 
 class TaskGraph:
@@ -93,7 +40,12 @@ class TaskGraph:
         taskgraph.execute()
     """
 
-    def __init__(self, source=None, representation=None, **load_options):
+    def __init__(
+        self,
+        source: Optional[GraphSource] = None,
+        representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
+        **load_options,
+    ):
         self.load(source=source, representation=representation, **load_options)
 
     def __repr__(self):
@@ -114,7 +66,7 @@ class TaskGraph:
 
     def load(
         self,
-        source=None,
+        source: Optional[GraphSource] = None,
         representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
         subgraph_representation: Optional[
             Union[serialize.GraphRepresentation, str]
@@ -176,3 +128,61 @@ class TaskGraph:
 
     def execute(self, *args, **kw):
         return execute_graph(self.graph, *args, **kw)
+
+
+def load_graph(
+    source: Optional[Union[TaskGraph, GraphSource]] = None,
+    representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
+    **load_options,
+):
+    if isinstance(source, TaskGraph):
+        return source
+    else:
+        return TaskGraph(source=source, representation=representation, **load_options)
+
+
+def node_has_links(graph, node_id):
+    try:
+        next(graph.successors(node_id))
+    except StopIteration:
+        try:
+            next(graph.predecessors(node_id))
+        except StopIteration:
+            return False
+    return True
+
+
+def merge_graphs(graphs, graph_attrs=None, rename_nodes=None, **load_options):
+    lst = list()
+    if rename_nodes is None:
+        rename_nodes = [True] * len(graphs)
+    else:
+        assert len(graphs) == len(rename_nodes)
+    for g, rename in zip(graphs, rename_nodes):
+        g = load_graph(g, **load_options)
+        gname = repr(g)
+        g = g.graph
+        if rename:
+            mapping = {s: (gname, s) for s in g.nodes}
+            g = networkx.relabel_nodes(g, mapping, copy=True)
+        lst.append(g)
+    ret = load_graph(networkx.compose_all(lst), **load_options)
+    if graph_attrs:
+        ret.graph.graph.update(graph_attrs)
+    return ret
+
+
+def get_subgraphs(graph: networkx.DiGraph, **load_options):
+    subgraphs = dict()
+    for node_id, node_attrs in graph.nodes.items():
+        task_type, task_info = inittask.task_executable_info(
+            node_id, node_attrs, all=True
+        )
+        if task_type == "graph":
+            g = load_graph(task_info["task_identifier"], **load_options)
+            g.graph.graph["id"] = node_id
+            node_label = node_attrs.get("label")
+            if node_label:
+                g.graph.graph["label"] = node_label
+            subgraphs[node_id] = g
+    return subgraphs

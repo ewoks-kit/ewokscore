@@ -1,18 +1,20 @@
 import json
 import yaml
 import pytest
+from pathlib import Path
 from ewokscore.graph import load_graph
 
 
 @pytest.mark.parametrize("with_ext", [True, False])
 @pytest.mark.parametrize("with_representation", [True, False])
-def test_graph_discovery_json(with_ext, with_representation, tmpdir):
+@pytest.mark.parametrize("path_format", [str, Path])
+def test_graph_discovery_json(with_ext, with_representation, tmpdir, path_format):
     _dump_graph_and_subgraph(tmpdir, "json", with_ext)
 
     ewoksgraph = load_graph(
-        source="graph",
+        source=path_format("graph"),
         representation="json" if with_representation else None,
-        root_dir=str(tmpdir),
+        root_dir=path_format(tmpdir),
     )
 
     assert set(ewoksgraph.graph.nodes) == {"node1", ("node2", "subnode1")}
@@ -20,13 +22,14 @@ def test_graph_discovery_json(with_ext, with_representation, tmpdir):
 
 @pytest.mark.parametrize("with_ext", [True, False])
 @pytest.mark.parametrize("with_representation", [True, False])
-def test_graph_discovery_yaml(with_ext, with_representation, tmpdir):
+@pytest.mark.parametrize("path_format", [str, Path])
+def test_graph_discovery_yaml(with_ext, with_representation, tmpdir, path_format):
     _dump_graph_and_subgraph(tmpdir, "yaml", with_ext)
 
     ewoksgraph = load_graph(
-        source="graph",
+        source=path_format("graph"),
         representation="yaml" if with_representation else None,
-        root_dir=str(tmpdir),
+        root_dir=path_format(tmpdir),
     )
 
     assert set(ewoksgraph.graph.nodes) == {"node1", ("node2", "subnode1")}

@@ -1,6 +1,7 @@
 import os
 import enum
 import json
+from pathlib import Path
 import yaml
 import logging
 from typing import Optional, Union, Tuple
@@ -10,8 +11,10 @@ import importlib
 import networkx
 from ewoksutils.path_utils import makedirs_from_filename
 
+
 from ..node import node_id_from_json
 from .schema import normalize_schema_version
+from .models import GraphSource
 
 logger = logging.getLogger(__name__)
 
@@ -71,9 +74,9 @@ def dump(
 
 
 def load(
-    source: Union[str, Mapping, networkx.Graph, None] = None,
+    source: Optional[GraphSource] = None,
     representation: Optional[Union[GraphRepresentation, str]] = None,
-    root_dir: Optional[str] = None,
+    root_dir: Optional[Union[str, Path]] = None,
     root_module: Optional[str] = None,
 ) -> networkx.DiGraph:
     """From persistent to runtime representation"""
@@ -82,11 +85,11 @@ def load(
     if representation is None:
         if isinstance(source, Mapping):
             representation = GraphRepresentation.json_dict
-        elif isinstance(source, str):
-            if "{" in source and "}" in source:
+        elif isinstance(source, (str, Path)):
+            if isinstance(source, str) and "{" in source and "}" in source:
                 representation = GraphRepresentation.json_string
             else:
-                filename = source.lower()
+                filename = str(source).lower()
                 if filename.endswith(".json"):
                     representation = GraphRepresentation.json
                 elif filename.endswith((".yml", ".yaml")):
@@ -134,7 +137,9 @@ def load(
 
 
 def _read_json_file(
-    filename: str, root_dir: Optional[str] = None, root_module: Optional[str] = None
+    filename: Union[str, Path],
+    root_dir: Optional[Union[str, Path]] = None,
+    root_module: Optional[str] = None,
 ) -> dict:
     filename = _find_graph_path(
         filename,
@@ -160,7 +165,9 @@ def _read_yaml_file(
 
 
 def _read_any_file(
-    filename: str, root_dir: Optional[str] = None, root_module: Optional[str] = None
+    filename: Union[str, Path],
+    root_dir: Optional[Union[str, Path]] = None,
+    root_module: Optional[str] = None,
 ) -> Optional[dict]:
     filename = _find_graph_path(
         filename,
@@ -221,8 +228,8 @@ def _ewoks_jsonload_hook(items):
 
 
 def _find_graph_path(
-    path: str,
-    root_dir: Optional[str] = None,
+    path: Union[str, Path],
+    root_dir: Optional[Union[str, Path]] = None,
     root_module: Optional[str] = None,
     possible_extensions: Tuple[str] = tuple(),
 ) -> str:
