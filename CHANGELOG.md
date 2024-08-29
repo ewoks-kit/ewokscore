@@ -2,9 +2,18 @@
 
 ## Unreleased
 
+## 0.8.0
+
+New features:
+
+- `load_graph` is now able to load non-JSON files from a path without extension
+- `load_graph` and `convert_graph` accept now `Path` type args for the workflow path and the root directory
+- New method `cancel` in `Task` to be called when the task must be cancelled. It is up to each `Task` to implement this method.
+- New field `force_start_node` for graph nodes. Setting this field to `True` forcefully marks the node as a start node (i.e. a node that must be executed before others).
+
 ## 0.7.4
 
-Big fixes:
+Bug fixes:
 
 - the pyyaml 6.0.2rc1 package is broken for python 3.7 or lower
 
