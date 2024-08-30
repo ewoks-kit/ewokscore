@@ -63,6 +63,12 @@ def test_start_nodes():
     ewoksgraph = load_graph(graph)
     assert start_nodes(ewoksgraph.graph) == {"task1"}
 
+    graph, _ = get_graph("self_trigger")
+    ewoksgraph = load_graph(graph)
+    assert start_nodes(ewoksgraph.graph) == {"task1", "task2"}
+    ewoksgraph.graph.nodes["task1"].pop("force_start_node")
+    assert start_nodes(ewoksgraph.graph) == {"task2"}
+
 
 @pytest.mark.parametrize("graph_name", graph_names())
 @pytest.mark.parametrize(
