@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Tuple
+from pathlib import Path
 import pytest
 
 from ewokscore import execute_graph
@@ -68,13 +68,14 @@ def test_start_nodes():
 @pytest.mark.parametrize(
     "representation", (None, "json", "json_dict", "json_string", "yaml")
 )
-def test_serialize_graph(graph_name, representation, tmpdir):
+@pytest.mark.parametrize("path_format", (str, Path))
+def test_serialize_graph(graph_name, representation, path_format, tmpdir):
     graph, _ = get_graph(graph_name)
     ewoksgraph = load_graph(graph)
     if representation == "yaml":
-        destination = str(tmpdir / "file.yml")
+        destination = path_format(tmpdir / "file.yml")
     elif representation == "json":
-        destination = str(tmpdir / "file.json")
+        destination = path_format(tmpdir / "file.json")
     else:
         destination = None
     inmemorydump = ewoksgraph.dump(destination, representation=representation)
@@ -89,17 +90,18 @@ def test_serialize_graph(graph_name, representation, tmpdir):
 
 
 @pytest.mark.parametrize("graph_name", graph_names())
-def test_convert_graph(graph_name, tmpdir):
+@pytest.mark.parametrize("path_format", (str, Path))
+def test_convert_graph(graph_name, path_format, tmpdir):
     graph, _ = get_graph(graph_name)
     ewoksgraph = load_graph(graph)
-    assert_convert_graph(convert_graph, ewoksgraph, tmpdir)
+    assert_convert_graph(convert_graph, ewoksgraph, path_format, tmpdir)
 
 
 def assert_convert_graph(
     convert_graph,
     ewoksgraph,
+    path_format,
     tmpdir,
-    representations: Optional[Iterable[Tuple[dict, dict, Optional[str]]]] = None,
 ):
     """All graph `representations` need to be known by `convert_graph`. It will always
     test the basic representations (e.g. json and yaml) in addition to the provided
@@ -115,15 +117,13 @@ def assert_convert_graph(
         (dict(), {"representation": "json_dict"}, None),
         (dict(), {"representation": "json_string"}, None),
     ]
-    if representations:
-        conversion_chain.extend(representations)
     conversion_chain.append(non_serialized_representation)
     source = ewoksgraph
     for convert_from, convert_to in zip(conversion_chain[:-1], conversion_chain[1:]):
         load_options, _, _ = convert_from
         _, save_options, fileext = convert_to
         if fileext:
-            destination = str(tmpdir / f"file.{fileext}")
+            destination = path_format(tmpdir / f"file.{fileext}")
         else:
             destination = None
         result = convert_graph(

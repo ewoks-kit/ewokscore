@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Hashable, Optional, Union
 import networkx
 from ewoksutils.import_utils import qualname
@@ -107,10 +108,10 @@ class TaskGraph:
 
     def dump(
         self,
-        destination=None,
+        destination: Optional[Union[str, Path]] = None,
         representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
         **kw,
-    ) -> Optional[Union[str, dict]]:
+    ) -> Optional[Union[str, Path, dict]]:
         return serialize.dump(
             self.graph, destination=destination, representation=representation, **kw
         )

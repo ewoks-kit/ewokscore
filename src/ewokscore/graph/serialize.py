@@ -25,16 +25,16 @@ GraphRepresentation = enum.Enum(
 
 def dump(
     graph: networkx.DiGraph,
-    destination=None,
+    destination: Optional[Union[str, Path]] = None,
     representation: Optional[Union[GraphRepresentation, str]] = None,
     **kw,
-) -> Union[str, dict]:
+) -> Union[str, Path, dict]:
     """From runtime to persistent representation"""
     if isinstance(representation, str):
         representation = GraphRepresentation.__members__[representation]
     if representation is None:
-        if isinstance(destination, str):
-            filename = destination.lower()
+        if isinstance(destination, (str, Path)):
+            filename = str(destination).lower()
             if filename.endswith(".json"):
                 representation = GraphRepresentation.json
             elif filename.endswith((".yml", ".yaml")):
@@ -46,6 +46,8 @@ def dump(
         return _networkx_to_dict(graph)
 
     if representation == GraphRepresentation.json:
+        if destination is None:
+            raise TypeError("Destination should be specified when dumping to json")
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
         kw.setdefault("indent", 2)
@@ -58,6 +60,8 @@ def dump(
         return json.dumps(dictrepr, **kw)
 
     if representation == GraphRepresentation.yaml:
+        if destination is None:
+            raise TypeError("Destination should be specified when dumping to yaml")
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
         with open(destination, mode="w") as f:
@@ -65,7 +69,9 @@ def dump(
         return destination
 
     if representation == GraphRepresentation.json_module:
-        package, _, file = destination.rpartition(".")
+        if destination is None:
+            raise TypeError("Destination should be specified when dumping to json")
+        package, _, file = str(destination).rpartition(".")
         assert package, f"No package provided when saving graph to '{destination}'"
         destination = os.path.join(_package_path(package), f"{file}.json")
         return dump(graph, destination=destination, representation="json", **kw)
