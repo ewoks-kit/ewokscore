@@ -112,7 +112,7 @@ def _get_subnode_attributes(
     """Update all input node attributes of the subgraph with the graph node attributes from the super graph"""
     transfer_attributes = {
         "default_inputs",
-        "inputs_complete",
+        "start_node",
         "conditions_else_value",
         "default_error_node",
     }

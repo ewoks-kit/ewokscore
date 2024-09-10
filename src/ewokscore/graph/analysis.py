@@ -257,12 +257,11 @@ def has_required_predecessors(graph: networkx.DiGraph, node_id: NodeIdType) -> b
 def has_required_static_inputs(graph: networkx.DiGraph, node_id: NodeIdType) -> bool:
     """Returns True when the default inputs cover all required inputs."""
     node_attrs = graph.nodes[node_id]
-    inputs_complete = node_attrs.get("inputs_complete", None)
-    if isinstance(inputs_complete, bool):
-        # method and script tasks always have an empty `required_input_names`
-        # although they may have required input. This keyword is used the
-        # manually indicate that all required inputs are statically provided.
-        return inputs_complete
+    if node_attrs.get("task_type", None) != "class":
+        # Tasks that are not `class` (e.g. `method` and `script`)
+        # always have an empty `required_input_names`
+        # although they may have required input.
+        return False
     taskclass = get_task_class(node_id, node_attrs)
     static_inputs = {d["name"] for d in node_attrs.get("default_inputs", list())}
     return not (set(taskclass.required_input_names()) - static_inputs)
@@ -297,13 +296,23 @@ def node_has_noncovered_conditions(
     return False
 
 
+def node_is_start_node(graph: networkx.DiGraph, node_id: NodeIdType) -> bool:
+    node = graph.nodes[node_id]
+    if node.get("force_start_node", False):
+        return True
+
+    return not node_has_predecessors(graph, node_id)
+
+
 def start_nodes(graph: networkx.DiGraph) -> Set[NodeIdType]:
     """Nodes from which the graph execution starts"""
-    nodes = set(
-        node_id for node_id in graph.nodes if not node_has_predecessors(graph, node_id)
+
+    start_nodes: Set[NodeIdType] = set(
+        node_id for node_id in graph.nodes if node_is_start_node(graph, node_id)
     )
-    if nodes:
-        return nodes
+    if start_nodes:
+        return start_nodes
+
     return set(
         node_id
         for node_id in graph.nodes
