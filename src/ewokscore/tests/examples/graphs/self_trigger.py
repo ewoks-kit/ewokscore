@@ -14,7 +14,7 @@ def self_trigger():
         },
         {
             "id": "task2",
-            "default_inputs": [{"name": "b", "value": 1}],
+            "default_inputs": [{"name": "a", "value": 1}],
             "task_type": "class",
             "task_identifier": task,
         },
@@ -43,8 +43,9 @@ def self_trigger():
         },
     ]
 
-    # Cannot be executed with ewokscore execute_graph
-    expected = None
+    expected = {
+        "task3": {"too_small": False, "result": 11},
+    }
 
     graph = {
         "links": links,
