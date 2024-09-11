@@ -1,16 +1,16 @@
 import os
 import enum
 import json
-from pathlib import Path
 import yaml
 import logging
+import warnings
+import importlib
+from pathlib import Path
 from typing import Optional, Union, Tuple
 from collections.abc import Mapping
-import importlib
 
 import networkx
 from ewoksutils.path_utils import makedirs_from_filename
-
 
 from ..node import node_id_from_json
 from .schema import normalize_schema_version
@@ -118,7 +118,7 @@ def load(
         graph_dict = _read_json_file(source, root_dir=root_dir, root_module=root_module)
         graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.json_string:
-        graph_dict = _json_load(source)
+        graph_dict = json_load(source)
         graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.yaml:
         graph_dict = _read_yaml_file(source, root_dir=root_dir, root_module=root_module)
@@ -154,7 +154,7 @@ def _read_json_file(
         possible_extensions=(".json",),
     )
     with open(filename, mode="r") as f:
-        return _json_load(f)
+        return json_load(f)
 
 
 def _read_yaml_file(
@@ -185,7 +185,7 @@ def _read_any_file(
         content = f.read()
 
     try:
-        return _json_load(content)
+        return json_load(content)
     except (json.JSONDecodeError, TypeError):
         pass
 
@@ -197,7 +197,7 @@ def _read_any_file(
     raise ValueError(f"File format of '{filename}' not supported")
 
 
-def _json_load(content) -> dict:
+def json_load(content) -> dict:
     if isinstance(content, str):
         result = json.loads(content, object_pairs_hook=_ewoks_jsonload_hook)
     else:
@@ -227,6 +227,11 @@ def _ewoks_jsonload_hook_pair(item):
     ):
         value = node_id_from_json(value)
     return key, value
+
+
+def ewoks_jsonload_hook(items):
+    warnings.warn("Use 'json_load' instead", DeprecationWarning)
+    return _ewoks_jsonload_hook(items)
 
 
 def _ewoks_jsonload_hook(items):
