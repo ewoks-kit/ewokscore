@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.8.0
+## 0.8.1
 
 New features:
 
@@ -10,6 +10,14 @@ New features:
 - `load_graph` and `convert_graph` accept now `Path` type args for the workflow path and the root directory
 - New method `cancel` in `Task` to be called when the task must be cancelled. It is up to each `Task` to implement this method.
 - New field `force_start_node` for graph nodes. Setting this field to `True` forcefully marks the node as a start node (i.e. a node that must be executed before others).
+
+Deprecations:
+
+- `ewokscore.graph.serialize`: `ewoks_jsonload_hook` is deprecated. Use `json_load` instead.
+
+## 0.8.0
+
+Do not use.
 
 ## 0.7.4
 
