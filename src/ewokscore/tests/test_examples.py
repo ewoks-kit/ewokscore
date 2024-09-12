@@ -1,3 +1,4 @@
+from typing import Iterable, Optional, Tuple, Type, Union
 from pathlib import Path
 import pytest
 
@@ -100,14 +101,15 @@ def test_serialize_graph(graph_name, representation, path_format, tmpdir):
 def test_convert_graph(graph_name, path_format, tmpdir):
     graph, _ = get_graph(graph_name)
     ewoksgraph = load_graph(graph)
-    assert_convert_graph(convert_graph, ewoksgraph, path_format, tmpdir)
+    assert_convert_graph(convert_graph, ewoksgraph, tmpdir, path_format)
 
 
 def assert_convert_graph(
     convert_graph,
     ewoksgraph,
-    path_format,
     tmpdir,
+    path_format: Optional[Union[Type[str], Type[Path]]] = None,
+    representations: Optional[Iterable[Tuple[dict, dict, Optional[str]]]] = None,
 ):
     """All graph `representations` need to be known by `convert_graph`. It will always
     test the basic representations (e.g. json and yaml) in addition to the provided
@@ -115,6 +117,8 @@ def assert_convert_graph(
 
     The tuple-items in `representations` are: load options, save options, file extension.
     """
+    if path_format is None:
+        path_format = str
     non_serialized_representation = dict(), dict(), None
     conversion_chain = [
         non_serialized_representation,
@@ -123,6 +127,8 @@ def assert_convert_graph(
         (dict(), {"representation": "json_dict"}, None),
         (dict(), {"representation": "json_string"}, None),
     ]
+    if representations:
+        conversion_chain.extend(representations)
     conversion_chain.append(non_serialized_representation)
     source = ewoksgraph
     for convert_from, convert_to in zip(conversion_chain[:-1], conversion_chain[1:]):
