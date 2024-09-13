@@ -10,31 +10,32 @@ variables:
 test-3.7:
   extends: .test-3.7
   variables:
-    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
+    JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error -W ${WARNING1} -W ${WARNING2} -W ${WARNING3}"
+    PIP_INSTALL_OPTIONS: "" # Remove `--pre` due to https://github.com/silx-kit/fabio/issues/588
 
 test-3.8:
   extends: .test-3.8
   variables:
-    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
+    JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error -W ${WARNING1} -W ${WARNING2} -W ${WARNING3}"
 
 test-3.9:
   extends: .test-3.9
   variables:
-    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
+    JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error -W ${WARNING1} -W ${WARNING2} -W ${WARNING3}"
 
 test-3.8-examples:
   extends: .test-3.8
   variables:
-    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
+    JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error -W ${WARNING1} -W ${WARNING2} -W ${WARNING3}"
 
 test-3.10-win:
   extends: .test-3.10-win
   variables:
-    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
+    JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error -W ${WARNING1} -W ${WARNING2} -W ${WARNING3}"
 
 build_sdist:
@@ -43,13 +44,13 @@ build_sdist:
 test_sdist-3.11:
   extends: .test_sdist-3.11
   variables:
-    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
+    JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error -W ${WARNING1} -W ${WARNING2} -W ${WARNING3}"
 
 test_sdist-3.8-win:
   extends: .test_sdist-3.8-win
   variables:
-    JUPYTER_PLATFORM_DIRS: "1"  # jupyter_client deprecation warning
+    JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error -W ${WARNING1} -W ${WARNING2} -W ${WARNING3}"
 
 build_doc:
