@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Changes:
+
+- Script tasks use "-" for single letter and "--" for multi letter parameters
+
+New features:
+
+- Scripts tasks support positional arguments
+
 ## 0.8.1
 
 New features:

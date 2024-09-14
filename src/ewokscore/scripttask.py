@@ -1,10 +1,14 @@
 import os
 import sys
+import logging
 import subprocess
 from .task import Task
 
 SCRIPT_ARGUMENT = "_script"
 WIN32 = sys.platform == "win32"
+
+
+logger = logging.getLogger(__name__)
 
 
 class ScriptExecutorTask(
@@ -20,12 +24,10 @@ class ScriptExecutorTask(
         if not isinstance(fullname, str):
             raise TypeError(fullname, type(fullname))
 
-        # Python or shell script
-        is_python = fullname.endswith(".py")
-
-        # Is script executable?
+        # Is script?
         if os.path.isfile(fullname):
             # existing python or shell script
+            is_python = fullname.endswith(".py")
             fullname = os.path.abspath(fullname)
             if WIN32:
                 is_executable = not is_python
@@ -34,6 +36,7 @@ class ScriptExecutorTask(
                     is_executable = f.readline().startswith("#!")
         else:
             # command (although it could be a script that does not exist)
+            is_python = False
             is_executable = True
             fullname = fullname.split(" ")
 
@@ -55,16 +58,21 @@ class ScriptExecutorTask(
             cmd.extend(fullname)
 
         # Script/command arguments
-        if is_python:
-            # Use full parameter name
-            argmarker = "--"
-        else:
-            # Use getopts-style parameter parsing by the script
-            argmarker = "-"
         skip = self.input_names()
+        positional = list()
         for k, v in self.get_input_values().items():
             if k not in skip:
-                cmd.extend((argmarker + k, str(v)))
+                if isinstance(k, int):
+                    positional.append((k, v))
+                else:
+                    if len(k) == 1:
+                        argmarker = "-"
+                    else:
+                        argmarker = "--"
+                    cmd.extend((argmarker + k, str(v)))
+        cmd.extend([v for _, v in sorted(positional)])
+
+        logger.debug("Command: '%s'", " ".join(cmd))
 
         # Run
         stdout = stderr = None
