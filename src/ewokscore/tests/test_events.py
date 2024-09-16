@@ -1,6 +1,8 @@
+import logging
+from queue import Queue, Empty
 from contextlib import contextmanager
 from logging.handlers import QueueHandler
-from queue import Queue, Empty
+
 import pytest
 from ewokscore import events
 
@@ -20,7 +22,6 @@ def capture_events(blocking):
     try:
         yield get_event
     finally:
-        events.remove_handler(handler)
         events.cleanup()
 
 
@@ -81,3 +82,29 @@ def test_task_event(blocking):
         assert event.type == "end"
         assert not event.error
         assert event.error_message is None
+
+
+@pytest.mark.parametrize("blocking", [False, True])
+def test_root_logger(blocking, caplog):
+    execinfo = {
+        "job_id": None,
+        "host_name": None,
+        "user_name": None,
+        "process_id": None,
+        "workflow_id": None,
+    }
+    with capture_events(blocking) as get_event:
+        with caplog.at_level(logging.WARNING):
+            events.send_workflow_event(execinfo=execinfo, event="start")
+        event = get_event()
+        assert event.type == "start"
+        assert not caplog.records
+
+        with caplog.at_level(logging.INFO):
+            events.send_workflow_event(execinfo=execinfo, event="start")
+
+        event = get_event()
+        assert event.type == "start"
+        assert len(caplog.records) == 1
+        event_root = caplog.records[0]
+        assert event_root.type == "start"

@@ -1,8 +1,9 @@
-"""Manage the ewoks event logger which is a global object
+"""Manage the EWOKS event logger which is a global object
 """
 
 import os
 import logging
+import warnings
 from contextlib import contextmanager
 from typing import Dict, Iterable, List, Optional, Tuple
 
@@ -11,7 +12,8 @@ from ewoksutils.logging_utils.cleanup import cleanup_logger
 
 from .handlers import is_ewoks_event_handler, instantiate_handler
 
-EWOKS_EVENT_LOGGER_NAME = __name__
+_app_logger = logging.getLogger(__name__)
+EWOKS_EVENT_LOGGER_NAME = f"__{__name__}__"
 ENABLE_EWOKS_EVENTS_BY_DEFAULT = True
 
 
@@ -19,18 +21,21 @@ def send(
     *args,
     handlers: Optional[List[Dict[str, str]]] = None,
     asynchronous: Optional[bool] = None,
-    **kw
+    **kw,
 ) -> None:
-    """Send an event to the global ewoks event logger."""
+    """Log an EWOKS event with the EWOKS event handlers and the application handlers."""
     with _ewoks_event_logger(handlers=handlers, asynchronous=asynchronous) as logger:
+        # Send to the EWOKS event handlers
         logger.info(*args, **kw)
+        # Send to the application log handlers
+        _app_logger.info(*args, **kw)
 
 
 def add_handler(
     handler,
     asynchronous: Optional[bool] = None,
 ) -> None:
-    """Add a handler to the global ewoks event logger."""
+    """Add a handler to the global EWOKS event logger."""
     with _ewoks_event_logger() as logger:
         if _has_handler_instance(logger, handler):
             return
@@ -42,7 +47,12 @@ def add_handler(
 
 
 def remove_handler(handler: logging.Handler) -> None:
-    """Remove a handler from all loggers that receive ewoks event."""
+    """Remove a handler from all loggers that receive EWOKS event."""
+    warnings.warn(
+        "Explicit Ewoks handler removal will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     with _ewoks_event_logger() as logger:
         for linstance, hinstance in _iter_handler_owners(logger, handler):
             linstance.removeHandler(hinstance)
@@ -70,7 +80,7 @@ if hasattr(os, "register_at_fork"):
 def _ewoks_event_logger(
     handlers: Optional[List[Dict[str, str]]] = None, asynchronous: Optional[bool] = None
 ) -> Iterable[logging.Logger]:
-    """Initialize and yield the ewoks event logger"""
+    """Initialize and yield the EWOKS event logger"""
     # Issue with logging and forking:
     # https://pythonspeed.com/articles/python-multiprocessing/
 
@@ -86,7 +96,7 @@ def _ewoks_event_logger(
 
 
 def _cleanup_ewoks_event_logger():
-    """Cleanup and delete the global ewoks event logger"""
+    """Cleanup and delete the global EWOKS event logger"""
     cleanup_logger(EWOKS_EVENT_LOGGER_NAME)
 
 
@@ -107,6 +117,7 @@ def _init_ewoks_event_logger(
     logger = logging.getLogger(EWOKS_EVENT_LOGGER_NAME)
     logger.setLevel(logging.DEBUG)
     logger.ewoks_pid = os.getpid()
+    logger.propagate = False
     if not handlers:
         return
     for desc in handlers:
@@ -117,14 +128,14 @@ def _init_ewoks_event_logger(
             handler = instantiate_handler(desc["class"], **kwargs)
         except Exception as e:
             raise RuntimeError(
-                "cannot create an ewoks event handler from the description"
+                "cannot create an EWOKS event handler from the description"
             ) from e
         asynchronous_handler = desc.get("asynchronous", asynchronous)
         add_handler(handler, asynchronous=asynchronous_handler)
 
 
 def _iter_loggers(logger: logging.Logger) -> Iterable[logging.Logger]:
-    """Yield all loggers which will receive ewoks events."""
+    """Yield all loggers which will receive EWOKS events."""
     _logger = logger
     while _logger is not None:
         yield _logger
