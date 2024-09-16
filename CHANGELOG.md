@@ -5,6 +5,7 @@
 Changes:
 
 - Script tasks: use "-" for single-character and "--" for multi-character script parameter names
+- The EWOKS events are send to EWOKS event handlers and to a normal application logger
 
 New features:
 

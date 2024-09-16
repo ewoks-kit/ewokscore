@@ -1,8 +1,11 @@
+import logging
+
+import numpy.random
+
 from .examples.tasks.sumlist import SumList
 from ewokscore.progress import TextProgress
 from ewokscore.events import job_context
 from ewokscore.events import workflow_context
-import numpy.random
 
 
 def test_no_progress_stdout(capsys):
@@ -30,27 +33,29 @@ def test_text_progress_stdout(capsys):
 
 
 def test_no_progress_events(caplog):
-    with job_context(None) as execinfo:
-        with workflow_context(execinfo) as execinfo:
-            task = SumList(
-                inputs={"list": numpy.random.random(10000)},
-                node_id="node_id",
-                execinfo=execinfo,
-            )
-            task.execute()
+    with caplog.at_level(logging.INFO):
+        with job_context(None) as execinfo:
+            with workflow_context(execinfo) as execinfo:
+                task = SumList(
+                    inputs={"list": numpy.random.random(10000)},
+                    node_id="node_id",
+                    execinfo=execinfo,
+                )
+                task.execute()
     assert len(caplog.records) == 6
 
 
 def test_text_progress_events(caplog):
-    with job_context(None) as execinfo:
-        with workflow_context(execinfo) as execinfo:
-            task = SumList(
-                inputs={"list": numpy.random.random(10000)},
-                progress=TextProgress(name="SumList"),
-                node_id="node_id",
-                execinfo=execinfo,
-            )
-            task.execute()
+    with caplog.at_level(logging.INFO):
+        with job_context(None) as execinfo:
+            with workflow_context(execinfo) as execinfo:
+                task = SumList(
+                    inputs={"list": numpy.random.random(10000)},
+                    progress=TextProgress(name="SumList"),
+                    node_id="node_id",
+                    execinfo=execinfo,
+                )
+                task.execute()
     nprogress = 100
     assert len(caplog.records) == (nprogress + 6)
     progress = [
