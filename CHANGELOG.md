@@ -4,11 +4,11 @@
 
 Changes:
 
-- Script tasks use "-" for single letter and "--" for multi letter parameters
+- Script tasks: use "-" for single-character and "--" for multi-character script parameter names
 
 New features:
 
-- Scripts tasks support positional arguments
+- Script tasks: support positional arguments
 
 ## 0.8.1
 
