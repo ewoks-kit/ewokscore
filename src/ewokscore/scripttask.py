@@ -61,15 +61,21 @@ class ScriptExecutorTask(
         skip = self.input_names()
         positional = list()
         for k, v in self.get_input_values().items():
-            if k not in skip:
-                if isinstance(k, int):
-                    positional.append((k, v))
+            if k in skip:
+                continue
+            value = str(v)
+            if isinstance(k, int):
+                positional.append((k, value))
+                continue
+            else:
+                if len(k) == 1:
+                    argmarker = "-"
                 else:
-                    if len(k) == 1:
-                        argmarker = "-"
-                    else:
-                        argmarker = "--"
-                    cmd.extend((argmarker + k, str(v)))
+                    argmarker = "--"
+                if value:
+                    cmd.extend((argmarker + k, value))
+                else:
+                    cmd.append(argmarker + k)
         cmd.extend([v for _, v in sorted(positional)])
 
         logger.debug("Command: '%s'", " ".join(cmd))
