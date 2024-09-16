@@ -17,6 +17,76 @@ class ScriptExecutorTask(
     optional_input_names=["_capture_output", "_merge_err", "_raise_on_error"],
     output_names=["return_code", "out", "err"],
 ):
+    """Task wrapper for a shell command or script.
+
+    When the :code:`SCRIPT_ARGUMENT` input variable is not an existing file, it is assumed to be a command.
+
+    When it is a file, it is assumed to be executable when
+
+    - Windows: it does not have the `".py"` file name extension
+    - Linux/Mac: the content does not start with a shebang "#!"
+
+    When the file is not executable a command is prepended
+
+    - :code:`sys.executable` when the file name has the `".py"` extension
+    - :code:`bash` otherwise
+
+    Examples of different types of command line arguments
+
+    - **Single-character argument names**:
+
+        .. code:: bash
+
+            python -c "print('hello')"
+
+        .. code:: python
+
+            inputs = {SCRIPT_ARGUMENT: "python", "c": "print('hello')"}
+
+    - **Arguments without a value**:
+
+        .. code:: bash
+
+            ls -a
+
+        .. code:: python
+
+            inputs = {SCRIPT_ARGUMENT: "ls", "a": ""}
+
+    - **Multi-character argument names**:
+
+        .. code:: bash
+
+            ls --all
+
+        .. code:: python
+
+            inputs = {SCRIPT_ARGUMENT: "ls", "all": ""}
+
+    - **Arguments without a name**:
+
+        .. code:: bash
+
+            ls .
+
+        .. code:: python
+
+            inputs = {SCRIPT_ARGUMENT: "ls", 0: "."}
+
+    - **Merged single-character argument names**:
+
+        .. code:: bash
+
+            ls -ltrh
+
+        Since we need `-ltrh` instead of `--ltrh` we can specify
+        it as a positional argument
+
+        .. code:: python
+
+            inputs = {SCRIPT_ARGUMENT: "ls", 0: "-ltrh"}
+    """
+
     SCRIPT_ARGUMENT = SCRIPT_ARGUMENT
 
     def run(self):
@@ -30,8 +100,10 @@ class ScriptExecutorTask(
             is_python = fullname.endswith(".py")
             fullname = os.path.abspath(fullname)
             if WIN32:
+                # Assume all non-python scripts are executable
                 is_executable = not is_python
             else:
+                # Scripts with a shebang are executable
                 with open(fullname, "r") as f:
                     is_executable = f.readline().startswith("#!")
         else:
