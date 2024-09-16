@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.0
+
 Changes:
 
 - Script tasks: use "-" for single-character and "--" for multi-character script parameter names
