@@ -1,10 +1,14 @@
 import os
 import sys
+import logging
 import subprocess
 from .task import Task
 
 SCRIPT_ARGUMENT = "_script"
 WIN32 = sys.platform == "win32"
+
+
+logger = logging.getLogger(__name__)
 
 
 class ScriptExecutorTask(
@@ -13,6 +17,76 @@ class ScriptExecutorTask(
     optional_input_names=["_capture_output", "_merge_err", "_raise_on_error"],
     output_names=["return_code", "out", "err"],
 ):
+    """Task wrapper for a shell command or script.
+
+    When the :code:`SCRIPT_ARGUMENT` input variable is not an existing file, it is assumed to be a command.
+
+    When it is a file, it is assumed to be executable when
+
+    - Windows: it does not have the `".py"` file name extension
+    - Linux/Mac: the content does not start with a shebang "#!"
+
+    When the file is not executable a command is prepended
+
+    - :code:`sys.executable` when the file name has the `".py"` extension
+    - :code:`bash` otherwise
+
+    Examples of different types of command line arguments
+
+    - **Single-character argument names**:
+
+        .. code:: bash
+
+            python -c "print('hello')"
+
+        .. code:: python
+
+            inputs = {SCRIPT_ARGUMENT: "python", "c": "print('hello')"}
+
+    - **Arguments without a value**:
+
+        .. code:: bash
+
+            ls -a
+
+        .. code:: python
+
+            inputs = {SCRIPT_ARGUMENT: "ls", "a": ""}
+
+    - **Multi-character argument names**:
+
+        .. code:: bash
+
+            ls --all
+
+        .. code:: python
+
+            inputs = {SCRIPT_ARGUMENT: "ls", "all": ""}
+
+    - **Arguments without a name**:
+
+        .. code:: bash
+
+            ls .
+
+        .. code:: python
+
+            inputs = {SCRIPT_ARGUMENT: "ls", 0: "."}
+
+    - **Merged single-character argument names**:
+
+        .. code:: bash
+
+            ls -ltrh
+
+        Since we need `-ltrh` instead of `--ltrh` we can specify
+        it as a positional argument
+
+        .. code:: python
+
+            inputs = {SCRIPT_ARGUMENT: "ls", 0: "-ltrh"}
+    """
+
     SCRIPT_ARGUMENT = SCRIPT_ARGUMENT
 
     def run(self):
@@ -20,20 +94,21 @@ class ScriptExecutorTask(
         if not isinstance(fullname, str):
             raise TypeError(fullname, type(fullname))
 
-        # Python or shell script
-        is_python = fullname.endswith(".py")
-
-        # Is script executable?
+        # Is script?
         if os.path.isfile(fullname):
             # existing python or shell script
+            is_python = fullname.endswith(".py")
             fullname = os.path.abspath(fullname)
             if WIN32:
+                # Assume all non-python scripts are executable
                 is_executable = not is_python
             else:
+                # Scripts with a shebang are executable
                 with open(fullname, "r") as f:
                     is_executable = f.readline().startswith("#!")
         else:
             # command (although it could be a script that does not exist)
+            is_python = False
             is_executable = True
             fullname = fullname.split(" ")
 
@@ -55,16 +130,27 @@ class ScriptExecutorTask(
             cmd.extend(fullname)
 
         # Script/command arguments
-        if is_python:
-            # Use full parameter name
-            argmarker = "--"
-        else:
-            # Use getopts-style parameter parsing by the script
-            argmarker = "-"
         skip = self.input_names()
+        positional = list()
         for k, v in self.get_input_values().items():
-            if k not in skip:
-                cmd.extend((argmarker + k, str(v)))
+            if k in skip:
+                continue
+            value = str(v)
+            if isinstance(k, int):
+                positional.append((k, value))
+                continue
+            else:
+                if len(k) == 1:
+                    argmarker = "-"
+                else:
+                    argmarker = "--"
+                if value:
+                    cmd.extend((argmarker + k, value))
+                else:
+                    cmd.append(argmarker + k)
+        cmd.extend([v for _, v in sorted(positional)])
+
+        logger.debug("Command: '%s'", " ".join(cmd))
 
         # Run
         stdout = stderr = None

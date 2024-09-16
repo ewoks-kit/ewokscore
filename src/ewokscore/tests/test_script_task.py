@@ -10,7 +10,7 @@ pyscript = r"""
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--a", type=int, default=0)
+    parser.add_argument("-a", type=int, default=0)
     args = parser.parse_args()
     print("input a =", args.a)
     assert args.a == 10
@@ -141,7 +141,8 @@ def test_command_task(tmpdir, varinfo):
     task = Task.instantiate(
         "ScriptExecutorTask",
         inputs={
-            "_script": f"dir {tmpdir}",
+            "0": str(tmpdir),
+            "_script": "dir",
             "_capture_output": True,
             "_raise_on_error": False,
         },

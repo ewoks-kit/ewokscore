@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Changes:
+
+- Script tasks: use "-" for single-character and "--" for multi-character script parameter names
+
+New features:
+
+- Script tasks: support positional arguments
+
 ## 0.8.1
 
 New features:
