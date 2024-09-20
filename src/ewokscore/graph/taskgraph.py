@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Hashable, Optional, Union
+from typing import Hashable, Optional, Sequence, Union
 import networkx
 from ewoksutils.import_utils import qualname
 
@@ -129,6 +129,14 @@ class TaskGraph:
 
     def execute(self, *args, **kw):
         return execute_graph(self.graph, *args, **kw)
+
+    @property
+    def requirements(self) -> Optional[Sequence[str]]:
+        requirements = self.graph.graph.get("requirements", None)
+
+        if isinstance(requirements, Sequence):
+            return requirements
+        return None
 
 
 def load_graph(

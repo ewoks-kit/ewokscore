@@ -68,6 +68,8 @@ Graph attributes
 * *id* (optional): graph identifier unique to a database of graphs (Default: "notspecified")
 * *label* (optional): non-unique label to be used when identifying a graph for human consumption
 * *schema_version* (optional): the schema version of this graph representation (Default: "1.0")
+* *requirements* (optional): a list of projects that should be present in the Python environment for the 
+  graph to be executed.
 * *input_nodes* (optional): nodes that are expected to be used as link targets when the graph
   is used as a subgraph.
 * *output_nodes* (optional): nodes that are expected to be used as link sources when the graph
