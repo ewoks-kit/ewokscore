@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.10.0
+
+New features:
+
+- New optional field `requirements` in the `graph` field of the graph schema. This field contain a list of projects that should be present in the Python environment for the graph to be executed.
+
 ## 0.9.0
 
 Changes:
