@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.11.0
+
+- Add support for latest `networkx` version (>="3.4rc0")
+
 ## 0.10.0
 
 New features:
