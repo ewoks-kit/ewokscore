@@ -5,6 +5,7 @@ import yaml
 import logging
 import warnings
 import importlib
+from packaging.version import Version
 from pathlib import Path
 from typing import Optional, Union, Tuple
 from collections.abc import Mapping
@@ -21,6 +22,8 @@ logger = logging.getLogger(__name__)
 GraphRepresentation = enum.Enum(
     "GraphRepresentation", "json json_dict json_string json_module yaml"
 )
+
+network_x_version = Version(networkx.__version__)
 
 
 def dump(
@@ -296,8 +299,14 @@ def _dict_to_networkx(graph: dict) -> networkx.DiGraph:
         graph["graph"]["id"] = "notspecified"
     normalize_schema_version(graph)
 
-    return networkx.readwrite.json_graph.node_link_graph(graph)
+    if network_x_version < Version("3.4rc"):
+        return networkx.readwrite.json_graph.node_link_graph(graph)
+    else:
+        return networkx.readwrite.json_graph.node_link_graph(graph, edges="links")
 
 
 def _networkx_to_dict(graph: networkx.DiGraph) -> dict:
-    return networkx.readwrite.json_graph.node_link_data(graph)
+    if network_x_version < Version("3.4rc"):
+        return networkx.readwrite.json_graph.node_link_data(graph)
+    else:
+        return networkx.readwrite.json_graph.node_link_data(graph, edges="links")
