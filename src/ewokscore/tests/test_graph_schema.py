@@ -22,15 +22,24 @@ def test_graph_version(caplog):
     # Update of the latest version
     assert_load({"graph": {"id": "test", "schema_version": LATEST_VERSION}})
 
-    # Update method which does not update the version
+    # Correct update method
+    assert_load({"graph": {"id": "test", "schema_version": "0.2"}})
+
+
+def test_error_on_improper_update_methods():
+    # Update method which does not change the version
     with pytest.raises(
-        AssertionError,
+        RuntimeError,
         match="graph conversion did not update the schema version",
     ):
         load_graph({"graph": {"id": "test", "schema_version": "0.1"}})
 
-    # Correct update method
-    assert_load({"graph": {"id": "test", "schema_version": "0.2"}})
+    # Update method which downgrades the version
+    with pytest.raises(
+        RuntimeError,
+        match="graph conversion did not increment the schema version",
+    ):
+        load_graph({"graph": {"id": "test", "schema_version": "0.3"}})
 
 
 def test_non_existing_version():

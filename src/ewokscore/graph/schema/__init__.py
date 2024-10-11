@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 import networkx
 from packaging.version import parse as parse_version, Version
 import logging
@@ -36,16 +36,19 @@ def get_version_bounds() -> dict:
 logger = logging.getLogger(__name__)
 
 
-def normalize_schema_version(graph: dict):
-    schema_version = graph["graph"].get("schema_version", None)
-    if not schema_version:
-        schema_version = DEFAULT_VERSION
-        graph["graph"]["schema_version"] = str(schema_version)
+def normalize_schema_version(graph: Union[dict, networkx.Graph]):
+    if isinstance(graph, dict):
+        graph_metadata = graph["graph"]
+    else:
+        graph_metadata = graph.graph
+    schema_version = graph_metadata.get("schema_version", None)
+    if schema_version:
+        pversion = parse_version(schema_version)
+    else:
         logger.info(
-            'Graph has no "schema_version": assume version "%s"', schema_version
+            'Graph has no "schema_version": assume version "%s"', DEFAULT_VERSION
         )
-        return
-    pversion = parse_version(schema_version)
+        pversion = DEFAULT_VERSION
     if pversion != LATEST_VERSION:
         # This warning is given because an exception may occur before `update_graph_schema`
         # is called due to the different schema version.
@@ -54,40 +57,34 @@ def normalize_schema_version(graph: dict):
             pversion,
             LATEST_VERSION,
         )
-    graph["graph"]["schema_version"] = str(pversion)
+
+    graph_metadata["schema_version"] = str(pversion)
 
 
-def update_graph_schema(graph: networkx.DiGraph) -> bool:
-    """Updates the graph description to a higher schema version (returns `True`) or raises an
-    exception. If the schema version is known it will provide library version bounds
-    in the exception message. Returns `False` when the graph does not need
-    any update.
+def update_graph_schema(graph: networkx.DiGraph):
     """
-    schema_version = graph.graph.get("schema_version", None)
-    if schema_version is None:
-        schema_version = DEFAULT_VERSION
-        graph.graph["schema_version"] = str(schema_version)
-        logger.info(
-            'Graph has no "schema_version": assume version "%s"', schema_version
-        )
-    else:
-        schema_version = parse_version(schema_version)
-    if schema_version == LATEST_VERSION:
-        return False
+    Updates the graph description to a higher schema version or raises an
+    exception.
+    If the schema version is known it will provide library version bounds
+    in the exception message.
+    """
+    schema_version = parse_version(graph.graph["schema_version"])
 
     update_method = _get_update_method(schema_version)
     if not update_method:
         raise GraphSchemaError(schema_version)
 
-    before = graph.graph.get("schema_version", None)
+    before = schema_version
     try:
         update_method(graph)
     except Exception:
         raise GraphSchemaError(schema_version)
     else:
-        after = graph.graph.get("schema_version", None)
-        assert before != after, "graph conversion did not update the schema version"
-        return True
+        after = parse_version(graph.graph["schema_version"])
+        if before == after:
+            raise RuntimeError("graph conversion did not update the schema version")
+        if before > after:
+            raise RuntimeError("graph conversion did not increment the schema version")
 
 
 def _get_update_method(
