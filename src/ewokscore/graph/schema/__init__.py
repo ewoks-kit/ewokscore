@@ -1,8 +1,27 @@
-from typing import Callable, Optional, Union
+from typing import Dict, Union
 import networkx
 from packaging.version import parse as parse_version, Version
 import logging
-import importlib
+
+from .metadata import SchemaMetadata
+
+from .update import from_v1_0_to_v1_1, v0_update
+
+
+_VERSIONS = None
+
+
+def get_versions() -> Dict[Version, SchemaMetadata]:
+    global _VERSIONS
+    if _VERSIONS is not None:
+        return _VERSIONS
+
+    return {
+        parse_version("0.0"): SchemaMetadata(("0.0", "0.0.1"), v0_update),
+        parse_version("1.0"): SchemaMetadata(("0.1.0-rc", None), from_v1_0_to_v1_1),
+        parse_version("1.1"): SchemaMetadata(("0.1.0-rc", None), None),
+    }
+
 
 # Major version: increment when changing the existing schema
 # Minor version: increment when adding features or deprecating the existing schema
@@ -10,27 +29,6 @@ LATEST_VERSION = parse_version("1.1")
 
 # The default version may be set to something else if we don't want the latest version to be the default
 DEFAULT_VERSION = LATEST_VERSION
-
-# Map graph versions to ewokscore version bounds. Whenever we change the schema
-# which the current ewokscore version needs and updating is not possible:
-#   - increment the ewokscore version
-#   - use that version as upper bound of the last item of _VERSION_BOUNDS
-#   - use that version as lower bound of a new item of _VERSION_BOUNDS
-_VERSION_BOUNDS = None
-
-
-def get_version_bounds() -> dict:
-    global _VERSION_BOUNDS
-    if _VERSION_BOUNDS:
-        return _VERSION_BOUNDS
-
-    _VERSION_BOUNDS = dict()
-    _VERSION_BOUNDS[parse_version("0.0")] = parse_version("0.0"), parse_version("0.0.1")
-    _VERSION_BOUNDS[parse_version("0.1")] = parse_version("0.1.0-rc"), None
-    _VERSION_BOUNDS[parse_version("0.2")] = parse_version("0.1.0-rc"), None
-    _VERSION_BOUNDS[parse_version("1.0")] = parse_version("0.1.0-rc"), None
-    _VERSION_BOUNDS[parse_version("1.1")] = parse_version("0.1.0-rc"), None
-    return _VERSION_BOUNDS
 
 
 logger = logging.getLogger(__name__)
@@ -70,7 +68,8 @@ def update_graph_schema(graph: networkx.DiGraph):
     """
     schema_version = parse_version(graph.graph["schema_version"])
 
-    update_method = _get_update_method(schema_version)
+    schema_metadata = get_versions().get(schema_version)
+    update_method = schema_metadata.update_method if schema_metadata else None
     if not update_method:
         raise GraphSchemaError(schema_version)
 
@@ -87,34 +86,21 @@ def update_graph_schema(graph: networkx.DiGraph):
             raise RuntimeError("graph conversion did not increment the schema version")
 
 
-def _get_update_method(
-    schema_version: Version,
-) -> Optional[Callable[[networkx.DiGraph], None]]:
-    try:
-        mod = importlib.import_module(
-            __name__ + ".v" + str(schema_version).replace(".", "_")
-        )
-    except ImportError:
-        return None
-    return mod.update_graph_schema
-
-
 class GraphSchemaError(ValueError):
     def __init__(self, schema_version: Version) -> None:
-        lbound, ubound = get_version_bounds().get(schema_version, (None, None))
-        if lbound and ubound:
-            return super().__init__(
-                f'Graph schema version "{schema_version}" requires another library version: python3 -m pip install "ewokscore>={lbound},<{ubound}"`'
-            )
-        elif lbound:
-            return super().__init__(
-                f'Graph schema version "{schema_version}" requires another library version: python3 -m pip install "ewokscore>={lbound}"'
-            )
-        elif ubound:
-            return super().__init__(
-                f'Graph schema version "{schema_version}" requires another library version: python3 -m pip install "ewokscore<{ubound}"'
-            )
-        else:
+        version_metadata = get_versions().get(schema_version)
+
+        if not version_metadata:
             return super().__init__(
                 f'Graph schema version "{schema_version}" is either invalid or requires a newer library version: python3 -m pip install --upgrade ewokscore'
             )
+        lbound, ubound = version_metadata.ewokscore_bounds
+
+        if not ubound:
+            return super().__init__(
+                f'Graph schema version "{schema_version}" requires another library version: python3 -m pip install "ewokscore>={lbound}"'
+            )
+
+        return super().__init__(
+            f'Graph schema version "{schema_version}" requires another library version: python3 -m pip install "ewokscore>={lbound},<{ubound}"`'
+        )
