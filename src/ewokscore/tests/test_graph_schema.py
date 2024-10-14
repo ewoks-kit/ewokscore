@@ -1,7 +1,8 @@
 import pytest
 import logging
 from ewokscore.graph import load_graph
-from ewokscore.graph.schema import LATEST_VERSION, get_version_bounds
+from ewokscore.graph.schema import LATEST_VERSION, get_versions
+
 
 LATEST_VERSION = str(LATEST_VERSION)
 
@@ -22,11 +23,12 @@ def test_graph_version(caplog):
     # Update of the latest version
     assert_load({"graph": {"id": "test", "schema_version": LATEST_VERSION}})
 
-    # Correct update method
+
+def test_correct_update_method(use_test_schema_versions):
     assert_load({"graph": {"id": "test", "schema_version": "0.2"}})
 
 
-def test_error_on_improper_update_methods():
+def test_error_on_improper_update_methods(use_test_schema_versions):
     # Update method which does not change the version
     with pytest.raises(
         RuntimeError,
@@ -54,5 +56,5 @@ def assert_load(adict: dict):
     assert load_graph(adict).graph.graph["schema_version"] == LATEST_VERSION
 
 
-def assert_version_bounds():
-    assert LATEST_VERSION in get_version_bounds()
+def assert_latest_version_exists():
+    assert LATEST_VERSION in get_versions()
