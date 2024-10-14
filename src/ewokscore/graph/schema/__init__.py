@@ -25,7 +25,7 @@ def get_versions() -> Dict[Version, SchemaMetadata]:
 
 # Major version: increment when changing the existing schema
 # Minor version: increment when adding features or deprecating the existing schema
-LATEST_VERSION = parse_version("1.1")
+LATEST_VERSION = list(get_versions().keys())[-1]
 
 # The default version may be set to something else if we don't want the latest version to be the default
 DEFAULT_VERSION = LATEST_VERSION
