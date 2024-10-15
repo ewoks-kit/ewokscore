@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.12.0
+
+- Python 3.12.5+: accommodate for `urllib` change of relative paths.
+
 ## 0.11.0
 
 - Add support for latest `networkx` version (>="3.4rc0")
