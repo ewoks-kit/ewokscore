@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.13.0
+
 - Remove upper bound on `numpy`
 
 ## 0.12.0
