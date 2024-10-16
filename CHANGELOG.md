@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Remove upper bound on `numpy`
+
 ## 0.12.0
 
 - Python 3.12.5+: accommodate for `urllib` change of relative paths.
