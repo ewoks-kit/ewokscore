@@ -68,7 +68,7 @@ def test_task_method_discovery():
 def test_task_ppfmethod_discovery():
     expected = [
         {
-            "task_type": "method",
+            "task_type": "ppfmethod",
             "task_identifier": "ewokscore.tests.discover_module.run",
             "required_input_names": ["a"],
             "optional_input_names": ["b"],
