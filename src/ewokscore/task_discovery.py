@@ -3,8 +3,8 @@ import pkgutil
 import inspect
 import logging
 from fnmatch import fnmatch
-from types import ModuleType
-from typing import Callable, Iterable, Generator, Optional, List, Dict, Tuple
+from types import FunctionType, ModuleType
+from typing import Generator, Optional, List, Dict, Tuple, Union
 
 if sys.version_info < (3, 9):
     from importlib_metadata import entry_points as _entry_points
@@ -30,16 +30,18 @@ from ewoksutils.import_utils import import_module
 
 from .task import Task
 
+TaskDict = Dict[str, Union[str, List[str]]]
+
 
 logger = logging.getLogger(__name__)
 
 
 def discover_tasks_from_modules(
-    *module_names: Iterable[str],
+    *module_names: str,
     task_type="class",
     reload: bool = False,
     raise_import_failure: bool = True,
-) -> List[Dict[str, str]]:
+) -> List[TaskDict]:
     return list(
         iter_discover_tasks_from_modules(
             *module_names,
@@ -51,11 +53,11 @@ def discover_tasks_from_modules(
 
 
 def iter_discover_tasks_from_modules(
-    *module_names: Iterable[str],
+    *module_names: str,
     task_type="class",
     reload: bool = False,
     raise_import_failure: bool = True,
-) -> Generator[Dict[str, str], None, None]:
+) -> Generator[TaskDict, None, None]:
     if "" not in sys.path:
         # This happens when the python process was launched
         # through a python console script
@@ -66,11 +68,8 @@ def iter_discover_tasks_from_modules(
             *module_names, reload=reload, raise_import_failure=raise_import_failure
         )
     elif task_type == "ppfmethod":
-        yield from _iter_method_tasks(
-            *module_names,
-            filter_method_name=lambda name: name == "run",
-            reload=reload,
-            raise_import_failure=raise_import_failure,
+        yield from _iter_ppfmethod_tasks(
+            *module_names, reload=reload, raise_import_failure=raise_import_failure
         )
     elif task_type == "class":
         for module_name in module_names:
@@ -82,9 +81,7 @@ def iter_discover_tasks_from_modules(
         raise ValueError("Class type does not support discovery")
 
 
-def _iter_registered_tasks(
-    *filter_modules: Iterable[str],
-) -> Generator[Dict[str, str], None, None]:
+def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, None]:
     """Yields all task classes registered in the current process."""
     for cls in Task.get_subclasses():
         module = cls.__module__
@@ -106,11 +103,10 @@ def _iter_registered_tasks(
 
 
 def _iter_method_tasks(
-    *module_names: Iterable[str],
-    filter_method_name: Optional[Callable[[str], bool]] = None,
+    *module_names: str,
     reload: bool = False,
     raise_import_failure: bool = False,
-) -> Generator[Dict[str, str], None, None]:
+) -> Generator[TaskDict, None, None]:
     """Yields all task methods from the provided module_names. The module_names will be will
     imported for discovery.
     """
@@ -120,32 +116,45 @@ def _iter_method_tasks(
         )
         if mod is None:
             continue
-        for method in inspect.getmembers(mod, inspect.isfunction):
-            method_name, method_qn = method
-            if filter_method_name and not filter_method_name(method_name):
-                continue
+        for method_name, method_qn in inspect.getmembers(mod, inspect.isfunction):
             if method_name.startswith("_"):
                 continue
-            task_identifier = qualname(method_qn)
-            category = task_identifier.split(".")[0]
-
-            method = getattr(mod, method_name)
-            required_input_names, optional_input_names = _method_arguments(method)
 
             yield {
                 "task_type": "method",
-                "task_identifier": qualname(method_qn),
-                "required_input_names": required_input_names,
-                "optional_input_names": optional_input_names,
-                "output_names": ["return_value"],
-                "category": category,
-                "description": method.__doc__,
+                **_common_method_task_fields(method_name, method_qn, mod),
+            }
+
+
+def _iter_ppfmethod_tasks(
+    *module_names: str,
+    reload: bool = False,
+    raise_import_failure: bool = False,
+) -> Generator[TaskDict, None, None]:
+    """Yields all task ppfmethods from the provided module_names. The module_names will be will
+    imported for discovery.
+
+    The difference with regular methods is that ppfmethods are expected to be called `run`. Other method names will be ignored.
+    """
+    for module_name in module_names:
+        mod = _safe_import_module(
+            module_name, reload=reload, raise_import_failure=raise_import_failure
+        )
+        if mod is None:
+            continue
+        for method_name, method_qn in inspect.getmembers(mod, inspect.isfunction):
+            if method_name != "run":
+                continue
+
+            yield {
+                "task_type": "ppfmethod",
+                **_common_method_task_fields(method_name, method_qn, mod),
             }
 
 
 def iter_discover_all_tasks(
     reload: bool = False, raise_import_failure: bool = False
-) -> Generator[Dict[str, str], None, None]:
+) -> Generator[TaskDict, None, None]:
     visited = set()
     for task_type in ("class", "ppfmethod", "method"):
         group = "ewoks.tasks." + task_type
@@ -167,7 +176,7 @@ def iter_discover_all_tasks(
 
 def discover_all_tasks(
     reload: bool = False, raise_import_failure: bool = False
-) -> Generator[Dict[str, str], None, None]:
+) -> List[TaskDict]:
     return list(
         iter_discover_all_tasks(
             reload=reload, raise_import_failure=raise_import_failure
@@ -213,7 +222,7 @@ def _safe_import_module(
         _onerror(module_name, exception=e)
 
 
-def _onerror(module_name, exception: Exception = None):
+def _onerror(module_name, exception: Optional[Exception] = None):
     if exception is None:
         exception = sys.exc_info()[1]
     logger.error(f"Module '{module_name}' cannot be imported: {exception}")
@@ -234,3 +243,21 @@ def _method_arguments(method) -> Tuple[List[str], List[str]]:
         else:
             optional_input_names.append(name)
     return required_input_names, optional_input_names
+
+
+def _common_method_task_fields(
+    method_name: str, method_qn: FunctionType, mod: ModuleType
+) -> Dict[str, Union[str, List[str]]]:
+
+    task_identifier = qualname(method_qn)
+    method = getattr(mod, method_name)
+    required_input_names, optional_input_names = _method_arguments(method)
+
+    return {
+        "task_identifier": qualname(method_qn),
+        "required_input_names": required_input_names,
+        "optional_input_names": optional_input_names,
+        "output_names": ["return_value"],
+        "category": task_identifier.split(".")[0],
+        "description": method.__doc__,
+    }
