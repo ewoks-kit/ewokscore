@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.13.1
+
+- Fix wrong task type when discovering `ppfmethod` tasks
+
 ## 0.13.0
 
 - Remove upper bound on `numpy`
