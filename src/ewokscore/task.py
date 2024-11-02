@@ -1,5 +1,10 @@
+import os
+import re
 import warnings
-from typing import Any, Optional, Union, Mapping
+import cProfile
+from typing import Any, Optional, Union, Mapping, Generator
+from contextlib import ExitStack
+from contextlib import contextmanager
 
 from .hashing import UniversalHashable
 from .registration import Registered
@@ -41,6 +46,7 @@ class Task(Registered, UniversalHashable, register=False):
         node_id: Optional[node.NodeIdType] = None,
         node_attrs: Optional[dict] = None,
         execinfo: Optional[dict] = None,
+        profile_directory: Optional[str] = None,
     ):
         """The named arguments are inputs and Variable configuration"""
         if inputs is None:
@@ -85,6 +91,7 @@ class Task(Registered, UniversalHashable, register=False):
         self.__exception = None
         self.__succeeded = None
         self._cancelled = False
+        self._profile_directory = profile_directory
 
         # The output hash will update dynamically if any of the input
         # variables change
@@ -347,7 +354,7 @@ class Task(Registered, UniversalHashable, register=False):
             return str(self)
 
     @property
-    def node_id(self):
+    def node_id(self) -> node.NodeIdType:
         return self.__node_id
 
     @property
@@ -359,6 +366,25 @@ class Task(Registered, UniversalHashable, register=False):
     def workflow_id(self) -> Optional[str]:
         if self.__execinfo:
             return self.__execinfo.get("workflow_id")
+
+    @property
+    def _profile_filename(self) -> Optional[str]:
+        profile_directory = self._profile_directory
+        if not profile_directory:
+            return
+        job_id = self.job_id
+        workflow_id = self.workflow_id
+        node_id = self.node_id
+        if job_id is None or workflow_id is None or node_id is None:
+            return
+        if isinstance(node_id, tuple):
+            node_id = "_".join(map(str, tuple))
+        else:
+            node_id = str(node_id)
+        job_id = re.sub(r"[^A-Za-z0-9]", "_", job_id)
+        workflow_id = re.sub(r"[^A-Za-z0-9]", "_", workflow_id)
+        node_id = re.sub(r"[^A-Za-z0-9]", "_", node_id)
+        return os.path.join(profile_directory, workflow_id, job_id, f"{node_id}.prof")
 
     def _iter_missing_input_values(self):
         for iname in self._INPUT_NAMES:
@@ -402,12 +428,20 @@ class Task(Registered, UniversalHashable, register=False):
         raise_on_error: Optional[bool] = True,
         cleanup_references: Optional[bool] = False,
     ):
-        with events.node_context(
-            self.__execinfo, node_id=self.__node_id, task_id=self.__task_id
-        ) as execinfo:
-            self.__execinfo = execinfo
+        with ExitStack() as stack:
+            ctx = self._profile_time()
+            _ = stack.enter_context(ctx)
+
+            ctx = events.node_context(
+                self.__execinfo, node_id=self.__node_id, task_id=self.__task_id
+            )
+            self.__execinfo = stack.enter_context(ctx)
+
             self.reset_state()
-            self._send_start_event()
+
+            ctx = self._send_task_events()
+            _ = stack.enter_context(ctx)
+
             try:
                 if force_rerun:
                     # Rerun a task which is already done
@@ -415,19 +449,43 @@ class Task(Registered, UniversalHashable, register=False):
                 if self.done:
                     return
                 self.assert_ready_to_execute()
+
                 self.run()
+
                 self._update_output_metadata()
                 self.__outputs.dump()
+                self.__succeeded = True
             except Exception as e:
                 self.__exception = e
                 if raise_on_error:
                     raise RuntimeError(f"Task '{self.label}' failed") from e
-            else:
-                self.__succeeded = True
             finally:
                 if cleanup_references:
                     self.cleanup_references()
-                self._send_send_event()
+
+    @contextmanager
+    def _profile_time(self) -> Generator[None, None, None]:
+        """Optional time profiling within this context."""
+        _profile_filename = self._profile_filename
+        if _profile_filename:
+            profiler = cProfile.Profile()
+            profiler.enable()
+        try:
+            yield
+        finally:
+            if _profile_filename:
+                profiler.disable()
+                os.makedirs(os.path.dirname(_profile_filename), exist_ok=True)
+                profiler.dump_stats(_profile_filename)
+
+    @contextmanager
+    def _send_task_events(self) -> Generator[None, None, None]:
+        """Send an ewoks start event on enter and stop event on exit."""
+        self._send_start_event()
+        try:
+            yield
+        finally:
+            self._send_send_event()
 
     def _send_event(self, **kwargs):
         """Send an ewoks event"""
