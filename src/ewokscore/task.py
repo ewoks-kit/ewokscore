@@ -1,5 +1,7 @@
 import os
 import re
+import time
+import random
 import warnings
 import cProfile
 from typing import Any, Optional, Union, Mapping, Generator
@@ -381,10 +383,18 @@ class Task(Registered, UniversalHashable, register=False):
             node_id = "_".join(map(str, tuple))
         else:
             node_id = str(node_id)
+
         job_id = re.sub(r"[^A-Za-z0-9]", "_", job_id)
         workflow_id = re.sub(r"[^A-Za-z0-9]", "_", workflow_id)
         node_id = re.sub(r"[^A-Za-z0-9]", "_", node_id)
-        return os.path.join(profile_directory, workflow_id, job_id, f"{node_id}.prof")
+
+        timestamp = int(time.time() * 1000)
+        random_chars = "".join(
+            random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=8)
+        )
+        filename = f"{timestamp}_{random_chars}_{node_id}.prof"
+
+        return os.path.join(profile_directory, workflow_id, job_id, filename)
 
     def _iter_missing_input_values(self):
         for iname in self._INPUT_NAMES:
