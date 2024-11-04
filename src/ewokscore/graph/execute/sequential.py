@@ -26,7 +26,7 @@ def instantiate_task_static(
     tasks: Optional[Dict[Task, int]] = None,
     varinfo: Optional[dict] = None,
     execinfo: Optional[dict] = None,
-    profile_directory: Optional[str] = None,
+    task_options: Optional[dict] = None,
     evict_result_counter: Optional[Dict[NodeIdType, int]] = None,
 ) -> Task:
     """Instantiate destination task while no access to the dynamic inputs.
@@ -49,7 +49,7 @@ def instantiate_task_static(
                 tasks=tasks,
                 varinfo=varinfo,
                 execinfo=execinfo,
-                profile_directory=profile_directory,
+                task_options=task_options,
                 evict_result_counter=evict_result_counter,
             )
         link_attrs = graph[source_id][node_id]
@@ -72,7 +72,7 @@ def instantiate_task_static(
         inputs=dynamic_inputs,
         varinfo=varinfo,
         execinfo=execinfo,
-        profile_directory=profile_directory,
+        task_options=task_options,
     )
     tasks[node_id] = target_task
     return target_task
@@ -89,7 +89,7 @@ def execute_graph(
     graph: networkx.DiGraph,
     varinfo: Optional[dict] = None,
     execinfo: Optional[dict] = None,
-    profile_directory: Optional[str] = None,
+    task_options: Optional[dict] = None,
     raise_on_error: Optional[bool] = True,
     outputs: Optional[List[dict]] = None,
     merge_outputs: Optional[bool] = True,
@@ -125,7 +125,7 @@ def execute_graph(
                 tasks=tasks,
                 varinfo=varinfo,
                 execinfo=execinfo,
-                profile_directory=profile_directory,
+                task_options=task_options,
                 evict_result_counter=evict_result_counter,
             )
             task.execute(

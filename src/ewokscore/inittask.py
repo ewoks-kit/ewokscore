@@ -121,7 +121,7 @@ def instantiate_task(
     inputs: Optional[dict] = None,
     varinfo: Optional[dict] = None,
     execinfo: Optional[dict] = None,
-    profile_directory: Optional[str] = None,
+    task_options: Optional[dict] = None,
 ) -> Task:
     """
     :param node_id:
@@ -140,14 +140,17 @@ def instantiate_task(
 
     # Instantiate task
     task_type, task_info = task_executable_info(node_id, node_attrs)
-    task_kwargs = {
-        "inputs": task_inputs,
-        "varinfo": varinfo,
-        "node_id": node_id,
-        "node_attrs": node_attrs,
-        "execinfo": execinfo,
-        "profile_directory": profile_directory,
-    }
+    if task_options:
+        task_kwargs = dict(task_options)
+    else:
+        task_kwargs = dict()
+    task_kwargs.update(
+        inputs=task_inputs,
+        varinfo=varinfo,
+        node_id=node_id,
+        node_attrs=node_attrs,
+        execinfo=execinfo,
+    )
     if task_type == "class":
         return Task.instantiate(task_info["task_identifier"], **task_kwargs)
 

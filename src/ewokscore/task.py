@@ -48,7 +48,7 @@ class Task(Registered, UniversalHashable, register=False):
         node_id: Optional[node.NodeIdType] = None,
         node_attrs: Optional[dict] = None,
         execinfo: Optional[dict] = None,
-        profile_directory: Optional[str] = None,
+        profile_directory: Optional[dict] = None,
     ):
         """The named arguments are inputs and Variable configuration"""
         if inputs is None:
@@ -93,7 +93,7 @@ class Task(Registered, UniversalHashable, register=False):
         self.__exception = None
         self.__succeeded = None
         self._cancelled = False
-        self._profile_directory = profile_directory
+        self._profile_directory = profile_directory or dict()
 
         # The output hash will update dynamically if any of the input
         # variables change
