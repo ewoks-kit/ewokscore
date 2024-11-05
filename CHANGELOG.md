@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.14.0
+
+New features:
+
+- Add `task_options` to `execute_graph` and `instantiate_task`. Currently includes only `profile_directory` to enable task time profiling.
+
 ## 0.13.1
 
 - Fix wrong task type when discovering `ppfmethod` tasks
