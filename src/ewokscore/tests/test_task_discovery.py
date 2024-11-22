@@ -1,34 +1,69 @@
 from ewokscore import task_discovery
 
+CLASS_TASKS = [
+    {
+        "task_type": "class",
+        "task_identifier": "ewokscore.tests.discover_module.MyTask1",
+        "required_input_names": ["a"],
+        "optional_input_names": ["b"],
+        "output_names": ["result"],
+        "category": "ewokscore",
+        "description": "Test 1",
+    },
+    {
+        "task_type": "class",
+        "task_identifier": "ewokscore.tests.discover_module.MyTask2",
+        "required_input_names": ["a"],
+        "optional_input_names": ["b"],
+        "output_names": ["result"],
+        "category": "ewokscore",
+        "description": None,
+    },
+]
+
+METHOD_TASKS = [
+    {
+        "task_type": "method",
+        "task_identifier": "ewokscore.tests.discover_module.run",
+        "required_input_names": ["a"],
+        "optional_input_names": ["b"],
+        "output_names": ["return_value"],
+        "category": "ewokscore",
+        "description": "Test 2",
+    },
+    {
+        "task_type": "method",
+        "task_identifier": "ewokscore.tests.discover_module.myfunc",
+        "required_input_names": ["a"],
+        "optional_input_names": ["b"],
+        "output_names": ["return_value"],
+        "category": "ewokscore",
+        "description": None,
+    },
+]
+
+PPFMETHOD_TASKS = [
+    {
+        "task_type": "ppfmethod",
+        "task_identifier": "ewokscore.tests.discover_module.run",
+        "required_input_names": ["a"],
+        "optional_input_names": ["b"],
+        "output_names": ["return_value"],
+        "category": "ewokscore",
+        "description": "Test 2",
+    },
+]
+
 
 def test_task_class_discovery():
-    expected = [
-        {
-            "task_type": "class",
-            "task_identifier": "ewokscore.tests.discover_module.MyTask1",
-            "required_input_names": ["a"],
-            "optional_input_names": ["b"],
-            "output_names": ["result"],
-            "category": "ewokscore",
-            "description": "Test 1",
-        },
-        {
-            "task_type": "class",
-            "task_identifier": "ewokscore.tests.discover_module.MyTask2",
-            "required_input_names": ["a"],
-            "optional_input_names": ["b"],
-            "output_names": ["result"],
-            "category": "ewokscore",
-            "description": None,
-        },
-    ]
+    expected = CLASS_TASKS
 
     tasks = task_discovery.discover_tasks_from_modules()
     for task in expected:
         assert task not in tasks
 
     tasks = task_discovery.discover_tasks_from_modules(
-        "ewokscore.tests.discover_module"
+        "ewokscore.tests.discover_module", task_type="class"
     )
     assert_tasks(tasks, expected)
     assert len(tasks) == len(expected)
@@ -38,26 +73,7 @@ def test_task_class_discovery():
 
 
 def test_task_method_discovery():
-    expected = [
-        {
-            "task_type": "method",
-            "task_identifier": "ewokscore.tests.discover_module.run",
-            "required_input_names": ["a"],
-            "optional_input_names": ["b"],
-            "output_names": ["return_value"],
-            "category": "ewokscore",
-            "description": "Test 2",
-        },
-        {
-            "task_type": "method",
-            "task_identifier": "ewokscore.tests.discover_module.myfunc",
-            "required_input_names": ["a"],
-            "optional_input_names": ["b"],
-            "output_names": ["return_value"],
-            "category": "ewokscore",
-            "description": None,
-        },
-    ]
+    expected = METHOD_TASKS
     tasks = task_discovery.discover_tasks_from_modules(
         "ewokscore.tests.discover_module", task_type="method"
     )
@@ -66,17 +82,8 @@ def test_task_method_discovery():
 
 
 def test_task_ppfmethod_discovery():
-    expected = [
-        {
-            "task_type": "ppfmethod",
-            "task_identifier": "ewokscore.tests.discover_module.run",
-            "required_input_names": ["a"],
-            "optional_input_names": ["b"],
-            "output_names": ["return_value"],
-            "category": "ewokscore",
-            "description": "Test 2",
-        }
-    ]
+    expected = PPFMETHOD_TASKS
+
     tasks = task_discovery.discover_tasks_from_modules(
         "ewokscore.tests.discover_module", task_type="ppfmethod"
     )
@@ -84,7 +91,16 @@ def test_task_ppfmethod_discovery():
     assert len(tasks) == len(expected)
 
 
-def test_task_discovery():
+def test_task_all_types_discovery():
+    expected = [*CLASS_TASKS, *METHOD_TASKS, *PPFMETHOD_TASKS]
+    tasks = task_discovery.discover_tasks_from_modules(
+        "ewokscore.tests.discover_module"
+    )
+    assert_tasks(tasks, expected)
+    assert len(tasks) == len(expected)
+
+
+def test_all_tasks_discovery():
     expected = [
         {
             "category": "ewokscore",
@@ -162,6 +178,12 @@ def test_task_discovery():
 
     tasks = task_discovery.discover_all_tasks()
     assert_tasks(tasks, expected)
+
+    for task_type in ("class", "method", "ppfmethod"):
+        tasks = task_discovery.discover_all_tasks(task_type=task_type)
+        assert_tasks(
+            tasks, [task for task in expected if task["task_type"] == task_type]
+        )
 
 
 def assert_tasks(tasks, expected):

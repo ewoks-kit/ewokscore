@@ -38,23 +38,32 @@ logger = logging.getLogger(__name__)
 
 def discover_tasks_from_modules(
     *module_names: str,
-    task_type="class",
+    task_type: Optional[str] = None,
     reload: bool = False,
     raise_import_failure: bool = True,
 ) -> List[TaskDict]:
-    return list(
-        iter_discover_tasks_from_modules(
-            *module_names,
-            task_type=task_type,
-            reload=reload,
-            raise_import_failure=raise_import_failure,
+    if task_type is None:
+        task_types = ("class", "ppfmethod", "method")
+    else:
+        task_types = (task_type,)
+
+    result = list()
+    for task_type in task_types:
+        result.extend(
+            _iter_discover_tasks_from_modules(
+                *module_names,
+                task_type=task_type,
+                reload=reload,
+                raise_import_failure=raise_import_failure,
+            )
         )
-    )
+
+    return result
 
 
-def iter_discover_tasks_from_modules(
+def _iter_discover_tasks_from_modules(
     *module_names: str,
-    task_type="class",
+    task_type: str,
     reload: bool = False,
     raise_import_failure: bool = True,
 ) -> Generator[TaskDict, None, None]:
@@ -78,7 +87,7 @@ def iter_discover_tasks_from_modules(
             )
         yield from _iter_registered_tasks(*module_names)
     else:
-        raise ValueError("Class type does not support discovery")
+        raise ValueError(f"Task type {task_type} does not support discovery")
 
 
 def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, None]:
@@ -152,11 +161,18 @@ def _iter_ppfmethod_tasks(
             }
 
 
-def iter_discover_all_tasks(
-    reload: bool = False, raise_import_failure: bool = False
+def _iter_discover_all_tasks(
+    reload: bool = False,
+    task_type: Optional[str] = None,
+    raise_import_failure: bool = False,
 ) -> Generator[TaskDict, None, None]:
     visited = set()
-    for task_type in ("class", "ppfmethod", "method"):
+    if task_type is None:
+        task_types = ("class", "ppfmethod", "method")
+    else:
+        task_types = (task_type,)
+
+    for task_type in task_types:
         group = "ewoks.tasks." + task_type
         for entrypoint in iter_entry_points(group):
             module_pattern = entrypoint.name
@@ -166,7 +182,7 @@ def iter_discover_all_tasks(
             for module_name in _iter_modules_from_pattern(
                 module_pattern, reload=reload, raise_import_failure=raise_import_failure
             ):
-                yield from iter_discover_tasks_from_modules(
+                yield from _iter_discover_tasks_from_modules(
                     module_name,
                     task_type=task_type,
                     reload=reload,
@@ -175,11 +191,15 @@ def iter_discover_all_tasks(
 
 
 def discover_all_tasks(
-    reload: bool = False, raise_import_failure: bool = False
+    reload: bool = False,
+    task_type: Optional[str] = None,
+    raise_import_failure: bool = False,
 ) -> List[TaskDict]:
     return list(
-        iter_discover_all_tasks(
-            reload=reload, raise_import_failure=raise_import_failure
+        _iter_discover_all_tasks(
+            reload=reload,
+            task_type=task_type,
+            raise_import_failure=raise_import_failure,
         )
     )
 
