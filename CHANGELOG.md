@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.15.0
+
+Breaking changes:
+
+- By default, `discover_tasks_from_modules` now discovers tasks of type `class`, `ppfmethod` and `method` instead of only `class`.
+
+New features:
+
+- `discover_all_tasks` now accepts a `task_type` argument to only discover a specific task type. By default, it discovers tasks of type `class`, `ppfmethod` and `method`, as previously.
+
 ## 0.14.0
 
 New features:
