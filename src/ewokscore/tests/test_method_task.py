@@ -1,5 +1,18 @@
+import sys
+from collections import namedtuple
+from dataclasses import dataclass
+from typing import NamedTuple
+
+import pytest
+
 from ewoksutils.import_utils import qualname
 from ewokscore.task import Task
+from ewokscore.methodtask import get_method_task
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    TypedDict = None
 
 
 def mymethod1(a=0, b=0):
@@ -7,11 +20,8 @@ def mymethod1(a=0, b=0):
 
 
 def test_method_task1(varinfo):
-    task = Task.instantiate(
-        "MethodExecutorTask",
-        inputs={"_method": qualname(mymethod1), "a": 3, "b": 5},
-        varinfo=varinfo,
-    )
+    task_class = get_method_task(qualname(mymethod1))
+    task = task_class(inputs={"a": 3, "b": 5}, varinfo=varinfo)
     task.execute()
     assert task.done
     assert task.get_output_values() == {"return_value": 8}
@@ -22,11 +32,8 @@ def mymethod2(*args):
 
 
 def test_method_task2(varinfo):
-    task = Task.instantiate(
-        "MethodExecutorTask",
-        inputs={"_method": qualname(mymethod2), 0: 3, 1: 5},
-        varinfo=varinfo,
-    )
+    task_class = get_method_task(qualname(mymethod2))
+    task = task_class(inputs={0: 3, 1: 5}, varinfo=varinfo)
     task.execute()
     assert task.done
     assert task.get_output_values() == {"return_value": 8}
@@ -42,14 +49,77 @@ def mymethod3(a, *args, b=None, c=3, **kw):
 
 
 def test_method_task3(varinfo):
-    task = Task.instantiate(
-        "MethodExecutorTask",
-        inputs={"_method": qualname(mymethod3), 0: 2, 1: 4, "b": 7, "d": 10},
-        varinfo=varinfo,
-    )
+    task_class = get_method_task(qualname(mymethod3))
+    task = task_class(inputs={0: 2, 1: 4, "b": 7, "d": 10}, varinfo=varinfo)
     task.execute()
     assert task.done
     assert task.get_output_values() == {"return_value": 26}
+
+
+@dataclass
+class DataClassReturn:
+    x: int
+    y: float
+
+
+def mymethod_dataclass() -> DataClassReturn:
+    return DataClassReturn(x=1, y=2.5)
+
+
+class TypedNamedTupleReturn(NamedTuple):
+    x: int
+    y: float
+
+
+def mymethod_typed_namedtuple() -> TypedNamedTupleReturn:
+    return TypedNamedTupleReturn(x=1, y=2.5)
+
+
+NamedTupleReturn = namedtuple("NamedTupleReturn", ["x", "y"])
+
+
+def mymethod_namedtuple() -> NamedTupleReturn:
+    return NamedTupleReturn(x=1, y=2.5)
+
+
+@pytest.mark.parametrize(
+    "method", [mymethod_dataclass, mymethod_typed_namedtuple, mymethod_namedtuple]
+)
+def test_method_return(method, varinfo):
+    task_class = get_method_task(qualname(method))
+    task = task_class(inputs=None, varinfo=varinfo)
+    task.execute()
+    assert task.done
+
+    output_values = task.get_output_values()
+    assert "return_value" in output_values
+    assert task.get_output_value("x") == 1
+    assert task.get_output_value("y") == 2.5
+
+
+@pytest.mark.skipif(
+    TypedDict is None,
+    reason="TypedDict not available for this version of Python",
+)
+def test_method_return_typeddict(varinfo):
+    global mymethod_typeddict
+
+    class TypedDictReturn(TypedDict):
+        x: int
+        y: float
+
+    def mymethod_typeddict() -> TypedDictReturn:
+        return TypedDictReturn(x=1, y=2.5)
+
+    task_class = get_method_task(qualname(mymethod_typeddict))
+    task = task_class(inputs={}, varinfo=varinfo)
+    task.execute()
+    assert task.done
+    assert task.get_output_values() == {
+        "return_value": TypedDictReturn(x=1, y=2.5),
+        "x": 1,
+        "y": 2.5,
+    }
 
 
 def myppfmethod(a=0, b=0, **kw):
