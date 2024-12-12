@@ -6,7 +6,7 @@ from ewoksutils.import_utils import import_method
 from ewoksutils.import_utils import import_qualname
 
 from .task import Task
-from .methodtask import MethodExecutorTask
+from .methodtask import get_method_task
 from .scripttask import ScriptExecutorTask
 from .ppftasks import PpfMethodExecutorTask
 from .ppftasks import PpfPortTask
@@ -155,8 +155,8 @@ def instantiate_task(
         return Task.instantiate(task_info["task_identifier"], **task_kwargs)
 
     if task_type == "method":
-        task_inputs[MethodExecutorTask.METHOD_ARGUMENT] = task_info["task_identifier"]
-        return MethodExecutorTask(**task_kwargs)
+        task_class = get_method_task(task_info["task_identifier"])
+        return task_class(**task_kwargs)
 
     if task_type == "ppfmethod":
         task_inputs[PpfMethodExecutorTask.METHOD_ARGUMENT] = task_info[
@@ -254,7 +254,7 @@ def get_task_class(node_id: NodeIdType, node_attrs: dict):
     if task_type == "class":
         return Task.get_subclass(task_info["task_identifier"])
     if task_type == "method":
-        return MethodExecutorTask
+        return get_method_task(task_info["task_identifier"])
     if task_type == "ppfmethod":
         return PpfMethodExecutorTask
     if task_type == "ppfport":

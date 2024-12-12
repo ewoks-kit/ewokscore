@@ -36,6 +36,14 @@ def dict_merge(
             destination[key] = value
 
 
+def is_namedtuple(type_: type) -> bool:
+    if not type_.__bases__ == (tuple,) or not hasattr(type_, "_fields"):
+        return False
+    if not isinstance(type_._fields, tuple):
+        return False
+    return all(isinstance(field, str) for field in type_._fields)
+
+
 def method_arguments(method) -> Tuple[List[str], List[str]]:
     sig = inspect.signature(method)
     required_input_names = list()
