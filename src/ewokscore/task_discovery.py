@@ -28,6 +28,7 @@ else:
 from ewoksutils.import_utils import qualname
 from ewoksutils.import_utils import import_module
 
+from .methodtask import get_method_task
 from .task import Task
 from .utils import method_arguments
 
@@ -130,9 +131,16 @@ def _iter_method_tasks(
             if method_name.startswith("_"):
                 continue
 
+            task_identifier = qualname(method_qn)
+            task_class = get_method_task(task_identifier)
             yield {
                 "task_type": "method",
-                **_common_method_task_fields(method_name, method_qn, mod),
+                "task_identifier": task_identifier,
+                "required_input_names": list(task_class.required_input_names()),
+                "optional_input_names": list(task_class.optional_input_names()),
+                "output_names": list(task_class.output_names()),
+                "category": task_identifier.split(".")[0],
+                "description": task_class.__doc__,
             }
 
 
@@ -158,7 +166,7 @@ def _iter_ppfmethod_tasks(
 
             yield {
                 "task_type": "ppfmethod",
-                **_common_method_task_fields(method_name, method_qn, mod),
+                **_ppfmethod_task_fields(method_name, method_qn, mod),
             }
 
 
@@ -249,7 +257,7 @@ def _onerror(module_name, exception: Optional[Exception] = None):
     logger.error(f"Module '{module_name}' cannot be imported: {exception}")
 
 
-def _common_method_task_fields(
+def _ppfmethod_task_fields(
     method_name: str, method_qn: FunctionType, mod: ModuleType
 ) -> Dict[str, Union[str, List[str]]]:
 
