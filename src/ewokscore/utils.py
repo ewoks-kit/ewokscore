@@ -1,4 +1,6 @@
+import inspect
 from collections.abc import Mapping, Sequence
+from typing import List, Tuple
 
 
 def dict_merge(
@@ -32,3 +34,20 @@ def dict_merge(
                 raise ValueError("Conflict at " + ".".join(_nodes))
         else:
             destination[key] = value
+
+
+def method_arguments(method) -> Tuple[List[str], List[str]]:
+    sig = inspect.signature(method)
+    required_input_names = list()
+    optional_input_names = list()
+    for name, param in sig.parameters.items():
+        required = param.default is inspect._empty
+        if param.kind == param.VAR_POSITIONAL:
+            continue
+        if param.kind == param.VAR_KEYWORD:
+            continue
+        if required:
+            required_input_names.append(name)
+        else:
+            optional_input_names.append(name)
+    return required_input_names, optional_input_names

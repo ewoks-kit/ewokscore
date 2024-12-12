@@ -4,7 +4,7 @@ import inspect
 import logging
 from fnmatch import fnmatch
 from types import FunctionType, ModuleType
-from typing import Generator, Optional, List, Dict, Tuple, Union
+from typing import Generator, Optional, List, Dict, Union
 
 if sys.version_info < (3, 9):
     from importlib_metadata import entry_points as _entry_points
@@ -29,6 +29,7 @@ from ewoksutils.import_utils import qualname
 from ewoksutils.import_utils import import_module
 
 from .task import Task
+from .utils import method_arguments
 
 TaskDict = Dict[str, Union[str, List[str]]]
 
@@ -248,30 +249,13 @@ def _onerror(module_name, exception: Optional[Exception] = None):
     logger.error(f"Module '{module_name}' cannot be imported: {exception}")
 
 
-def _method_arguments(method) -> Tuple[List[str], List[str]]:
-    sig = inspect.signature(method)
-    required_input_names = list()
-    optional_input_names = list()
-    for name, param in sig.parameters.items():
-        required = param.default is inspect._empty
-        if param.kind == param.VAR_POSITIONAL:
-            continue
-        if param.kind == param.VAR_KEYWORD:
-            continue
-        if required:
-            required_input_names.append(name)
-        else:
-            optional_input_names.append(name)
-    return required_input_names, optional_input_names
-
-
 def _common_method_task_fields(
     method_name: str, method_qn: FunctionType, mod: ModuleType
 ) -> Dict[str, Union[str, List[str]]]:
 
     task_identifier = qualname(method_qn)
     method = getattr(mod, method_name)
-    required_input_names, optional_input_names = _method_arguments(method)
+    required_input_names, optional_input_names = method_arguments(method)
 
     return {
         "task_identifier": qualname(method_qn),
