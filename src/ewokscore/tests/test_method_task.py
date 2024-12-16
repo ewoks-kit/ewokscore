@@ -7,7 +7,7 @@ import pytest
 
 from ewoksutils.import_utils import qualname
 from ewokscore.task import Task
-from ewokscore.methodtask import get_method_task
+from ewokscore.methodtask import get_method_task, task_outputs
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
@@ -62,6 +62,7 @@ class DataClassReturn:
     y: float
 
 
+@task_outputs
 def mymethod_dataclass() -> DataClassReturn:
     return DataClassReturn(x=1, y=2.5)
 
@@ -71,6 +72,7 @@ class TypedNamedTupleReturn(NamedTuple):
     y: float
 
 
+@task_outputs
 def mymethod_typed_namedtuple() -> TypedNamedTupleReturn:
     return TypedNamedTupleReturn(x=1, y=2.5)
 
@@ -78,6 +80,7 @@ def mymethod_typed_namedtuple() -> TypedNamedTupleReturn:
 NamedTupleReturn = namedtuple("NamedTupleReturn", ["x", "y"])
 
 
+@task_outputs
 def mymethod_namedtuple() -> NamedTupleReturn:
     return NamedTupleReturn(x=1, y=2.5)
 
@@ -90,11 +93,7 @@ def test_method_return(method, varinfo):
     task = task_class(inputs=None, varinfo=varinfo)
     task.execute()
     assert task.done
-
-    output_values = task.get_output_values()
-    assert "return_value" in output_values
-    assert task.get_output_value("x") == 1
-    assert task.get_output_value("y") == 2.5
+    assert task.get_output_values() == {"x": 1, "y": 2.5}
 
 
 @pytest.mark.skipif(
@@ -108,6 +107,7 @@ def test_method_return_typeddict(varinfo):
         x: int
         y: float
 
+    @task_outputs
     def mymethod_typeddict() -> TypedDictReturn:
         return TypedDictReturn(x=1, y=2.5)
 
@@ -116,7 +116,6 @@ def test_method_return_typeddict(varinfo):
     task.execute()
     assert task.done
     assert task.get_output_values() == {
-        "return_value": TypedDictReturn(x=1, y=2.5),
         "x": 1,
         "y": 2.5,
     }

@@ -1,12 +1,23 @@
 from collections.abc import Mapping
 import functools
 import inspect
+from types import FunctionType
 from typing import get_type_hints, Set
 
 from ewoksutils.import_utils import import_method
 
 from .task import Task
 from .utils import is_namedtuple, method_arguments
+
+
+def task_outputs(function: FunctionType) -> FunctionType:
+    """Function decorator so ewoks extract task outputs from return type elements/attributes"""
+    # Report error early
+    if not _method_output_names(function):
+        raise ValueError("Function return type does not define any output name")
+
+    function._ewoks_unpack_outputs = True  # noqa
+    return function
 
 
 def _method_output_names(method) -> Set[str]:
@@ -28,6 +39,7 @@ def _method_output_names(method) -> Set[str]:
 class MethodExecutorTask(Task):
     _METHOD_REQUIRED_INPUTS = tuple()
     _METHOD_OPTIONAL_INPUTS = tuple()
+    _METHOD_UNPACK_OUTPUTS = False
 
     def __init_subclass__(cls, task_identifier: str):
         cls._TASK_IDENTIFIER = task_identifier
@@ -36,14 +48,22 @@ class MethodExecutorTask(Task):
         cls._METHOD_REQUIRED_INPUTS, cls._METHOD_OPTIONAL_INPUTS = method_arguments(
             method
         )
-        output_names = _method_output_names(method) | set(["return_value"])
-        print("output_names", output_names)
+
+        cls._METHOD_UNPACK_OUTPUTS = getattr(method, "_ewoks_unpack_outputs", False)
+        if cls._METHOD_UNPACK_OUTPUTS:
+            output_names = _method_output_names(method)
+            if not output_names:
+                raise RuntimeError(
+                    f"{task_identifier}'s return type do not define any output name"
+                )
+        else:
+            output_names = ["return_value"]
 
         super().__init_subclass__(
             # required inputs are optional to support passing them as positional inputs
             optional_input_names=cls._METHOD_REQUIRED_INPUTS
             + cls._METHOD_OPTIONAL_INPUTS,
-            output_names=_method_output_names(method) | set(["return_value"]),
+            output_names=output_names,
         )
         cls.__doc__ = inspect.getdoc(method)
 
@@ -66,7 +86,9 @@ class MethodExecutorTask(Task):
 
         result = method(*args, **kwargs)
 
-        self.outputs.return_value = result
+        if not self._METHOD_UNPACK_OUTPUTS:
+            self.outputs.return_value = result
+            return
 
         if isinstance(result, Mapping):
             for name in self.output_names():
