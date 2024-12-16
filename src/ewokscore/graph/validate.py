@@ -36,7 +36,7 @@ def _validate_nodes(graph: networkx.DiGraph) -> None:
                     name = arg["target_input"]
                 except KeyError:
                     raise KeyError(
-                        f"Argument '{arg}' of link '{source_id}' -> '{node_id}' is missing an 'input' key"
+                        f"Argument '{arg}' of link '{source_id}' -> '{node_id}' is missing a 'target_input' key"
                     ) from None
                 other_source_id = inputs_from_required.get(name)
                 if other_source_id:
