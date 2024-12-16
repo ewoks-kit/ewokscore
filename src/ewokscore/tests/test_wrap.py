@@ -22,7 +22,7 @@ def test_multiple_outputs():
     result = wrapper(a=1, b=1)
     assert result.result == 2
     assert result.too_small is True
-    assert result._fields == ("result", "too_small")
+    assert set(result._fields) == {"result", "too_small"}
 
 
 def test_error():

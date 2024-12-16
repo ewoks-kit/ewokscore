@@ -14,7 +14,7 @@ from typing import Callable
 from ewokscore.task_discovery import discover_all_tasks as _discover_all_tasks
 
 
-def _find_task_info(task_identifier: str) -> tuple[dict[str, str], ...]:
+def _find_task_info(task_identifier: str) -> tuple[dict[str, str]]:
     """Look for ewoks Task corresponding to task_identifier.
 
     The search is case insensitive.
@@ -22,16 +22,17 @@ def _find_task_info(task_identifier: str) -> tuple[dict[str, str], ...]:
     :param task_identifier: Task class name or fully qualified name to search
     :returns: Sequence of information for matching Task classes
     """
-    return tuple(
-        desc
-        for desc in _discover_all_tasks()
-        if desc["task_type"] == "class"
-        and (
-            desc["task_identifier"] == task_identifier
-            or desc["task_identifier"].rsplit(".", 1)[-1].lower()
+    # Store info in a mapping to prevent multiple entries for the same task
+    tasks_info = {}
+    for desc in _discover_all_tasks():
+        if desc["task_type"] != "class":
+            continue
+        if desc["task_identifier"] == task_identifier or (
+            desc["task_identifier"].rsplit(".", 1)[-1].lower()
             == task_identifier.lower()
-        )
-    )
+        ):
+            tasks_info[desc["task_identifier"]] = desc
+    return tuple(tasks_info.values())
 
 
 @functools.lru_cache(maxsize=None)
