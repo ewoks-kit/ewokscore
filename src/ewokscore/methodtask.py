@@ -11,7 +11,7 @@ from .utils import is_namedtuple, method_arguments
 
 
 def task_outputs(function: FunctionType) -> FunctionType:
-    """Function decorator so ewoks extract task outputs from return type elements/attributes"""
+    """Function decorator so ewoks extracts task outputs from return type elements/attributes"""
     # Report error early
     if not _method_output_names(function):
         raise ValueError("Function return type does not define any output name")
