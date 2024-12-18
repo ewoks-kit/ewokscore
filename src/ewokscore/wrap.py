@@ -88,13 +88,13 @@ def task_asfunction(task_identifier: str) -> Callable:
     signature = inspect.Signature(
         parameters=[
             inspect.Parameter(name, kind=inspect.Parameter.POSITIONAL_OR_KEYWORD)
-            for name in task_class.required_input_names()
+            for name in sorted(task_class.required_input_names())
         ]
         + [
             inspect.Parameter(
                 name, kind=inspect.Parameter.POSITIONAL_OR_KEYWORD, default=_Default()
             )
-            for name in task_class.optional_input_names()
+            for name in sorted(task_class.optional_input_names())
         ],
         return_annotation=return_type,
     )
