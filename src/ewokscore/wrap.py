@@ -9,7 +9,8 @@ from __future__ import annotations
 from collections import namedtuple
 import functools
 import importlib
-from typing import Callable
+import inspect
+from typing import Any, Callable
 
 from ewokscore.task_discovery import discover_all_tasks as _discover_all_tasks
 
@@ -33,6 +34,13 @@ def _find_task_info(task_identifier: str) -> tuple[dict[str, str]]:
         ):
             tasks_info[desc["task_identifier"]] = desc
     return tuple(tasks_info.values())
+
+
+class _Default:
+    """Instances used as optional parameter default value"""
+
+    def __repr__(self):
+        return "TASK_DEFAULT"
 
 
 @functools.lru_cache(maxsize=None)
@@ -66,8 +74,35 @@ def task_asfunction(task_identifier: str) -> Callable:
     module = importlib.import_module(module_name)
     task_class = getattr(module, class_name)
 
-    def wrapper(**kwargs):
-        task = task_class(inputs=kwargs)
+    if task_class._N_REQUIRED_POSITIONAL_INPUTS != 0:
+        raise ValueError("Task with required positional inputs unsupported")
+
+    output_names = tuple(task_class.output_names())
+    if not output_names:
+        return_type = None
+    elif len(output_names) == 1:
+        return_type = Any
+    else:
+        return_type = namedtuple(f"{class_name}Outputs", output_names)
+
+    signature = inspect.Signature(
+        parameters=[
+            inspect.Parameter(name, kind=inspect.Parameter.POSITIONAL_OR_KEYWORD)
+            for name in task_class.required_input_names()
+        ]
+        + [
+            inspect.Parameter(
+                name, kind=inspect.Parameter.POSITIONAL_OR_KEYWORD, default=_Default()
+            )
+            for name in task_class.optional_input_names()
+        ],
+        return_annotation=return_type,
+    )
+
+    def wrapper(*args, **kwargs):
+        bounded_args = signature.bind(*args, **kwargs)
+
+        task = task_class(inputs=bounded_args.arguments)
         task.execute()
 
         output_names = tuple(task.output_names())
@@ -81,6 +116,7 @@ def task_asfunction(task_identifier: str) -> Callable:
         output_namedtuple = namedtuple("TaskOutputs", output_names)
         return output_namedtuple(**{name: task.outputs[name] for name in output_names})
 
+    wrapper.__signature__ = signature
     wrapper.__name__ = class_name
     wrapper.__qualname__ = info["task_identifier"]
     wrapper.__module__ = module_name
