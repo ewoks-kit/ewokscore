@@ -1,11 +1,11 @@
 """Define and parse ewoks events
 """
 
-from numbers import Number
-from typing import Dict, List, Mapping, Optional
-from datetime import datetime
 import traceback
-from warnings import warn
+from numbers import Number
+from datetime import datetime
+from typing import Dict, List, Mapping, Optional
+
 from ewoksutils.event_utils import FIELD_TYPES
 
 from . import global_state
@@ -139,29 +139,18 @@ def _extract_common_fields(
     job_id: str,
     event: str,
     engine: Optional[str] = None,
-    binding: Optional[str] = None,
     time: Optional[str] = None,
     error: Optional[bool] = None,
     error_message: Optional[str] = None,
     error_traceback: Optional[str] = None,
     **logkwargs,
 ):
-    if "engine" in FIELD_TYPES:
-        engine_field = "engine"
-    else:
-        engine_field = "binding"
-    if binding:
-        if engine:
-            raise ValueError("'binding' and 'engine' cannot be used together")
-        engine = binding
-        if engine_field == "engine":
-            warn("'binding' is deprecated in favor of 'engine'", DeprecationWarning)
     event_data = {
         "host_name": host_name,
         "process_id": process_id,
         "user_name": user_name,
         "job_id": job_id,
-        engine_field: engine,
+        "engine": engine,
         "type": event,
         "time": time,
         "error": error,
