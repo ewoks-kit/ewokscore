@@ -171,7 +171,7 @@ def instantiate_task(
         task_inputs[ScriptExecutorTask.SCRIPT_ARGUMENT] = task_info["task_identifier"]
         return ScriptExecutorTask(**task_kwargs)
 
-    if task_type == "method":
+    if task_type == "notebook":
         task_inputs[NotebookExecutorTask.NOTEBOOK_ARGUMENT] = task_info[
             "task_identifier"
         ]
