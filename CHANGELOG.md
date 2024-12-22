@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+## 1.0.0
+
 Breaking changes:
 
 - Remove deprecated `binding` argument from `execute_graph`.
+
+Bug fixes:
+
+- Fix bug in notebook task instantiation.
 
 ## 0.15.0
 
