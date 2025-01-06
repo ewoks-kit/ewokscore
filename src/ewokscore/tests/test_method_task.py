@@ -7,7 +7,7 @@ import pytest
 
 from ewoksutils.import_utils import qualname
 from ewokscore.task import Task
-from ewokscore.methodtask import get_method_task, task_outputs
+from ewokscore.methodtask import get_method_task, task as task_decorator
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
@@ -62,7 +62,7 @@ class DataClassReturn:
     y: float
 
 
-@task_outputs
+@task_decorator
 def mymethod_dataclass() -> DataClassReturn:
     return DataClassReturn(x=1, y=2.5)
 
@@ -72,7 +72,7 @@ class TypedNamedTupleReturn(NamedTuple):
     y: float
 
 
-@task_outputs
+@task_decorator
 def mymethod_typed_namedtuple() -> TypedNamedTupleReturn:
     return TypedNamedTupleReturn(x=1, y=2.5)
 
@@ -80,7 +80,7 @@ def mymethod_typed_namedtuple() -> TypedNamedTupleReturn:
 NamedTupleReturn = namedtuple("NamedTupleReturn", ["x", "y"])
 
 
-@task_outputs
+@task_decorator
 def mymethod_namedtuple() -> NamedTupleReturn:
     return NamedTupleReturn(x=1, y=2.5)
 
@@ -107,12 +107,12 @@ def test_method_return_typeddict(varinfo):
         x: int
         y: float
 
-    @task_outputs
+    @task_decorator
     def mymethod_typeddict() -> TypedDictReturn:
         return TypedDictReturn(x=1, y=2.5)
 
     task_class = get_method_task(qualname(mymethod_typeddict))
-    task = task_class(inputs={}, varinfo=varinfo)
+    task = task_class(inputs=None, varinfo=varinfo)
     task.execute()
     assert task.done
     assert task.get_output_values() == {

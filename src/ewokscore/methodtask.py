@@ -1,8 +1,8 @@
-from collections.abc import Mapping
+from collections.abc import Sequence, Mapping
 import functools
 import inspect
 from types import FunctionType
-from typing import get_type_hints, Set
+from typing import get_type_hints, Optional, Tuple, Union
 
 from ewoksutils.import_utils import import_method
 
@@ -10,74 +10,68 @@ from .task import Task
 from .utils import is_namedtuple, method_arguments
 
 
-def task_outputs(function: FunctionType) -> FunctionType:
-    """Function decorator so ewoks extract task outputs from return type elements/attributes"""
-    # Report error early
-    if not _method_output_names(function):
-        raise ValueError("Function return type does not define any output name")
+def task(
+    function: FunctionType,
+    output_names: Optional[Union[str, Sequence[str]]] = None,
+) -> FunctionType:
+    """Function decorator"""
+    if isinstance(output_names, str):
+        output_names = (output_names,)
+    elif output_names is not None:
+        output_names = tuple(output_names)
 
-    function._ewoks_unpack_outputs = True  # noqa
+    function._ewoks_output_names = output_names  # noqa
     return function
 
 
-def _method_output_names(method) -> Set[str]:
+def _method_output_names(method) -> Tuple[str]:
     sig = inspect.signature(method)
     return_type = sig.return_annotation
+    if return_type is None:
+        return ()
+
     if return_type is inspect.Signature.empty or not inspect.isclass(return_type):
-        return set()
+        return ("return_value",)
 
     return_annotations = get_type_hints(return_type)
     if return_annotations:
-        return set(return_annotations.keys())
+        return tuple(return_annotations.keys())
 
     if is_namedtuple(return_type):
-        return set(return_type._fields)
+        return tuple(return_type._fields)
 
-    return set()
+    return ("return_value",)
 
 
 class MethodExecutorTask(Task):
-    _METHOD_REQUIRED_INPUTS = tuple()
-    _METHOD_OPTIONAL_INPUTS = tuple()
-    _METHOD_UNPACK_OUTPUTS = False
 
-    def __init_subclass__(cls, task_identifier: str, **kwargs):
+    def __init_subclass__(
+        cls,
+        task_identifier: str,
+        output_names: Optional[Union[str, Sequence[str]]] = None,
+        **kwargs,
+    ):
         cls._TASK_IDENTIFIER = task_identifier
 
         method = import_method(task_identifier)
-        cls._METHOD_REQUIRED_INPUTS, cls._METHOD_OPTIONAL_INPUTS = method_arguments(
-            method
-        )
+        input_names, optional_input_names = method_arguments(method)
 
-        cls._METHOD_UNPACK_OUTPUTS = getattr(method, "_ewoks_unpack_outputs", False)
-        if cls._METHOD_UNPACK_OUTPUTS:
-            output_names = _method_output_names(method)
-            if not output_names:
-                raise RuntimeError(
-                    f"{task_identifier}'s return type do not define any output name"
-                )
-        else:
-            output_names = ["return_value"]
+        if isinstance(output_names, str):
+            output_names = [output_names]
+
+        if output_names is None:
+            if hasattr(method, "_ewoks_output_names"):
+                output_names = method._ewoks_output_names
+            if output_names is None:
+                output_names = _method_output_names(method)
 
         super().__init_subclass__(
-            # required inputs are optional to support passing them as positional inputs
-            optional_input_names=cls._METHOD_REQUIRED_INPUTS
-            + cls._METHOD_OPTIONAL_INPUTS,
+            input_names=input_names,
+            optional_input_names=optional_input_names,
             output_names=output_names,
             **kwargs,
         )
         cls.__doc__ = inspect.getdoc(method)
-
-    # Advertise effective method required/optional input names
-    # rather than the less constrained task ones
-
-    @classmethod
-    def required_input_names(cls):
-        return cls._METHOD_REQUIRED_INPUTS
-
-    @classmethod
-    def optional_input_names(cls):
-        return cls._METHOD_OPTIONAL_INPUTS
 
     def run(self):
         kwargs = self.get_named_input_values()
@@ -87,17 +81,21 @@ class MethodExecutorTask(Task):
 
         result = method(*args, **kwargs)
 
-        if not self._METHOD_UNPACK_OUTPUTS:
-            self.outputs.return_value = result
+        output_names = tuple(self.output_names())
+        if len(output_names) == 0:
+            return
+
+        if len(output_names) == 1:
+            self.outputs[output_names[0]] = result
             return
 
         if isinstance(result, Mapping):
-            for name in self.output_names():
+            for name in output_names:
                 if name in result:
                     self.outputs[name] = result[name]
             return
 
-        for name in self.output_names():
+        for name in output_names:
             if hasattr(result, name):
                 self.outputs[name] = getattr(result, name)
 
