@@ -41,7 +41,7 @@ class MethodExecutorTask(Task):
     _METHOD_OPTIONAL_INPUTS = tuple()
     _METHOD_UNPACK_OUTPUTS = False
 
-    def __init_subclass__(cls, task_identifier: str):
+    def __init_subclass__(cls, task_identifier: str, **kwargs):
         cls._TASK_IDENTIFIER = task_identifier
 
         method = import_method(task_identifier)
@@ -64,6 +64,7 @@ class MethodExecutorTask(Task):
             optional_input_names=cls._METHOD_REQUIRED_INPUTS
             + cls._METHOD_OPTIONAL_INPUTS,
             output_names=output_names,
+            **kwargs,
         )
         cls.__doc__ = inspect.getdoc(method)
 
