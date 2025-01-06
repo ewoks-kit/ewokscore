@@ -125,8 +125,6 @@ class DataProxy(Registered, HasUhash, register=False):
         raise ValueError(f"Data proxy scheme '{scheme}' is not supported")
 
     def serialize(self) -> Dict[str, str]:
-        if self.uri is None:
-            return None
         return self.uri.serialize()
 
     @classmethod
