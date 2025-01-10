@@ -4,7 +4,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-from ewokscore import __version__ as release
+
+from importlib.metadata import version as get_version
+
+release = get_version("ewokscore")
 
 project = "ewokscore"
 version = ".".join(release.split(".")[:2])

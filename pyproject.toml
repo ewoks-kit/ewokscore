@@ -1,6 +1,71 @@
 [build-system]
-requires = [
-    "setuptools>=46.4",
-    "wheel",
-]
+requires = ["setuptools>=46.4"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = 'ewokscore'
+version = '1.0.0'
+authors = [{ name = "ESRF", email = "dau-pydev@esrf.fr" }]
+description = "API for graphs and tasks in Ewoks"
+readme = { file = "README.md", content-type = "text/markdown" }
+license = { file = "LICENSE.md" }
+keywords = ['ewoks']
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy >=1.15",
+    "networkx >=2",
+    "silx >=1",
+    "pyyaml >=5.1",
+    "h5py >=2.8",
+    "packaging",
+    "ewoksutils >=1.0.0",
+    "importlib_metadata;python_version < '3.9'",
+]
+
+[project.urls]
+Homepage = "https://gitlab.esrf.fr/workflow/ewoks/ewokscore"
+Documentation = "https://ewokscore.readthedocs.io/"
+Repository = "https://gitlab.esrf.fr/workflow/ewoks/ewokscore"
+Issues = "https://gitlab.esrf.fr/workflow/ewoks/ewokscore/issues/"
+Changelog = "https://gitlab.esrf.fr/workflow/ewoks/ewokscore/-/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+notebooks = ["papermill"]
+test = ["ewokscore[notebooks]", "pytest >=7", "matplotlib >=3", "ipykernel"]
+dev = [
+    "ewokscore[test]",
+    "black[jupyter] >=22",
+    "flake8 >=4",
+    "flake8_nb >= 0.3.1",
+]
+doc = [
+    "ewokscore[test]",
+    "sphinx >=4.5",
+    "sphinxcontrib-mermaid >=0.7",
+    "sphinx-autodoc-typehints >=1.16",
+    "nbsphinx",
+    # v0.21 incompatible with nbsphinx_link: https://github.com/vidartf/nbsphinx-link/issues/22
+    "docutils < 0.21",
+    "nbsphinx_link",
+    "pydata-sphinx-theme",
+]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.coverage.run]
+omit = ["*/tests/*"]
+
+[project.entry-points."ewoks.tasks.class"]
+"ewokscore.tests.examples.tasks.*" = "ewokscore"
+
+[project.entry-points."ewoks.tasks.method"]
+"ewokscore.tests.examples.tasks.*" = "ewokscore"
