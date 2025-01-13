@@ -3,13 +3,13 @@ requires = ["setuptools>=46.4"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = 'ewokscore'
-version = '1.0.0'
+name = "ewokscore"
+version = "1.0.0"
 authors = [{ name = "ESRF", email = "dau-pydev@esrf.fr" }]
 description = "API for graphs and tasks in Ewoks"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE.md" }
-keywords = ['ewoks']
+keywords = ["ewoks"]
 classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
@@ -60,6 +60,9 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.ipynb"]
 
 [tool.coverage.run]
 omit = ["*/tests/*"]
