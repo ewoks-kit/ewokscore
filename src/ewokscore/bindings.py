@@ -48,7 +48,7 @@ def execute_graph(
     graph,
     inputs: Optional[List[dict]] = None,
     load_options: Optional[dict] = None,
-    **execute_options
+    **execute_options,
 ):
     if load_options is None:
         load_options = dict()
