@@ -7,8 +7,9 @@ import warnings
 from contextlib import contextmanager
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from ewoksutils.logging_utils.asyncwrapper import AsyncHandlerWrapper
 from ewoksutils.logging_utils.cleanup import cleanup_logger
+from ewoksutils.logging_utils.cleanup import protect_logging_state
+from ewoksutils.logging_utils.asyncwrapper import AsyncHandlerWrapper
 
 from .handlers import is_ewoks_event_handler, instantiate_handler
 
@@ -61,11 +62,8 @@ def remove_handler(handler: logging.Handler) -> None:
 
 def cleanup():
     """Pending events will be dropped"""
-    logging._acquireLock()
-    try:
+    with protect_logging_state():
         _cleanup_ewoks_event_logger()
-    finally:
-        logging._releaseLock()
 
 
 def _after_fork_in_child():
@@ -84,15 +82,12 @@ def _ewoks_event_logger(
     # Issue with logging and forking:
     # https://pythonspeed.com/articles/python-multiprocessing/
 
-    logging._acquireLock()
-    try:
+    with protect_logging_state():
         if _ewoks_event_logger_requires_cleanup():
             _cleanup_ewoks_event_logger()
         if _ewoks_event_logger_requires_init():
             _init_ewoks_event_logger(handlers, asynchronous)
         yield logging.getLogger(EWOKS_EVENT_LOGGER_NAME)
-    finally:
-        logging._releaseLock()
 
 
 def _cleanup_ewoks_event_logger():

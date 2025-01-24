@@ -32,6 +32,12 @@ test-3.12:
     JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error ${WARNINGS_PY3_12}"
 
+test-3.13:
+  extends: .test-3.13
+  variables:
+    JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
+    PYTEST_WARNINGS: "-W error ${WARNINGS_PY3_12}"
+
 build_sdist:
   extends: .build_sdist
 

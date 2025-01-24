@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+New features:
+
+- Support for Python 3.13.
+
 ## 1.0.0
 
 Breaking changes:
