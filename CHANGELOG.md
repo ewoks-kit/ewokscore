@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.0
+
 New features:
 
 - Support for Python 3.13.

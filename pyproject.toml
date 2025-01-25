@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ewokscore"
-version = "1.0.0"
+version = "1.1.0"
 authors = [{ name = "ESRF", email = "dau-pydev@esrf.fr" }]
 description = "API for graphs and tasks in Ewoks"
 readme = { file = "README.md", content-type = "text/markdown" }
