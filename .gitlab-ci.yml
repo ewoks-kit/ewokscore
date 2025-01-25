@@ -56,6 +56,12 @@ test_sdist-3.12:
 build_doc:
   extends: .build_doc
 
+pypi:
+  extends: .pypi
+
+testpypi:
+  extends: .testpypi
+
 pages:
   extends: .pages
 
