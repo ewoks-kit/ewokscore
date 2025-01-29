@@ -1,5 +1,4 @@
-"""Ewoks sends job, workflow and node events during workflow execution.
-"""
+"""Ewoks sends job, workflow and node events during workflow execution."""
 
 from .global_state import add_handler  # noqa F401
 from .global_state import remove_handler  # noqa F401

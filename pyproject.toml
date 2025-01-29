@@ -39,7 +39,7 @@ notebooks = ["papermill"]
 test = ["ewokscore[notebooks]", "pytest >=7", "matplotlib >=3", "ipykernel"]
 dev = [
     "ewokscore[test]",
-    "black[jupyter] >=22",
+    "black[jupyter] >=25",
     "flake8 >=4",
     "flake8_nb >= 0.3.1",
 ]

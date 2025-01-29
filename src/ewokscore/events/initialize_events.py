@@ -1,5 +1,4 @@
-"""Initialize ewoks event fields
-"""
+"""Initialize ewoks event fields"""
 
 import os
 import getpass
