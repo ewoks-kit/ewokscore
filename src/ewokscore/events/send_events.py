@@ -1,5 +1,4 @@
-"""Define and parse ewoks events
-"""
+"""Define and parse ewoks events"""
 
 import traceback
 from numbers import Number

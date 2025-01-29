@@ -1,5 +1,4 @@
-"""Manage the EWOKS event logger which is a global object
-"""
+"""Manage the EWOKS event logger which is a global object"""
 
 import os
 import logging
