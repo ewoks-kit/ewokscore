@@ -3,7 +3,7 @@ from . import graph
 
 @graph
 def acyclic2():
-    graph = {"id": "acyclic2", "schema_version": "1.1"}
+    graph = {"id": "acyclic2", "label": "acyclic2", "schema_version": "1.1"}
 
     task = "ewokscore.tests.examples.tasks.errorsumtask.ErrorSumTask"
     nodes = [

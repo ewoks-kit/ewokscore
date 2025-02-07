@@ -3,7 +3,7 @@ from . import graph
 
 @graph
 def self_trigger():
-    graph = {"id": "self_trigger", "schema_version": "1.1"}
+    graph = {"id": "self_trigger", "label": "self_trigger", "schema_version": "1.1"}
 
     task = "ewokscore.tests.examples.tasks.condsumtask.CondSumTask"
     nodes = [

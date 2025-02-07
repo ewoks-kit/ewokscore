@@ -3,7 +3,7 @@ from . import graph
 
 @graph
 def demo():
-    graph = {"id": "demo", "schema_version": "1.1"}
+    graph = {"id": "demo", "label": "demo", "schema_version": "1.1"}
 
     sumtask = "ewokscore.tests.examples.tasks.sumtask.SumTask"
     sumlist = "ewokscore.tests.examples.tasks.sumlist.SumList"

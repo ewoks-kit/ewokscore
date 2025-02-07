@@ -3,7 +3,7 @@ from . import graph
 
 @graph
 def cyclic1():
-    graph = {"id": "cyclic1", "schema_version": "1.1"}
+    graph = {"id": "cyclic1", "label": "cyclic1", "schema_version": "1.1"}
 
     task = "ewokscore.tests.examples.tasks.condsumtask.CondSumTask"
     nodes = [

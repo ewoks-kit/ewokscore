@@ -29,9 +29,9 @@ def graph(graph_method):
     def wrapper():
         g, result = graph_method()
         attrs = g.setdefault("graph", dict())
-        attrs.setdefault("id", name)
-        attrs.setdefault("label", name)
-        attrs.setdefault("schema_version", "1.1")
+        assert attrs.get("id") == name
+        assert attrs.get("label") == name
+        assert attrs.get("schema_version") == "1.1"
         return g, result
 
     if ALL_GRAPHS is None:

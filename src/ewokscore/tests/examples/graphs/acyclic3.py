@@ -4,7 +4,7 @@ from ewokscore import missing_data
 
 @graph
 def acyclic3():
-    graph = {"id": "acyclic3", "schema_version": "1.1"}
+    graph = {"id": "acyclic3", "label": "acyclic3", "schema_version": "1.1"}
 
     task = "ewokscore.tests.examples.tasks.sumtask.SumTask"
     nodes = [

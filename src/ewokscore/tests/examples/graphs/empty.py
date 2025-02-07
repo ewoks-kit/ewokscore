@@ -3,4 +3,5 @@ from . import graph
 
 @graph
 def empty():
-    return dict(), dict()
+    graph = {"id": "empty", "label": "empty", "schema_version": "1.1"}
+    return {"graph": graph}, dict()

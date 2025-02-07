@@ -133,7 +133,7 @@ def acyclic1():
             },
         ]
     }
-    graph = {"id": "acyclic1", "schema_version": "1.1", "ows": ows}
+    graph = {"id": "acyclic1", "label": "acyclic1", "schema_version": "1.1", "ows": ows}
 
     taskgraph = {"graph": graph, "links": links, "nodes": nodes}
 
