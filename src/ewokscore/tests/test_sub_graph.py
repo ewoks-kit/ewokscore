@@ -15,6 +15,7 @@ def test_sub_graph_execute():
     subsubgraph = {
         "graph": {
             "id": "subsubgraph",
+            "schema_version": "1.1",
             "input_nodes": [{"id": "in", "node": "subsubnode1"}],
         },
         "nodes": [
@@ -33,6 +34,7 @@ def test_sub_graph_execute():
     subgraph = {
         "graph": {
             "id": "subgraph",
+            "schema_version": "1.1",
             "input_nodes": [{"id": "in", "node": "subnode1", "sub_node": "in"}],
         },
         "nodes": [
@@ -41,7 +43,7 @@ def test_sub_graph_execute():
     }
 
     graph = {
-        "graph": {"id": "graph"},
+        "graph": {"id": "graph", "schema_version": "1.1"},
         "nodes": [
             {
                 "id": "node1",
@@ -79,6 +81,7 @@ def test_sub_graph_link_attributes():
     subsubgraph = {
         "graph": {
             "id": "subsubgraph",
+            "schema_version": "1.1",
             "input_nodes": [
                 {"id": "in1", "node": "subsubnode1", "link_attributes": {1: 1}},
                 {"id": "in2", "node": "subsubnode1", "link_attributes": {2: 2}},
@@ -96,6 +99,7 @@ def test_sub_graph_link_attributes():
     subgraph = {
         "graph": {
             "id": "subgraph",
+            "schema_version": "1.1",
             "input_nodes": [
                 {
                     "id": "in1",
@@ -129,7 +133,7 @@ def test_sub_graph_link_attributes():
     }
 
     graph = {
-        "graph": {"id": "graph"},
+        "graph": {"id": "graph", "schema_version": "1.1"},
         "nodes": [
             {"id": "node1", "task_type": "method", "task_identifier": "dummy"},
             {"id": "node2", "task_type": "method", "task_identifier": "dummy"},
@@ -164,6 +168,7 @@ def test_sub_graph_duplicate_aliases():
     subsubgraph = {
         "graph": {
             "id": "subsubgraph",
+            "schema_version": "1.1",
             "input_nodes": [
                 {
                     "id": "in",
@@ -203,6 +208,7 @@ def test_sub_graph_duplicate_aliases():
     subgraph = {
         "graph": {
             "id": "subgraph",
+            "schema_version": "1.1",
             "input_nodes": [
                 {
                     "id": "in",
@@ -224,7 +230,7 @@ def test_sub_graph_duplicate_aliases():
     }
 
     graph = {
-        "graph": {"id": "graph"},
+        "graph": {"id": "graph", "schema_version": "1.1"},
         "nodes": [
             {"id": "node1", "task_type": "method", "task_identifier": "dummy"},
             {"id": "node2", "task_type": "method", "task_identifier": "dummy"},

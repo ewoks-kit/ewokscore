@@ -3,6 +3,8 @@ from . import graph
 
 @graph
 def demo():
+    graph = {"id": "demo", "label": "demo", "schema_version": "1.1"}
+
     sumtask = "ewokscore.tests.examples.tasks.sumtask.SumTask"
     sumlist = "ewokscore.tests.examples.tasks.sumlist.SumList"
     nodes = [
@@ -118,10 +120,7 @@ def demo():
         },
     ]
 
-    graph = {
-        "links": links,
-        "nodes": nodes,
-    }
+    taskgraph = {"graph": graph, "links": links, "nodes": nodes}
 
     expected_results = {
         "task0": {"sum": 3},
@@ -133,4 +132,4 @@ def demo():
         "task6": {"result": 18},
     }
 
-    return graph, expected_results
+    return taskgraph, expected_results

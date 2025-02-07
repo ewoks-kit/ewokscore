@@ -9,6 +9,7 @@ def subsubsubgraph():
     return {
         "graph": {
             "id": "subsubsubgraph",
+            "schema_version": "1.1",
             "input_nodes": [{"id": "in", "node": "task1"}, {"id": "notconnected"}],
             "output_nodes": [{"id": "out", "node": "task2"}, {"id": "notconnected"}],
         },
@@ -38,6 +39,7 @@ def subsubgraph(_subsubsubgraph):
     return {
         "graph": {
             "id": "subsubgraph",
+            "schema_version": "1.1",
             "input_nodes": [{"id": "in", "node": "task1"}, {"id": "notconnected"}],
             "output_nodes": [
                 {"id": "out", "node": "subsubsubgraph", "sub_node": "out"},
@@ -81,6 +83,7 @@ def subgraph(_subsubgraph):
     return {
         "graph": {
             "id": "subgraph",
+            "schema_version": "1.1",
             "input_nodes": [{"id": "in", "node": "task1"}],
             "output_nodes": [{"id": "out", "node": "subsubgraph", "sub_node": "out"}],
         },
@@ -119,7 +122,7 @@ def subgraph(_subsubgraph):
 
 def graph(_subgraph):
     return {
-        "graph": {"id": "graph"},
+        "graph": {"id": "graph", "schema_version": "1.1"},
         "nodes": [
             {"id": "subgraph1", "task_type": "graph", "task_identifier": _subgraph},
             {"id": "subgraph2", "task_type": "graph", "task_identifier": _subgraph},

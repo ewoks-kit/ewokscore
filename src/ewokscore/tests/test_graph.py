@@ -4,6 +4,7 @@ from ewokscore.graph.analysis import link_is_required
 
 
 def test_required_links():
+    graph = {"id": "test", "schema_version": "1.1"}
     nodes = [
         {"id": "source1", "task_type": "method", "task_identifier": "dummy"},
         {"id": "source2a", "task_type": "method", "task_identifier": "dummy"},
@@ -15,20 +16,20 @@ def test_required_links():
         {"source": "source2a", "target": "source2b"},
         {"source": "source2b", "target": "target"},
     ]
-    taskgraph = load_graph({"graph": {"id": "test"}, "nodes": nodes, "links": links})
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
     assert link_is_required(taskgraph.graph, "source1", "target")
     assert link_is_required(taskgraph.graph, "source2a", "source2b")
     assert link_is_required(taskgraph.graph, "source2b", "target")
 
     links[0]["conditions"] = [{"source_output": "a", "value": 1}]
-    taskgraph = load_graph({"graph": {"id": "test"}, "nodes": nodes, "links": links})
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
     assert not link_is_required(taskgraph.graph, "source1", "target")
     assert link_is_required(taskgraph.graph, "source2a", "source2b")
     assert link_is_required(taskgraph.graph, "source2b", "target")
     links[0].pop("conditions")
 
     links[1]["conditions"] = [{"source_output": "a", "value": 1}]
-    taskgraph = load_graph({"graph": {"id": "test"}, "nodes": nodes, "links": links})
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
     assert link_is_required(taskgraph.graph, "source1", "target")
     assert not link_is_required(taskgraph.graph, "source2a", "source2b")
     assert not link_is_required(taskgraph.graph, "source2b", "target")
@@ -36,14 +37,14 @@ def test_required_links():
 
     links[1]["conditions"] = [{"source_output": "a", "value": 1}]
     links[1]["required"] = True
-    taskgraph = load_graph({"graph": {"id": "test"}, "nodes": nodes, "links": links})
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
     assert link_is_required(taskgraph.graph, "source1", "target")
     assert link_is_required(taskgraph.graph, "source2a", "source2b")
     assert link_is_required(taskgraph.graph, "source2b", "target")
     links[1].pop("conditions")
 
     links[2]["conditions"] = [{"source_output": "a", "value": 1}]
-    taskgraph = load_graph({"graph": {"id": "test"}, "nodes": nodes, "links": links})
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
     assert link_is_required(taskgraph.graph, "source1", "target")
     assert link_is_required(taskgraph.graph, "source2a", "source2b")
     assert not link_is_required(taskgraph.graph, "source2b", "target")
@@ -51,7 +52,7 @@ def test_required_links():
 
     links[2]["conditions"] = [{"source_output": "a", "value": 1}]
     links[2]["required"] = True
-    taskgraph = load_graph({"graph": {"id": "test"}, "nodes": nodes, "links": links})
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
     assert link_is_required(taskgraph.graph, "source1", "target")
     assert link_is_required(taskgraph.graph, "source2a", "source2b")
     assert link_is_required(taskgraph.graph, "source2b", "target")

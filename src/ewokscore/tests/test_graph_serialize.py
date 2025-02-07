@@ -68,7 +68,11 @@ def _dump_graph_and_subgraph(tmpdir, format, with_ext):
 
 
 _SUBGRAPH = {
-    "graph": {"id": "subgraph", "input_nodes": [{"id": "in", "node": "subnode1"}]},
+    "graph": {
+        "id": "subgraph",
+        "schema_version": "1.1",
+        "input_nodes": [{"id": "in", "node": "subnode1"}],
+    },
     "nodes": [
         {
             "id": "subnode1",
@@ -83,7 +87,7 @@ _SUBGRAPH = {
 }
 
 _GRAPH = {
-    "graph": {"id": "graph"},
+    "graph": {"id": "graph", "schema_version": "1.1"},
     "nodes": [
         {
             "id": "node1",

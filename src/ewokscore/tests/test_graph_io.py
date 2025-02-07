@@ -5,6 +5,7 @@ from ewokscore.graph import graph_io
 
 @pytest.fixture(scope="module")
 def graph():
+    graph = {"id": "testgraph", "schema_version": "1.1"}
     nodes = [
         {
             "id": "task1",
@@ -51,12 +52,8 @@ def graph():
         },
     ]
 
-    graph = {
-        "graph": {"id": "testgraph"},
-        "links": links,
-        "nodes": nodes,
-    }
-    return load_graph(graph).graph
+    taskgraph = {"graph": graph, "links": links, "nodes": nodes}
+    return load_graph(taskgraph).graph
 
 
 def test_parse_inputs(graph):

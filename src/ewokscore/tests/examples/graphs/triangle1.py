@@ -3,6 +3,8 @@ from . import graph
 
 @graph
 def triangle1():
+    graph = {"id": "triangle1", "label": "triangle1", "schema_version": "1.1"}
+
     task = "ewokscore.tests.examples.tasks.condsumtask.CondSumTask"
     nodes = [
         {
@@ -47,9 +49,6 @@ def triangle1():
 
     expected = {"task3": {"result": 10, "too_small": False}}
 
-    graph = {
-        "links": links,
-        "nodes": nodes,
-    }
+    taskgraph = {"graph": graph, "links": links, "nodes": nodes}
 
-    return graph, expected
+    return taskgraph, expected

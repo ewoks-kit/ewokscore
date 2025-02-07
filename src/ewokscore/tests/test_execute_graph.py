@@ -20,6 +20,7 @@ class SumTask(
 
 def create_graph():
     task = qualname(SumTask)
+    graph = {"id": "testgraph", "schema_version": "1.1"}
     nodes = [
         {
             "id": "task1",
@@ -97,11 +98,7 @@ def create_graph():
         },
     ]
 
-    return {
-        "graph": {"id": "testgraph"},
-        "links": links,
-        "nodes": nodes,
-    }
+    return {"graph": graph, "links": links, "nodes": nodes}
 
 
 def test_execute_graph_outputs():

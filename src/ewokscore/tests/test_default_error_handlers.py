@@ -3,6 +3,7 @@ from ewokscore.node import get_node_label
 
 
 def subsubmodel1():
+    graph = {"id": "subsubmodel1", "schema_version": "1.1"}
     nodes = [
         {
             "id": "a",
@@ -46,10 +47,15 @@ def subsubmodel1():
             "on_error": True,
         },
     ]
-    return {"graph": {"id": "subsubmodel1"}, "nodes": nodes, "links": links}
+    return {
+        "graph": graph,
+        "nodes": nodes,
+        "links": links,
+    }
 
 
 def submodel1():
+    graph = {"id": "submodel1", "schema_version": "1.1"}
     nodes = [
         {
             "id": "a",
@@ -88,10 +94,11 @@ def submodel1():
             "on_error": True,
         },
     ]
-    return {"graph": {"id": "submodel1"}, "nodes": nodes, "links": links}
+    return {"graph": graph, "nodes": nodes, "links": links}
 
 
 def model1():
+    graph = {"id": "model1", "schema_version": "1.1"}
     nodes = [
         {
             "id": "a",
@@ -130,7 +137,7 @@ def model1():
             "on_error": True,
         },
     ]
-    return {"graph": {"id": "model1"}, "nodes": nodes, "links": links}
+    return {"graph": graph, "nodes": nodes, "links": links}
 
 
 def test_default_error_handlers1():
@@ -183,6 +190,7 @@ def test_default_error_handlers1():
 def submodel2():
     graph = {
         "id": "submodel2",
+        "schema_version": "1.1",
         "input_nodes": [{"id": "in", "node": "a"}],
         "output_nodes": [{"id": "out", "node": "c"}],
     }
@@ -211,6 +219,7 @@ def submodel2():
 
 
 def model2():
+    graph = {"id": "model2", "schema_version": "1.1"}
     nodes = [
         {
             "id": "start",
@@ -232,7 +241,7 @@ def model2():
     links = [
         {"source": "start", "target": "end", "map_all_data": True},
     ]
-    return {"graph": {"id": "model2"}, "nodes": nodes, "links": links}
+    return {"graph": graph, "nodes": nodes, "links": links}
 
 
 def test_default_error_handlers2():

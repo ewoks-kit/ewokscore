@@ -4,6 +4,8 @@ from ewokscore.graph.analysis import end_nodes
 
 
 def test_graph_start_end_nodes():
+    graph = {"id": "test", "schema_version": "1.1"}
+
     nodes = [
         {"id": "start1", "task_type": "method", "task_identifier": "dummy"},
         {"id": "start2", "task_type": "method", "task_identifier": "dummy"},
@@ -51,7 +53,7 @@ def test_graph_start_end_nodes():
         {"source": "merge", "target": "end_always", "map_all_data": True},
         {"source": "on_error2", "target": "end_on_error", "map_all_data": True},
     ]
-    taskgraph = load_graph({"graph": {"id": "test"}, "nodes": nodes, "links": links})
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
 
     assert start_nodes(taskgraph.graph) == {"start1"}
     assert end_nodes(taskgraph.graph) == {"end_always", "end_on_error"}

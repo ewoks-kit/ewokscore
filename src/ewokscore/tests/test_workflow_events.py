@@ -39,6 +39,7 @@ class MyTask(
 
 
 def run_succesfull_workfow(tmpdir, execute_graph, **execute_options):
+    graph = {"id": "test_graph", "schema_version": "1.1"}
     nodes = [
         {
             "id": "node1",
@@ -71,8 +72,8 @@ def run_succesfull_workfow(tmpdir, execute_graph, **execute_options):
             "data_mapping": [{"source_output": "ctr", "target_input": "ctr"}],
         },
     ]
-    graph = {"graph": {"id": "test_graph"}, "nodes": nodes, "links": links}
-    return _execute_graph(tmpdir, graph, execute_graph, **execute_options)
+    taskgraph = {"graph": graph, "nodes": nodes, "links": links}
+    return _execute_graph(tmpdir, taskgraph, execute_graph, **execute_options)
 
 
 def assert_succesfull_workfow_events(events):
@@ -95,6 +96,7 @@ def assert_succesfull_workfow_events(events):
 
 
 def run_failed_workfow(tmpdir, execute_graph, **execute_options):
+    graph = {"id": "test_graph", "schema_version": "1.1"}
     nodes = [
         {
             "id": "node1",
@@ -130,7 +132,7 @@ def run_failed_workfow(tmpdir, execute_graph, **execute_options):
             "data_mapping": [{"source_output": "ctr", "target_input": "ctr"}],
         },
     ]
-    graph = {"graph": {"id": "test_graph"}, "nodes": nodes, "links": links}
+    graph = {"graph": graph, "nodes": nodes, "links": links}
     return _execute_graph(tmpdir, graph, execute_graph, **execute_options)
 
 

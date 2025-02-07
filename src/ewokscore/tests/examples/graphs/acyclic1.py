@@ -133,12 +133,9 @@ def acyclic1():
             },
         ]
     }
+    graph = {"id": "acyclic1", "label": "acyclic1", "schema_version": "1.1", "ows": ows}
 
-    graph = {
-        "graph": {"ows": ows},
-        "links": links,
-        "nodes": nodes,
-    }
+    taskgraph = {"graph": graph, "links": links, "nodes": nodes}
 
     expected_results = {
         "task1": {"result": 1},
@@ -149,4 +146,4 @@ def acyclic1():
         "task6": {"result": 16},
     }
 
-    return graph, expected_results
+    return taskgraph, expected_results
