@@ -44,3 +44,112 @@ def use_test_schema_versions(monkeypatch):
         }
 
     monkeypatch.setattr(schema, "get_versions", get_test_versions)
+
+
+def expected_tasks(module=None, task_type=None):
+    CLASS_TASKS = [
+        {
+            "task_type": "class",
+            "task_identifier": "ewokscore.tests.discover.module1.MyTask1",
+            "required_input_names": ["a"],
+            "optional_input_names": ["b"],
+            "output_names": ["result"],
+            "category": "ewokscore",
+            "description": "Test 1",
+        },
+        {
+            "task_type": "class",
+            "task_identifier": "ewokscore.tests.discover.module1.MyTask2",
+            "required_input_names": ["a"],
+            "optional_input_names": ["b"],
+            "output_names": ["result"],
+            "category": "ewokscore",
+            "description": None,
+        },
+        {
+            "task_type": "class",
+            "task_identifier": "ewokscore.tests.discover.module2.MyTask3",
+            "required_input_names": ["c"],
+            "optional_input_names": ["d"],
+            "output_names": ["result"],
+            "category": "ewokscore",
+            "description": "Test 3",
+        },
+    ]
+
+    METHOD_TASKS = [
+        {
+            "task_type": "method",
+            "task_identifier": "ewokscore.tests.discover.module1.run",
+            "required_input_names": ["a"],
+            "optional_input_names": ["b"],
+            "output_names": ["return_value"],
+            "category": "ewokscore",
+            "description": "Test 2",
+        },
+        {
+            "task_type": "method",
+            "task_identifier": "ewokscore.tests.discover.module1.myfunc",
+            "required_input_names": ["a"],
+            "optional_input_names": ["b"],
+            "output_names": ["return_value"],
+            "category": "ewokscore",
+            "description": None,
+        },
+        {
+            "task_type": "method",
+            "task_identifier": "ewokscore.tests.discover.module2.run",
+            "required_input_names": ["c"],
+            "optional_input_names": ["d"],
+            "output_names": ["return_value"],
+            "category": "ewokscore",
+            "description": "Test",
+        },
+        {
+            "task_type": "method",
+            "task_identifier": "ewokscore.tests.discover.module2.myfunc",
+            "required_input_names": ["c"],
+            "optional_input_names": ["d"],
+            "output_names": ["return_value"],
+            "category": "ewokscore",
+            "description": None,
+        },
+    ]
+
+    PPFMETHOD_TASKS = [
+        {
+            "task_type": "ppfmethod",
+            "task_identifier": "ewokscore.tests.discover.module1.run",
+            "required_input_names": ["a"],
+            "optional_input_names": ["b"],
+            "output_names": ["return_value"],
+            "category": "ewokscore",
+            "description": "Test 2",
+        },
+        {
+            "task_type": "ppfmethod",
+            "task_identifier": "ewokscore.tests.discover.module2.run",
+            "required_input_names": ["c"],
+            "optional_input_names": ["d"],
+            "output_names": ["return_value"],
+            "category": "ewokscore",
+            "description": "Test",
+        },
+    ]
+
+    TASKS = [*CLASS_TASKS, *METHOD_TASKS, *PPFMETHOD_TASKS]
+
+    if task_type is None and module is None:
+        return TASKS
+
+    if module is None:
+        return [task for task in TASKS if task["task_type"] == task_type]
+
+    if task_type is None:
+        return [task for task in TASKS if module in task["task_identifier"]]
+
+    return [
+        task
+        for task in TASKS
+        if task["task_type"] == task_type and module in task["task_identifier"]
+    ]
