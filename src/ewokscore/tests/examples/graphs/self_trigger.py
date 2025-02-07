@@ -3,6 +3,8 @@ from . import graph
 
 @graph
 def self_trigger():
+    graph = {"id": "self_trigger", "schema_version": "1.1"}
+
     task = "ewokscore.tests.examples.tasks.condsumtask.CondSumTask"
     nodes = [
         {
@@ -47,9 +49,6 @@ def self_trigger():
         "task3": {"too_small": False, "result": 11},
     }
 
-    graph = {
-        "links": links,
-        "nodes": nodes,
-    }
+    taskgraph = {"graph": graph, "links": links, "nodes": nodes}
 
-    return graph, expected
+    return taskgraph, expected

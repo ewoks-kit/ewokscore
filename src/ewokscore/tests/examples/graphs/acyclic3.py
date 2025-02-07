@@ -4,6 +4,8 @@ from ewokscore import missing_data
 
 @graph
 def acyclic3():
+    graph = {"id": "acyclic3", "schema_version": "1.1"}
+
     task = "ewokscore.tests.examples.tasks.sumtask.SumTask"
     nodes = [
         {
@@ -91,10 +93,7 @@ def acyclic3():
         },
     ]
 
-    graph = {
-        "links": links,
-        "nodes": nodes,
-    }
+    taskgraph = {"graph": graph, "links": links, "nodes": nodes}
 
     expected_results = {
         "task1": {"result": 1},
@@ -107,4 +106,4 @@ def acyclic3():
         "task8": missing_data.MISSING_DATA,
     }
 
-    return graph, expected_results
+    return taskgraph, expected_results

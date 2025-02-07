@@ -33,6 +33,7 @@ class SumTask(
 
 
 # Define a workflow with default inputs
+graph = {"id": "testworkflow", "schema_version": "1.1"}
 nodes = [
     {
         "id": "task1",
@@ -65,7 +66,7 @@ links = [
         "data_mapping": [{"source_output": "result", "target_input": "a"}],
     },
 ]
-workflow = {"graph": {"id": "testworkflow"}, "nodes": nodes, "links": links}
+workflow = {"graph": graph, "nodes": nodes, "links": links}
 
 # Define task inputs
 inputs = [{"id": "task1", "name": "a", "value": 10}]
