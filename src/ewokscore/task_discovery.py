@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 def discover_tasks_from_modules(
-    *module_names: str,
+    *module_names_or_patterns: str,
     task_type: Optional[str] = None,
     reload: bool = False,
     raise_import_failure: bool = True,
@@ -49,14 +49,22 @@ def discover_tasks_from_modules(
 
     result = list()
     for task_type in task_types:
-        result.extend(
-            _iter_discover_tasks_from_modules(
-                *module_names,
-                task_type=task_type,
+        # Module names can contain patterns
+        for module_name_or_pattern in module_names_or_patterns:
+            for module_name in _iter_modules_from_pattern(
+                module_name_or_pattern,
                 reload=reload,
                 raise_import_failure=raise_import_failure,
-            )
-        )
+            ):
+
+                result.extend(
+                    _iter_discover_tasks_from_modules(
+                        module_name,
+                        task_type=task_type,
+                        reload=reload,
+                        raise_import_failure=raise_import_failure,
+                    )
+                )
 
     return result
 
@@ -179,15 +187,12 @@ def _iter_discover_all_tasks(
             if module_pattern is visited:
                 continue
             visited.add(module_pattern)
-            for module_name in _iter_modules_from_pattern(
-                module_pattern, reload=reload, raise_import_failure=raise_import_failure
-            ):
-                yield from _iter_discover_tasks_from_modules(
-                    module_name,
-                    task_type=task_type,
-                    reload=reload,
-                    raise_import_failure=raise_import_failure,
-                )
+            yield from discover_tasks_from_modules(
+                module_pattern,
+                task_type=task_type,
+                reload=reload,
+                raise_import_failure=raise_import_failure,
+            )
 
 
 def discover_all_tasks(
