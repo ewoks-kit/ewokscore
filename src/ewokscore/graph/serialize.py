@@ -30,7 +30,7 @@ def dump(
     graph: networkx.DiGraph,
     destination: Optional[Union[str, Path]] = None,
     representation: Optional[Union[GraphRepresentation, str]] = None,
-    **kw,
+    **save_options,
 ) -> Union[str, Path, dict]:
     """From runtime to persistent representation"""
     if isinstance(representation, str):
@@ -53,14 +53,14 @@ def dump(
             raise TypeError("Destination should be specified when dumping to json")
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
-        kw.setdefault("indent", 2)
+        save_options.setdefault("indent", 2)
         with open(destination, mode="w") as f:
-            json.dump(dictrepr, f, **kw)
+            json.dump(dictrepr, f, **save_options)
         return destination
 
     if representation == GraphRepresentation.json_string:
         dictrepr = dump(graph)
-        return json.dumps(dictrepr, **kw)
+        return json.dumps(dictrepr, **save_options)
 
     if representation == GraphRepresentation.yaml:
         if destination is None:
@@ -68,7 +68,7 @@ def dump(
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
         with open(destination, mode="w") as f:
-            yaml.dump(dictrepr, f, **kw)
+            yaml.dump(dictrepr, f, **save_options)
         return destination
 
     if representation == GraphRepresentation.json_module:
@@ -77,7 +77,9 @@ def dump(
         package, _, file = str(destination).rpartition(".")
         assert package, f"No package provided when saving graph to '{destination}'"
         destination = os.path.join(_package_path(package), f"{file}.json")
-        return dump(graph, destination=destination, representation="json", **kw)
+        return dump(
+            graph, destination=destination, representation="json", **save_options
+        )
 
     raise TypeError(representation, type(representation))
 

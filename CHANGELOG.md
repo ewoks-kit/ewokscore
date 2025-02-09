@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+New features:
+
+- Add `ewoks.engines` entry point and implement the `WorkflowEngine` interface.
+
 ## 1.6.0
 
 New features:
@@ -52,9 +56,11 @@ Deprecations:
 ## 1.2.0
 
 New features:
-- Module patterns can be used as argument of `discover_tasks_from_modules`
+
+- Module patterns can be used as argument of `discover_tasks_from_modules`.
 
 Bug fixes:
+
 - Fix random order in `required_input_names`, `optional_input_names` and `output_names` fields of discovered tasks of `class` type
 
 ## 1.1.0
@@ -62,6 +68,10 @@ Bug fixes:
 New features:
 
 - Support for Python 3.13.
+
+Changes:
+
+- Drop support for Python 3.6 and 3.7.
 
 ## 1.0.0
 

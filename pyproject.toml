@@ -73,3 +73,6 @@ omit = ["*/tests/*"]
 
 [project.entry-points."ewoks.tasks.method"]
 "ewokscore.tests.examples.tasks.*" = "ewokscore"
+
+[project.entry-points."ewoks.engines"]
+"core" = "ewokscore.engine:CoreWorkflowEngine"
