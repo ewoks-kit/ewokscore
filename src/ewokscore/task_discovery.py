@@ -111,9 +111,9 @@ def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, No
         yield {
             "task_type": "class",
             "task_identifier": task_identifier,
-            "required_input_names": list(cls.required_input_names()),
-            "optional_input_names": list(cls.optional_input_names()),
-            "output_names": list(cls.output_names()),
+            "required_input_names": sorted(cls.required_input_names()),
+            "optional_input_names": sorted(cls.optional_input_names()),
+            "output_names": sorted(cls.output_names()),
             "category": category,
             "description": cls.__doc__,
         }

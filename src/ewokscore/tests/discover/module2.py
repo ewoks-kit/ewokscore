@@ -2,7 +2,10 @@ from ewokscore import Task
 
 
 class MyTask3(
-    Task, input_names=["c"], optional_input_names=["d"], output_names=["result"]
+    Task,
+    input_names=["z", "c"],
+    optional_input_names=["x", "d"],
+    output_names=["result", "error"],
 ):
     """Test 3"""
 
@@ -10,10 +13,10 @@ class MyTask3(
         pass
 
 
-def run(c, d=None):
+def run(z, c, x=None, d=None):
     """Test"""
     pass
 
 
-def myfunc(c, d=None):
+def myfunc(z, c, x=None, d=None):
     pass
