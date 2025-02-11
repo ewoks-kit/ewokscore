@@ -31,7 +31,7 @@ def test_all_tasks_discovery():
         {
             "category": "ewokscore",
             "optional_input_names": ["b", "delay"],
-            "output_names": ["too_small", "result"],
+            "output_names": ["result", "too_small"],
             "required_input_names": ["a"],
             "task_identifier": "ewokscore.tests.examples.tasks.condsumtask.CondSumTask",
             "task_type": "class",
@@ -112,13 +112,16 @@ def test_all_tasks_discovery():
         )
 
 
-def assert_tasks(tasks, expected):
-    listnames = ["output_names", "required_input_names", "optional_input_names"]
+def _find_task(tasks, identifier, task_type):
     for task in tasks:
-        for listname in listnames:
-            task[listname] = set(task[listname])
+        if task["task_identifier"] == identifier and task["task_type"] == task_type:
+            return task
 
-    for task in expected:
-        for listname in listnames:
-            task[listname] = set(task[listname])
-        assert task in tasks
+    raise ValueError(f"Task {identifier} and type {task_type} not found")
+
+
+def assert_tasks(tasks, expected):
+    for task in tasks:
+        expected_task = _find_task(expected, task["task_identifier"], task["task_type"])
+        for key, value in task.items():
+            assert expected_task[key] == value
