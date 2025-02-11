@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.2.0
+
 New features:
 - Module patterns can be used as argument of `discover_tasks_from_modules`
 
