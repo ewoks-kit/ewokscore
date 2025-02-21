@@ -307,6 +307,11 @@ def _dict_to_networkx(graph: dict) -> networkx.DiGraph:
 
 def _networkx_to_dict(graph: networkx.DiGraph) -> dict:
     if network_x_version < Version("3.4rc"):
-        return networkx.readwrite.json_graph.node_link_data(graph)
+        graph_dict = networkx.readwrite.json_graph.node_link_data(graph)
     else:
-        return networkx.readwrite.json_graph.node_link_data(graph, edges="links")
+        graph_dict = networkx.readwrite.json_graph.node_link_data(graph, edges="links")
+
+    # Remove fields that are not part of the Ewoks spec
+    graph_dict.pop("directed")
+    graph_dict.pop("multigraph")
+    return graph_dict
