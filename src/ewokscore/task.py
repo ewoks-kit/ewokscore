@@ -268,6 +268,10 @@ class Task(Registered, UniversalHashable, register=False):
         return cls._OUTPUT_NAMES
 
     @classmethod
+    def input_model(cls):
+        return cls._INPUT_MODEL
+
+    @classmethod
     def class_nonce_data(cls):
         return super().class_nonce_data() + (
             sorted(cls.input_names()),
