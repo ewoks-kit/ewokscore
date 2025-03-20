@@ -1,22 +1,24 @@
+import cProfile
 import os
+import random
 import re
 import time
-import random
 import warnings
-import cProfile
-from typing import Any, Optional, Union, Mapping, Generator
-from contextlib import ExitStack
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
+from typing import Any, Generator, Mapping, Optional, Set, Tuple, Type, Union
 
+from pydantic import ValidationError
+
+from . import events, missing_data, node
 from .hashing import UniversalHashable
+from .model import BaseInputModel
 from .registration import Registered
-from .variable import VariableContainer
-from .variable import VariableContainerNamespace
-from .variable import ReadOnlyVariableContainerNamespace
-from .variable import VariableContainerMissingNamespace
-from . import node
-from . import missing_data
-from . import events
+from .variable import (
+    ReadOnlyVariableContainerNamespace,
+    VariableContainer,
+    VariableContainerMissingNamespace,
+    VariableContainerNamespace,
+)
 
 
 class TaskInputError(ValueError):
@@ -36,10 +38,11 @@ class Task(Registered, UniversalHashable, register=False):
     done with `ewokscore.inittask.instantiate_task`.
     """
 
-    _INPUT_NAMES = set()
-    _OPTIONAL_INPUT_NAMES = set()
-    _OUTPUT_NAMES = set()
-    _N_REQUIRED_POSITIONAL_INPUTS = 0
+    _INPUT_NAMES: Set[str] = set()
+    _OPTIONAL_INPUT_NAMES: Set[str] = set()
+    _OUTPUT_NAMES: Set[str] = set()
+    _N_REQUIRED_POSITIONAL_INPUTS: int = 0
+    _INPUT_MODEL: Union[Type[BaseInputModel], None] = None
 
     def __init__(
         self,
@@ -56,23 +59,7 @@ class Task(Registered, UniversalHashable, register=False):
         elif not isinstance(inputs, Mapping):
             raise TypeError(inputs, type(inputs))
 
-        # Check required inputs
-        missing_required = set(self._INPUT_NAMES) - set(inputs.keys())
-        if missing_required:
-            raise TaskInputError(f"Missing inputs for {type(self)}: {missing_required}")
-
-        # Check required positional inputs
-        nrequiredargs = self._N_REQUIRED_POSITIONAL_INPUTS
-        for i in range(nrequiredargs):
-            if i not in inputs and str(i) not in inputs:
-                raise TaskInputError(
-                    f"Missing inputs for {type(self)}: positional argument #{i}"
-                )
-
-        # Init missing optional inputs
-        missing_optional = set(self._OPTIONAL_INPUT_NAMES) - set(inputs.keys())
-        for varname in missing_optional:
-            inputs[varname] = self.MISSING_DATA
+        inputs = self._check_inputs(inputs)
 
         # Required outputs for the task to be "done"
         ovars = {varname: self.MISSING_DATA for varname in self._OUTPUT_NAMES}
@@ -98,6 +85,12 @@ class Task(Registered, UniversalHashable, register=False):
         # The output hash will update dynamically if any of the input
         # variables change
         varinfo = node.get_varinfo(node_attrs, varinfo)
+        # varinfo and input models do not work together for now
+        if varinfo and self._INPUT_MODEL is not None:
+            raise TypeError(
+                "Cannot use varinfo if a task uses an input_model. Remove varinfo or use input_names instead of a model."
+            )
+
         self.__inputs = VariableContainer(value=inputs, varinfo=varinfo)
         self.__outputs = VariableContainer(
             value=ovars,
@@ -119,23 +112,57 @@ class Task(Registered, UniversalHashable, register=False):
         # The task class has the same hash as its output
         super().__init__(pre_uhash=self.__outputs)
 
+    def _check_inputs(self, inputs: Mapping) -> Mapping:
+        if self._INPUT_MODEL:
+            try:
+                validated_inputs = self._INPUT_MODEL(**inputs)
+            except ValidationError as e:
+                raise TaskInputError(e) from e
+            return validated_inputs.model_dump()
+
+        # Check required inputs
+        missing_required = set(self._INPUT_NAMES) - set(inputs.keys())
+        if missing_required:
+            raise TaskInputError(f"Missing inputs for {type(self)}: {missing_required}")
+
+        # Check required positional inputs
+        nrequiredargs = self._N_REQUIRED_POSITIONAL_INPUTS
+        for i in range(nrequiredargs):
+            if i not in inputs and str(i) not in inputs:
+                raise TaskInputError(
+                    f"Missing inputs for {type(self)}: positional argument #{i}"
+                )
+
+        # Init missing optional inputs
+        missing_optional = set(self._OPTIONAL_INPUT_NAMES) - set(inputs.keys())
+        for varname in missing_optional:
+            inputs[varname] = self.MISSING_DATA
+
+        return inputs
+
     def __init_subclass__(
         subclass,
-        input_names=tuple(),
-        optional_input_names=tuple(),
-        output_names=tuple(),
-        n_required_positional_inputs=0,
+        input_names: Tuple[str, ...] = tuple(),
+        optional_input_names: Tuple[str, ...] = tuple(),
+        output_names: Tuple[str, ...] = tuple(),
+        n_required_positional_inputs: int = 0,
+        input_model: Union[Type[BaseInputModel], None] = None,
         **kwargs,
     ):
         super().__init_subclass__(**kwargs)
-        input_names = set(input_names)
-        optional_input_names = set(optional_input_names)
-        output_names = set(output_names)
+
+        input_names_set, optional_input_names_set = subclass._generate_inputs_sets(
+            input_names,
+            optional_input_names,
+            n_required_positional_inputs,
+            input_model,
+        )
+        output_names_set = set(output_names)
 
         reserved = subclass._reserved_variable_names()
-        forbidden = input_names & reserved
-        forbidden |= optional_input_names & reserved
-        forbidden |= output_names & reserved
+        forbidden = input_names_set & reserved
+        forbidden |= optional_input_names_set & reserved
+        forbidden |= output_names_set & reserved
         if forbidden:
             raise RuntimeError(
                 "The following names cannot be used a variable names: "
@@ -143,12 +170,72 @@ class Task(Registered, UniversalHashable, register=False):
             )
 
         # Ensures that each subclass has their own sets:
-        subclass._INPUT_NAMES = subclass._INPUT_NAMES | set(input_names)
-        subclass._OPTIONAL_INPUT_NAMES = subclass._OPTIONAL_INPUT_NAMES | set(
-            optional_input_names
+        subclass._INPUT_NAMES = subclass._INPUT_NAMES | input_names_set
+        subclass._OPTIONAL_INPUT_NAMES = (
+            subclass._OPTIONAL_INPUT_NAMES | optional_input_names_set
         )
-        subclass._OUTPUT_NAMES = subclass._OUTPUT_NAMES | set(output_names)
+        subclass._OUTPUT_NAMES = subclass._OUTPUT_NAMES | output_names_set
         subclass._N_REQUIRED_POSITIONAL_INPUTS = n_required_positional_inputs
+        subclass._INPUT_MODEL = input_model
+
+    @classmethod
+    def _generate_inputs_sets(
+        subclass,
+        input_names: Tuple[str, ...],
+        optional_input_names: Tuple[str, ...],
+        n_required_positional_inputs: int,
+        input_model: Union[BaseInputModel, None],
+    ) -> Tuple[Set[str], Set[str]]:
+        if input_model is None:
+            input_names_set = set(input_names)
+            optional_input_names_set = set(optional_input_names)
+
+            has_input_names = bool(
+                input_names_set
+                or optional_input_names_set
+                or n_required_positional_inputs > 0
+            )
+            if has_input_names and subclass._INPUT_MODEL is not None:
+                raise TypeError(
+                    f"""Cannot use input_names or optional_input_names since the original task {subclass} uses a input model.
+                    Specify inputs via a subclass of the original task input model."""
+                )
+
+            return input_names_set, optional_input_names_set
+
+        if not issubclass(input_model, BaseInputModel):
+            raise TypeError(
+                "input_model should be a subclass of ewokscore.model.BaseInputModel"
+            )
+
+        if input_names or optional_input_names or n_required_positional_inputs:
+            raise TypeError(
+                "input_model cannot be used with input_names, optional_input_names or n_required_positional_inputs. Please use one or the other"
+            )
+
+        subclass_has_input_names = bool(
+            subclass._INPUT_NAMES
+            or subclass._OPTIONAL_INPUT_NAMES
+            or subclass._N_REQUIRED_POSITIONAL_INPUTS > 0
+        )
+        if subclass_has_input_names and subclass._INPUT_MODEL is None:
+            raise TypeError(
+                f"""Cannot use input_model since the original task {subclass} uses input_names and/or n_required_positional_inputs.
+                Specify inputs via a input_names or optional_input_names."""
+            )
+
+        if subclass._INPUT_MODEL is not None and not issubclass(
+            input_model, subclass._INPUT_MODEL
+        ):
+            raise TypeError(
+                f"Input model {input_model} from task subclass must be a subclass of the original task input model {subclass._INPUT_MODEL}"
+            )
+
+        fields = input_model.model_fields
+        return (
+            set(name for name, field in fields.items() if field.is_required()),
+            set(name for name, field in fields.items() if not field.is_required()),
+        )
 
     @staticmethod
     def _reserved_variable_names():

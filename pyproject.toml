@@ -25,6 +25,7 @@ dependencies = [
     "packaging",
     "ewoksutils >=1.2.0",
     "importlib_metadata;python_version < '3.9'",
+    "pydantic >= 2",
 ]
 
 [project.urls]
