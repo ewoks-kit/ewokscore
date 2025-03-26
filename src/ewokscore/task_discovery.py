@@ -1,10 +1,10 @@
-import sys
-import pkgutil
 import inspect
 import logging
+import pkgutil
+import sys
 from fnmatch import fnmatch
 from types import FunctionType, ModuleType
-from typing import Generator, Optional, List, Dict, Tuple, Union
+from typing import Generator, List, Optional, TypedDict
 
 if sys.version_info < (3, 9):
     from importlib_metadata import entry_points as _entry_points
@@ -25,12 +25,27 @@ else:
         return _entry_points(group=group)
 
 
-from ewoksutils.import_utils import qualname
-from ewoksutils.import_utils import import_module
+from ewoksutils.import_utils import import_module, qualname
 
 from .task import Task
 
-TaskDict = Dict[str, Union[str, List[str], None]]
+
+class _TaskInputs(TypedDict):
+    required_input_names: List[str]
+    optional_input_names: List[str]
+    n_required_positional_inputs: int
+
+
+class _CommonTaskFields(_TaskInputs):
+    task_identifier: Optional[str]
+    output_names: List[str]
+    category: str
+    description: Optional[str]
+    input_model: Optional[str]
+
+
+class TaskDict(_CommonTaskFields):
+    task_type: str
 
 
 logger = logging.getLogger(__name__)
@@ -101,6 +116,7 @@ def _iter_discover_tasks_from_modules(
 def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, None]:
     """Yields all task classes registered in the current process."""
     for cls in Task.get_subclasses():
+        assert issubclass(cls, Task)
         module = cls.__module__
         if filter_modules and not any(
             module.startswith(prefix) for prefix in filter_modules
@@ -118,6 +134,7 @@ def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, No
             "category": category,
             "description": cls.__doc__,
             "input_model": qualname(input_model) if input_model else None,
+            "n_required_positional_inputs": cls.n_required_positional_inputs(),
         }
 
 
@@ -255,35 +272,44 @@ def _onerror(module_name, exception: Optional[Exception] = None):
     logger.error(f"Module '{module_name}' cannot be imported: {exception}")
 
 
-def _method_arguments(method) -> Tuple[List[str], List[str]]:
+def _method_arguments(method) -> _TaskInputs:
     sig = inspect.signature(method)
-    required_input_names = list()
-    optional_input_names = list()
+    required_input_names: List[str] = list()
+    optional_input_names: List[str] = list()
+    n_required_positional_inputs = 0
+
     for name, param in sig.parameters.items():
-        required = param.default is inspect._empty
+        if param.kind == param.POSITIONAL_ONLY:
+            n_required_positional_inputs += 1
+            continue
         if param.kind == param.VAR_POSITIONAL:
             continue
         if param.kind == param.VAR_KEYWORD:
             continue
+
+        required = param.default is inspect._empty
         if required:
             required_input_names.append(name)
         else:
             optional_input_names.append(name)
-    return required_input_names, optional_input_names
+
+    return {
+        "required_input_names": required_input_names,
+        "optional_input_names": optional_input_names,
+        "n_required_positional_inputs": n_required_positional_inputs,
+    }
 
 
 def _common_method_task_fields(
     method_name: str, method_qn: FunctionType, mod: ModuleType
-) -> TaskDict:
+) -> _CommonTaskFields:
 
     task_identifier = qualname(method_qn)
     method = getattr(mod, method_name)
-    required_input_names, optional_input_names = _method_arguments(method)
 
     return {
+        **_method_arguments(method),
         "task_identifier": qualname(method_qn),
-        "required_input_names": required_input_names,
-        "optional_input_names": optional_input_names,
         "output_names": ["return_value"],
         "category": task_identifier.split(".")[0],
         "description": method.__doc__,

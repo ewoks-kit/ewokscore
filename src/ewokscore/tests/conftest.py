@@ -1,9 +1,12 @@
-import pytest
-from jupyter_client.kernelspec import KernelSpecManager
-from ipykernel.kernelspec import install as install_kernel
+from typing import List
 
+import pytest
+from ipykernel.kernelspec import install as install_kernel
+from jupyter_client.kernelspec import KernelSpecManager
 from packaging.version import parse as parse_version
+
 from ewokscore.graph.schema import SchemaMetadata, get_versions
+from ewokscore.task_discovery import TaskDict
 
 
 @pytest.fixture
@@ -57,6 +60,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test 1",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "task_type": "class",
@@ -67,6 +71,18 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": None,
             "input_model": None,
+            "n_required_positional_inputs": 0,
+        },
+        {
+            "task_type": "class",
+            "task_identifier": "ewokscore.tests.discover.module1.MyTask3",
+            "required_input_names": [],
+            "optional_input_names": [],
+            "output_names": [],
+            "category": "ewokscore",
+            "description": None,
+            "input_model": None,
+            "n_required_positional_inputs": 2,
         },
         {
             "task_type": "class",
@@ -77,6 +93,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test 3",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "task_type": "class",
@@ -87,6 +104,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": None,
             "input_model": "ewokscore.tests.discover.module2.Task4Inputs",
+            "n_required_positional_inputs": 0,
         },
     ]
 
@@ -100,6 +118,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test 2",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "task_type": "method",
@@ -110,6 +129,18 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": None,
             "input_model": None,
+            "n_required_positional_inputs": 0,
+        },
+        {
+            "task_type": "method",
+            "task_identifier": "ewokscore.tests.discover.module1.func_with_pos",
+            "required_input_names": ["c"],
+            "optional_input_names": [],
+            "output_names": ["return_value"],
+            "category": "ewokscore",
+            "description": None,
+            "input_model": None,
+            "n_required_positional_inputs": 2,
         },
         {
             "task_type": "method",
@@ -120,6 +151,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "task_type": "method",
@@ -130,6 +162,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": None,
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
     ]
 
@@ -143,6 +176,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test 2",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "task_type": "ppfmethod",
@@ -153,10 +187,11 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
     ]
 
-    TASKS = [*CLASS_TASKS, *METHOD_TASKS, *PPFMETHOD_TASKS]
+    TASKS: List[TaskDict] = [*CLASS_TASKS, *METHOD_TASKS, *PPFMETHOD_TASKS]
 
     if task_type is None and module is None:
         return TASKS

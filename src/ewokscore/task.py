@@ -272,6 +272,10 @@ class Task(Registered, UniversalHashable, register=False):
         return cls._INPUT_MODEL
 
     @classmethod
+    def n_required_positional_inputs(cls):
+        return cls._N_REQUIRED_POSITIONAL_INPUTS
+
+    @classmethod
     def class_nonce_data(cls):
         return super().class_nonce_data() + (
             sorted(cls.input_names()),
