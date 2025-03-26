@@ -56,6 +56,7 @@ def expected_tasks(module=None, task_type=None):
             "output_names": ["result"],
             "category": "ewokscore",
             "description": "Test 1",
+            "input_model": None,
         },
         {
             "task_type": "class",
@@ -65,6 +66,7 @@ def expected_tasks(module=None, task_type=None):
             "output_names": ["result"],
             "category": "ewokscore",
             "description": None,
+            "input_model": None,
         },
         {
             "task_type": "class",
@@ -74,6 +76,17 @@ def expected_tasks(module=None, task_type=None):
             "output_names": ["error", "result"],
             "category": "ewokscore",
             "description": "Test 3",
+            "input_model": None,
+        },
+        {
+            "task_type": "class",
+            "task_identifier": "ewokscore.tests.discover.module2.MyTask4",
+            "required_input_names": ["a", "b"],
+            "optional_input_names": ["c", "d"],
+            "output_names": [],
+            "category": "ewokscore",
+            "description": None,
+            "input_model": "ewokscore.tests.discover.module2.Task4Inputs",
         },
     ]
 
@@ -86,6 +99,7 @@ def expected_tasks(module=None, task_type=None):
             "output_names": ["return_value"],
             "category": "ewokscore",
             "description": "Test 2",
+            "input_model": None,
         },
         {
             "task_type": "method",
@@ -95,6 +109,7 @@ def expected_tasks(module=None, task_type=None):
             "output_names": ["return_value"],
             "category": "ewokscore",
             "description": None,
+            "input_model": None,
         },
         {
             "task_type": "method",
@@ -104,6 +119,7 @@ def expected_tasks(module=None, task_type=None):
             "output_names": ["return_value"],
             "category": "ewokscore",
             "description": "Test",
+            "input_model": None,
         },
         {
             "task_type": "method",
@@ -113,6 +129,7 @@ def expected_tasks(module=None, task_type=None):
             "output_names": ["return_value"],
             "category": "ewokscore",
             "description": None,
+            "input_model": None,
         },
     ]
 
@@ -125,6 +142,7 @@ def expected_tasks(module=None, task_type=None):
             "output_names": ["return_value"],
             "category": "ewokscore",
             "description": "Test 2",
+            "input_model": None,
         },
         {
             "task_type": "ppfmethod",
@@ -134,6 +152,7 @@ def expected_tasks(module=None, task_type=None):
             "output_names": ["return_value"],
             "category": "ewokscore",
             "description": "Test",
+            "input_model": None,
         },
     ]
 

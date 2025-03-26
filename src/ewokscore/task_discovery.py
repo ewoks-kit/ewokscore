@@ -30,7 +30,7 @@ from ewoksutils.import_utils import import_module
 
 from .task import Task
 
-TaskDict = Dict[str, Union[str, List[str]]]
+TaskDict = Dict[str, Union[str, List[str], None]]
 
 
 logger = logging.getLogger(__name__)
@@ -108,6 +108,7 @@ def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, No
             continue
         task_identifier = cls.class_registry_name()
         category = task_identifier.split(".")[0]
+        input_model = cls.input_model()
         yield {
             "task_type": "class",
             "task_identifier": task_identifier,
@@ -116,6 +117,7 @@ def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, No
             "output_names": sorted(cls.output_names()),
             "category": category,
             "description": cls.__doc__,
+            "input_model": qualname(input_model) if input_model else None,
         }
 
 
@@ -272,7 +274,7 @@ def _method_arguments(method) -> Tuple[List[str], List[str]]:
 
 def _common_method_task_fields(
     method_name: str, method_qn: FunctionType, mod: ModuleType
-) -> Dict[str, Union[str, List[str]]]:
+) -> TaskDict:
 
     task_identifier = qualname(method_qn)
     method = getattr(mod, method_name)
@@ -285,4 +287,5 @@ def _common_method_task_fields(
         "output_names": ["return_value"],
         "category": task_identifier.split(".")[0],
         "description": method.__doc__,
+        "input_model": None,
     }
