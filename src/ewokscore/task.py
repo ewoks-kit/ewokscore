@@ -343,6 +343,16 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     def npositional_inputs(self):
+        """DEPRECATED"""
+        warnings.warn(
+            "the property 'npositional_inputs' is deprecated in favor of the property 'n_positional_inputs'",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.n_positional_inputs
+
+    @property
+    def n_positional_inputs(self):
         return self.__inputs.n_positional_variables
 
     @property
