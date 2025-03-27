@@ -4,7 +4,7 @@ import inspect
 import logging
 from fnmatch import fnmatch
 from types import FunctionType, ModuleType
-from typing import Generator, Optional, List, Dict, Tuple, Union
+from typing import Generator, Optional, List, Dict, Union
 
 if sys.version_info < (3, 9):
     from importlib_metadata import entry_points as _entry_points
@@ -28,7 +28,9 @@ else:
 from ewoksutils.import_utils import qualname
 from ewoksutils.import_utils import import_module
 
+from .methodtask import get_method_task
 from .task import Task
+from .utils import method_arguments
 
 TaskDict = Dict[str, Union[str, List[str], None]]
 
@@ -139,9 +141,16 @@ def _iter_method_tasks(
             if method_name.startswith("_"):
                 continue
 
+            task_identifier = qualname(method_qn)
+            task_class = get_method_task(task_identifier)
             yield {
                 "task_type": "method",
-                **_common_method_task_fields(method_name, method_qn, mod),
+                "task_identifier": task_identifier,
+                "required_input_names": list(task_class.required_input_names()),
+                "optional_input_names": list(task_class.optional_input_names()),
+                "output_names": list(task_class.output_names()),
+                "category": task_identifier.split(".")[0],
+                "description": task_class.__doc__,
             }
 
 
@@ -167,7 +176,7 @@ def _iter_ppfmethod_tasks(
 
             yield {
                 "task_type": "ppfmethod",
-                **_common_method_task_fields(method_name, method_qn, mod),
+                **_ppfmethod_task_fields(method_name, method_qn, mod),
             }
 
 
@@ -255,30 +264,13 @@ def _onerror(module_name, exception: Optional[Exception] = None):
     logger.error(f"Module '{module_name}' cannot be imported: {exception}")
 
 
-def _method_arguments(method) -> Tuple[List[str], List[str]]:
-    sig = inspect.signature(method)
-    required_input_names = list()
-    optional_input_names = list()
-    for name, param in sig.parameters.items():
-        required = param.default is inspect._empty
-        if param.kind == param.VAR_POSITIONAL:
-            continue
-        if param.kind == param.VAR_KEYWORD:
-            continue
-        if required:
-            required_input_names.append(name)
-        else:
-            optional_input_names.append(name)
-    return required_input_names, optional_input_names
-
-
-def _common_method_task_fields(
+def _ppfmethod_task_fields(
     method_name: str, method_qn: FunctionType, mod: ModuleType
 ) -> TaskDict:
 
     task_identifier = qualname(method_qn)
     method = getattr(mod, method_name)
-    required_input_names, optional_input_names = _method_arguments(method)
+    required_input_names, optional_input_names = method_arguments(method)
 
     return {
         "task_identifier": qualname(method_qn),

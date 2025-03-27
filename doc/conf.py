@@ -21,6 +21,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxcontrib.mermaid",
     "sphinx_autodoc_typehints",
+    "sphinx_design",
     "nbsphinx",
     "nbsphinx_link",
 ]
