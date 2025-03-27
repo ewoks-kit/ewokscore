@@ -37,7 +37,7 @@ class _TaskInputs(TypedDict):
 
 
 class _CommonTaskFields(_TaskInputs):
-    task_identifier: Optional[str]
+    task_identifier: str
     output_names: List[str]
     category: str
     description: Optional[str]
@@ -122,8 +122,18 @@ def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, No
             module.startswith(prefix) for prefix in filter_modules
         ):
             continue
+
         task_identifier = cls.class_registry_name()
+        if task_identifier is None:
+            # Exclude unregistered tasks
+            continue
+
         category = task_identifier.split(".")[0]
+        name = task_identifier.split(".")[-1]
+        if name.startswith("_"):
+            # Exclude hidden tasks
+            continue
+
         input_model = cls.input_model()
         yield {
             "task_type": "class",
