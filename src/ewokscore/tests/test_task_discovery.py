@@ -1,4 +1,7 @@
+from typing import List
+
 import pytest
+
 from ewokscore import task_discovery
 
 from .conftest import expected_tasks
@@ -27,7 +30,7 @@ def test_discover_tasks_from_module_pattern(task_type):
 
 
 def test_all_tasks_discovery():
-    expected = [
+    expected: List[task_discovery.TaskDict] = [
         {
             "category": "ewokscore",
             "optional_input_names": ["b", "delay"],
@@ -37,6 +40,7 @@ def test_all_tasks_discovery():
             "task_type": "class",
             "description": "Check whether a value is too small",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "category": "ewokscore",
@@ -47,6 +51,7 @@ def test_all_tasks_discovery():
             "task_type": "class",
             "description": "Add two number with intentional exception",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "category": "ewokscore",
@@ -57,6 +62,7 @@ def test_all_tasks_discovery():
             "task_type": "class",
             "description": "A task without outputs",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "category": "ewokscore",
@@ -68,6 +74,7 @@ def test_all_tasks_discovery():
             "task_type": "class",
             "description": "Add items from a list",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "category": "ewokscore",
@@ -78,6 +85,7 @@ def test_all_tasks_discovery():
             "task_type": "class",
             "description": "Add two numbers with a delay",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "category": "ewokscore",
@@ -88,6 +96,7 @@ def test_all_tasks_discovery():
             "output_names": ["return_value"],
             "description": "Add 1 to the first argument",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "category": "ewokscore",
@@ -98,6 +107,7 @@ def test_all_tasks_discovery():
             "output_names": ["return_value"],
             "description": "Sum objects and add 1",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
         {
             "category": "ewokscore",
@@ -108,6 +118,7 @@ def test_all_tasks_discovery():
             "output_names": ["return_value"],
             "description": "Return positional arguments as a tuple",
             "input_model": None,
+            "n_required_positional_inputs": 0,
         },
     ]
 

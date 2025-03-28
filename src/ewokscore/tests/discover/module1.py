@@ -17,12 +17,21 @@ class MyTask2(
         pass
 
 
+class MyTask3(Task, n_required_positional_inputs=2):
+    def run(self):
+        pass
+
+
 def run(a, b=None):
     """Test 2"""
     pass
 
 
 def myfunc(a, b=None):
+    pass
+
+
+def func_with_pos(a, b, /, c):
     pass
 
 
