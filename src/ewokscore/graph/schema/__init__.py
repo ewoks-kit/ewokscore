@@ -16,11 +16,12 @@ def get_versions() -> Dict[Version, SchemaMetadata]:
     if _VERSIONS is not None:
         return _VERSIONS
 
-    return {
+    _VERSIONS = {
         parse_version("0.0"): SchemaMetadata(("0.0", "0.0.1"), v0_update),
         parse_version("1.0"): SchemaMetadata(("0.1.0-rc", None), from_v1_0_to_v1_1),
         parse_version("1.1"): SchemaMetadata(("0.1.0-rc", None), None),
     }
+    return _VERSIONS
 
 
 # Major version: increment when changing the existing schema
