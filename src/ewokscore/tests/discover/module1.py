@@ -37,3 +37,13 @@ def func_with_pos(a, b, /, c):
 
 def _myfunc(a, b=None):
     pass
+
+
+class _MyTask2(Task):
+    def run(self):
+        pass
+
+
+class UnregisteredTask(Task, register=False):
+    def run(self):
+        pass
