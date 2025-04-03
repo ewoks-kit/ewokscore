@@ -1,21 +1,21 @@
-import os
 import enum
-import json
-import yaml
-import logging
-import warnings
 import importlib
-from packaging.version import Version
-from pathlib import Path
-from typing import Optional, Union, Tuple
+import json
+import logging
+import os
 from collections.abc import Mapping
+from pathlib import Path
+from typing import Optional, Tuple, Union
 
 import networkx
+import yaml
+from ewoksutils.deprecation_utils import deprecated
 from ewoksutils.path_utils import makedirs_from_filename
+from packaging.version import Version
 
 from ..node import node_id_from_json
-from .schema import normalize_schema_version
 from .models import GraphSource
+from .schema import normalize_schema_version
 
 logger = logging.getLogger(__name__)
 
@@ -232,8 +232,8 @@ def _ewoks_jsonload_hook_pair(item):
     return key, value
 
 
+@deprecated("Use 'json_load' instead")
 def ewoks_jsonload_hook(items):
-    warnings.warn("Use 'json_load' instead", DeprecationWarning)
     return _ewoks_jsonload_hook(items)
 
 

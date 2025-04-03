@@ -1,13 +1,12 @@
-import warnings
-from typing import Any, Dict, Optional, Union
+from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 from numbers import Integral
-from collections.abc import Mapping, MutableMapping, Iterable, Sequence
+from typing import Any, Dict, Optional, Union
 
-from . import hashing
-from . import missing_data
+from ewoksutils.deprecation_utils import deprecated
+
+from . import hashing, missing_data
 from .persistence import instantiate_data_proxy
-from .persistence.proxy import DataProxy
-from .persistence.proxy import DataUri
+from .persistence.proxy import DataProxy, DataUri
 
 
 def data_proxy_from_varinfo(
@@ -429,48 +428,44 @@ class VariableContainer(Variable, Mapping):
             v.force_non_existing()
 
     @property
+    @deprecated(
+        "the property 'variable_uhashes' is deprecated in favor of the function 'get_variable_uhashes'"
+    )
     def variable_uhashes(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'variable_uhashes' is deprecated in favor of the function 'get_variable_uhashes'",
-            DeprecationWarning,
-        )
         return self.get_variable_uhashes()
 
     def get_variable_uhashes(self):
         return {name: var.uhash for name, var in self.items()}
 
     @property
+    @deprecated(
+        "the property 'variable_values' is deprecated in favor of the function 'get_variable_values'"
+    )
     def variable_values(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'variable_values' is deprecated in favor of the function 'get_variable_values'",
-            DeprecationWarning,
-        )
         return self.get_variable_values()
 
     def get_variable_values(self):
         return {k: v.value for k, v in self.items() if not v.is_missing()}
 
     @property
+    @deprecated(
+        "the property 'variable_data_proxies' is deprecated in favor of the function 'get_variable_data_proxies'"
+    )
     def variable_data_proxies(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'variable_data_proxies' is deprecated in favor of the function 'get_variable_data_proxies'",
-            DeprecationWarning,
-        )
         return self.get_variable_data_proxies()
 
     def get_variable_data_proxies(self):
         return {k: v.data_proxy for k, v in self.items()}
 
     @property
+    @deprecated(
+        "the property 'variable_uris' is deprecated in favor of the function 'get_variable_uris'",
+    )
     def variable_uris(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'variable_uris' is deprecated in favor of the function 'get_variable_uris'",
-            DeprecationWarning,
-        )
         return self.get_variable_uris()
 
     def get_variable_uris(self):
@@ -482,12 +477,11 @@ class VariableContainer(Variable, Mapping):
         return uris
 
     @property
+    @deprecated(
+        "the property 'variable_transfer_data' is deprecated in favor of the function 'get_variable_transfer_data'",
+    )
     def variable_transfer_data(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'variable_transfer_data' is deprecated in favor of the function 'get_variable_transfer_data'",
-            DeprecationWarning,
-        )
         return self.get_variable_transfer_data()
 
     def get_variable_transfer_data(self):
@@ -504,12 +498,11 @@ class VariableContainer(Variable, Mapping):
         return data
 
     @property
+    @deprecated(
+        "the property 'named_variable_values' is deprecated in favor of the function 'get_named_variable_values'",
+    )
     def named_variable_values(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'named_variable_values' is deprecated in favor of the function 'get_named_variable_values'",
-            DeprecationWarning,
-        )
         return self.get_named_variable_values()
 
     def get_named_variable_values(self):
@@ -520,12 +513,11 @@ class VariableContainer(Variable, Mapping):
         }
 
     @property
+    @deprecated(
+        "the property 'positional_variable_values' is deprecated in favor of the function 'get_positional_variable_values'",
+    )
     def positional_variable_values(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'positional_variable_values' is deprecated in favor of the function 'get_positional_variable_values'",
-            DeprecationWarning,
-        )
         return self.get_positional_variable_values()
 
     def get_positional_variable_values(self):

@@ -3,10 +3,10 @@ import os
 import random
 import re
 import time
-import warnings
 from contextlib import ExitStack, contextmanager
 from typing import Any, Generator, Mapping, Optional, Set, Tuple, Type, Union
 
+from ewoksutils.deprecation_utils import deprecated
 from pydantic import ValidationError
 
 from . import events, missing_data, node
@@ -310,49 +310,44 @@ class Task(Registered, UniversalHashable, register=False):
         return self.__inputs.get_variable_uhashes()
 
     @property
+    @deprecated(
+        "the property 'input_values' is deprecated in favor of the function 'get_input_values'"
+    )
     def input_values(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'input_values' is deprecated in favor of the function 'get_input_values'",
-            DeprecationWarning,
-        )
         return self.get_input_values()
 
     def get_input_values(self):
         return self.__inputs.get_variable_values()
 
     @property
+    @deprecated(
+        "the property 'named_input_values' is deprecated in favor of the function 'get_named_input_values'"
+    )
     def named_input_values(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'named_input_values' is deprecated in favor of the function 'get_named_input_values'",
-            DeprecationWarning,
-        )
         return self.get_named_input_values()
 
     def get_named_input_values(self):
         return self.__inputs.get_named_variable_values()
 
     @property
+    @deprecated(
+        "the property 'positional_input_values' is deprecated in favor of the function 'get_positional_input_values'"
+    )
     def positional_input_values(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'positional_input_values' is deprecated in favor of the function 'get_positional_input_values'",
-            DeprecationWarning,
-        )
         return self.__inputs.get_positional_input_values()
 
     def get_positional_input_values(self):
         return self.__inputs.get_positional_variable_values()
 
     @property
+    @deprecated(
+        "the property 'npositional_inputs' is deprecated in favor of the property 'n_positional_inputs'"
+    )
     def npositional_inputs(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'npositional_inputs' is deprecated in favor of the property 'n_positional_inputs'",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.n_positional_inputs
 
     @property
@@ -377,36 +372,33 @@ class Task(Registered, UniversalHashable, register=False):
         return self.outputs[key]
 
     @property
+    @deprecated(
+        "the property 'output_uhashes' is deprecated in favor of the function 'get_output_uhashes'"
+    )
     def output_uhashes(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'output_uhashes' is deprecated in favor of the function 'get_output_uhashes'",
-            DeprecationWarning,
-        )
         return self.get_output_uhashes()
 
     def get_output_uhashes(self):
         return self.__outputs.get_variable_uhashes()
 
     @property
+    @deprecated(
+        "the property 'output_values' is deprecated in favor of the function 'get_output_values'"
+    )
     def output_values(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'output_values' is deprecated in favor of the function 'get_output_values'",
-            DeprecationWarning,
-        )
         return self.get_output_values()
 
     def get_output_values(self):
         return self.__outputs.get_variable_values()
 
     @property
+    @deprecated(
+        "the property 'output_transfer_data' is deprecated in favor of the function 'get_output_transfer_data'"
+    )
     def output_transfer_data(self):
         """DEPRECATED"""
-        warnings.warn(
-            "the property 'output_transfer_data' is deprecated in favor of the function 'get_output_transfer_data'",
-            DeprecationWarning,
-        )
         return self.get_output_transfer_data()
 
     def get_output_transfer_data(self):
