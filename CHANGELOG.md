@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 1.3.0
+
+New features:
+
+- Task inputs can now defined via a Pydantic model (`input_model`) instead of `input_names`, `optional_input_names`. These two ways of defining inputs are incompatible: one must be used or the other but never simultaneously (including when subclassing tasks).
+- Task discovery results now include a `input_model` field. This field is the full qualified name of the model if an input model was set for the task, `None` otherwise.
+
+Bug fixes:
+
+- `convert_graph` no longer adds `directed` and `multigraph` fields. These are not part of the Ewoks specification.
+- Hidden and unregistered `class` tasks are no longer included when running task discovery
+- Fix missing `n_required_positional_inputs` field in task discovery results
+
+Deprecations:
+
+- `ewokscore.task.Task`: `npositional_inputs`  is deprecated in favor of `n_positional_inputs`
+
 ## 1.2.0
 
 New features:
