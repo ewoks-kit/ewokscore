@@ -1,16 +1,15 @@
 """Manage the EWOKS event logger which is a global object"""
 
-import os
 import logging
-import warnings
+import os
 from contextlib import contextmanager
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from ewoksutils.logging_utils.cleanup import cleanup_logger
-from ewoksutils.logging_utils.cleanup import protect_logging_state
+from ewoksutils.deprecation_utils import deprecated
 from ewoksutils.logging_utils.asyncwrapper import AsyncHandlerWrapper
+from ewoksutils.logging_utils.cleanup import cleanup_logger, protect_logging_state
 
-from .handlers import is_ewoks_event_handler, instantiate_handler
+from .handlers import instantiate_handler, is_ewoks_event_handler
 
 _app_logger = logging.getLogger(__name__)
 EWOKS_EVENT_LOGGER_NAME = f"__{__name__}__"
@@ -46,13 +45,11 @@ def add_handler(
         logger.addHandler(handler)
 
 
+@deprecated(
+    "Explicit Ewoks handler removal will be removed.",
+)
 def remove_handler(handler: logging.Handler) -> None:
     """Remove a handler from all loggers that receive EWOKS event."""
-    warnings.warn(
-        "Explicit Ewoks handler removal will be removed.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
     with _ewoks_event_logger() as logger:
         for linstance, hinstance in _iter_handler_owners(logger, handler):
             linstance.removeHandler(hinstance)
