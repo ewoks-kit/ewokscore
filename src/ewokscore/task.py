@@ -4,7 +4,7 @@ import random
 import re
 import time
 from contextlib import ExitStack, contextmanager
-from typing import Any, Generator, Mapping, Optional, Set, Tuple, Type, Union
+from typing import Any, Generator, Mapping, Optional, Sequence, Set, Tuple, Type, Union
 
 from ewoksutils.deprecation_utils import deprecated
 from pydantic import ValidationError
@@ -142,9 +142,9 @@ class Task(Registered, UniversalHashable, register=False):
 
     def __init_subclass__(
         subclass,
-        input_names: Tuple[str, ...] = tuple(),
-        optional_input_names: Tuple[str, ...] = tuple(),
-        output_names: Tuple[str, ...] = tuple(),
+        input_names: Sequence[str] = tuple(),
+        optional_input_names: Sequence[str] = tuple(),
+        output_names: Sequence[str] = tuple(),
         n_required_positional_inputs: int = 0,
         input_model: Union[Type[BaseInputModel], None] = None,
         **kwargs,
@@ -181,10 +181,10 @@ class Task(Registered, UniversalHashable, register=False):
     @classmethod
     def _generate_inputs_sets(
         subclass,
-        input_names: Tuple[str, ...],
-        optional_input_names: Tuple[str, ...],
+        input_names: Sequence[str],
+        optional_input_names: Sequence[str],
         n_required_positional_inputs: int,
-        input_model: Union[BaseInputModel, None],
+        input_model: Union[Type[BaseInputModel], None],
     ) -> Tuple[Set[str], Set[str]]:
         if input_model is None:
             input_names_set = set(input_names)
