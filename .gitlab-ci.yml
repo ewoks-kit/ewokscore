@@ -42,7 +42,7 @@ build_sdist:
   extends: .build_sdist
 
 test_sdist-3.9-win:
-  extends: .test_sdist-3.8-win
+  extends: .test_sdist-3.9-win
   variables:
     JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error -W ${WARNING1} -W ${WARNING2} -W ${WARNING3}"
