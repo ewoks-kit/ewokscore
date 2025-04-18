@@ -3,7 +3,7 @@ import string
 import random
 from pathlib import Path
 from contextlib import contextmanager
-from typing import Iterable, Optional, Tuple
+from typing import Iterator, Optional, Tuple
 from silx.io import h5py_utils
 
 
@@ -19,7 +19,7 @@ def nonexisting_tmp_file(path: Path) -> Path:
 
 
 @contextmanager
-def atomic_create_path(path: Path) -> Iterable[Path]:
+def atomic_create_path(path: Path) -> Iterator[Path]:
     """Yields a temporary path which will be renamed to the requested path
     or deleted on failure.
     """

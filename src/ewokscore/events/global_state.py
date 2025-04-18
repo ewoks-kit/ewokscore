@@ -3,7 +3,7 @@
 import logging
 import os
 from contextlib import contextmanager
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 
 from ewoksutils.deprecation_utils import deprecated
 from ewoksutils.logging_utils.asyncwrapper import AsyncHandlerWrapper
@@ -73,7 +73,7 @@ if hasattr(os, "register_at_fork"):
 @contextmanager
 def _ewoks_event_logger(
     handlers: Optional[List[Dict[str, str]]] = None, asynchronous: Optional[bool] = None
-) -> Iterable[logging.Logger]:
+) -> Iterator[logging.Logger]:
     """Initialize and yield the EWOKS event logger"""
     # Issue with logging and forking:
     # https://pythonspeed.com/articles/python-multiprocessing/
@@ -125,7 +125,7 @@ def _init_ewoks_event_logger(
         add_handler(handler, asynchronous=asynchronous_handler)
 
 
-def _iter_loggers(logger: logging.Logger) -> Iterable[logging.Logger]:
+def _iter_loggers(logger: logging.Logger) -> Iterator[logging.Logger]:
     """Yield all loggers which will receive EWOKS events."""
     _logger = logger
     while _logger is not None:
@@ -137,7 +137,7 @@ def _iter_loggers(logger: logging.Logger) -> Iterable[logging.Logger]:
 
 def _iter_handler_owners(
     logger: logging.Logger, instance: logging.Handler
-) -> Iterable[Tuple[logging.Logger, logging.Handler]]:
+) -> Iterator[Tuple[logging.Logger, logging.Handler]]:
     """Yield all loggers which have a specific handler (or a handler that wraps the specific event handler)."""
     for _logger in _iter_loggers(logger):
         for handler in _logger.handlers:

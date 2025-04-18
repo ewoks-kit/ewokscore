@@ -1,5 +1,5 @@
 import itertools
-from typing import Iterable, Optional, Tuple, Union, Any
+from typing import Iterator, Optional, Tuple, Union, Any
 import networkx
 from copy import deepcopy
 
@@ -50,7 +50,7 @@ def _alias_to_node_id(alias_attrs: dict) -> NodeIdType:
 
 def _resolve_node_aliases(
     node_id: NodeIdType, graph_attrs: dict, input_nodes: bool
-) -> Iterable[Tuple[NodeIdType, dict]]:
+) -> Iterator[Tuple[NodeIdType, dict]]:
     if input_nodes:
         aliases = graph_attrs.get("input_nodes", list())
     else:
@@ -67,7 +67,7 @@ def _resolve_node_aliases(
 
 def _resolve_all_node_aliases(
     graph_attrs: dict, input_nodes: bool
-) -> Iterable[NodeIdType]:
+) -> Iterator[NodeIdType]:
     if input_nodes:
         aliases = graph_attrs.get("input_nodes", list())
     else:
@@ -78,7 +78,7 @@ def _resolve_all_node_aliases(
 
 def _get_subnode_ids(
     node_id: NodeIdType, link_attrs_subgraph_keys: dict, subgraphs: dict, source: bool
-) -> Iterable[Tuple[NodeIdType, Optional[dict]]]:
+) -> Iterator[Tuple[NodeIdType, Optional[dict]]]:
     if source:
         key = "sub_source"
     else:
@@ -108,7 +108,7 @@ def _get_subnode_ids(
 
 def _get_subnode_attributes(
     node_id: NodeIdType, subgraphs: dict, graph_node_attrs: dict
-) -> Iterable[Tuple[NodeIdType, dict]]:
+) -> Iterator[Tuple[NodeIdType, dict]]:
     """Update all input node attributes of the subgraph with the graph node attributes from the super graph"""
     transfer_attributes = {
         "default_inputs",
@@ -136,7 +136,7 @@ def _get_subnode_links(
     target_id: NodeIdType,
     link_attrs_subgraph_keys: dict,
     subgraphs: dict,
-) -> Iterable[Tuple[NodeIdType, NodeIdType, dict, bool]]:
+) -> Iterator[Tuple[NodeIdType, NodeIdType, dict, bool]]:
     sources = list(
         _get_subnode_ids(source_id, link_attrs_subgraph_keys, subgraphs, source=True)
     )

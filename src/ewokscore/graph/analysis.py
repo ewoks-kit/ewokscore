@@ -1,5 +1,5 @@
 import networkx
-from typing import Iterable, Set, Dict
+from typing import Iterator, Set, Dict
 from collections import defaultdict
 from ..node import NodeIdType
 from ..inittask import get_task_class
@@ -18,7 +18,7 @@ def graph_has_conditional_links(graph: networkx.DiGraph) -> bool:
 
 def node_successors(
     graph: networkx.DiGraph, node_id: NodeIdType, **include_filter
-) -> Iterable[NodeIdType]:
+) -> Iterator[NodeIdType]:
     if include_filter:
         yield from iter_downstream_nodes(
             graph, node_id, recursive=False, **include_filter
@@ -29,13 +29,13 @@ def node_successors(
 
 def node_descendants(
     graph: networkx.DiGraph, node_id: NodeIdType, **include_filter
-) -> Iterable[NodeIdType]:
+) -> Iterator[NodeIdType]:
     yield from iter_downstream_nodes(graph, node_id, recursive=True, **include_filter)
 
 
 def node_predecessors(
     graph: networkx.DiGraph, node_id: NodeIdType, **include_filter
-) -> Iterable[NodeIdType]:
+) -> Iterator[NodeIdType]:
     if include_filter:
         yield from iter_upstream_nodes(
             graph, node_id, recursive=False, **include_filter
@@ -46,7 +46,7 @@ def node_predecessors(
 
 def node_ancestors(
     graph: networkx.DiGraph, node_id: NodeIdType, **include_filter
-) -> Iterable[NodeIdType]:
+) -> Iterator[NodeIdType]:
     yield from iter_upstream_nodes(graph, node_id, recursive=True, **include_filter)
 
 
@@ -80,13 +80,13 @@ def node_has_ancestors(graph: networkx.DiGraph, node_id: NodeIdType, **include_f
 
 def iter_downstream_nodes(
     graph: networkx.DiGraph, node_id: NodeIdType, **kw
-) -> Iterable[NodeIdType]:
+) -> Iterator[NodeIdType]:
     yield from _iter_nodes(graph, node_id, upstream=False, **kw)
 
 
 def iter_upstream_nodes(
     graph: networkx.DiGraph, node_id: NodeIdType, **kw
-) -> Iterable[NodeIdType]:
+) -> Iterator[NodeIdType]:
     yield from _iter_nodes(graph, node_id, upstream=True, **kw)
 
 
@@ -97,7 +97,7 @@ def _iter_nodes(
     recursive=False,
     _visited=None,
     **include_filter,
-) -> Iterable[NodeIdType]:
+) -> Iterator[NodeIdType]:
     """Recursion is not stopped by the node or link filters.
     Recursion is stopped by either not having any successors/predecessors
     or encountering a node that has been visited already.
@@ -244,7 +244,7 @@ def node_has_error_handlers(graph: networkx.DiGraph, node_id: NodeIdType):
 
 def required_predecessors(
     graph: networkx.DiGraph, target_id: NodeIdType
-) -> Iterable[NodeIdType]:
+) -> Iterator[NodeIdType]:
     for source_id in node_predecessors(graph, target_id):
         if link_is_required(graph, source_id, target_id):
             yield source_id
@@ -347,7 +347,7 @@ def node_is_end_node(graph: networkx.DiGraph, node_id: NodeIdType) -> bool:
     return False
 
 
-def topological_sort(graph: networkx.DiGraph) -> Iterable[NodeIdType]:
+def topological_sort(graph: networkx.DiGraph) -> Iterator[NodeIdType]:
     """Sort node names for sequential instantiation+execution of DAGs"""
     if graph_is_cyclic(graph):
         raise RuntimeError("Sorting nodes is not possible for cyclic graphs")
@@ -356,7 +356,7 @@ def topological_sort(graph: networkx.DiGraph) -> Iterable[NodeIdType]:
 
 def node_pure_descendants(
     graph: networkx.DiGraph, node_id: NodeIdType, include_node: bool = False
-) -> Iterable[NodeIdType]:
+) -> Iterator[NodeIdType]:
     """Yields all descendants which do not depend on anything else than `node_id`"""
     if include_node:
         yield node_id
