@@ -1,4 +1,4 @@
-from typing import Dict, Generator, List, Mapping, Optional, Union
+from typing import Dict, Iterator, List, Mapping, Optional, Union
 import networkx
 
 from .analysis import start_nodes
@@ -130,7 +130,7 @@ def iter_node_ids(
     graph: networkx.DiGraph,
     label: Optional[str] = None,
     task_identifier: Optional[str] = None,
-) -> Generator[NodeIdType, None, None]:
+) -> Iterator[NodeIdType]:
     """Yield nodes with matching `label` AND `task_identifier`"""
     for node_id, node_attrs in graph.nodes.items():
         return_id = False
