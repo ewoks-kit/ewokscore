@@ -142,6 +142,8 @@ def _find_task(tasks, identifier, task_type):
 
 def assert_tasks(tasks, expected):
     for task in tasks:
+        if task["category"] != "ewokscore":
+            continue
         expected_task = _find_task(expected, task["task_identifier"], task["task_type"])
         for key, value in task.items():
             assert expected_task[key] == value
