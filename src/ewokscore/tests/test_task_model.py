@@ -5,6 +5,7 @@ import pytest
 from ewokscore.missing_data import MISSING_DATA, MissingData, is_missing_data
 from ewokscore.model import BaseInputModel
 from ewokscore.task import Task, TaskInputError
+from ewokscore.variable import Variable
 
 from .examples.tasks.sumtask import SumTask
 
@@ -49,19 +50,50 @@ def test_validation():
         PassThroughTask(inputs={})
 
     with pytest.raises(TaskInputError, match=r"id(\s*)Input should be a valid integer"):
-        PassThroughTask(inputs={"id": "ff"})
-
-
-def test_error_if_input_model_used_with_persistence():
-    with pytest.raises(
-        TypeError, match="Cannot use varinfo if a task uses an input_model"
-    ):
-        PassThroughTask(inputs={"id": 0}, varinfo={"root_uri": None})
+        PassThroughTask(inputs={"id": "wrong type"})
 
 
 def test_default_value():
     task = PassThroughTask(inputs={"id": 5})
     assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
+
+
+def test_wrapped_values(tmp_path):
+    varinfo = {"root_uri": str(tmp_path / "task_results")}
+    variable = Variable(5, varinfo=varinfo)
+    variable.dump()
+    varinfo = {"root_uri": str(tmp_path)}
+
+    task = PassThroughTask(inputs={"id": variable})
+    assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
+
+    task = PassThroughTask(inputs={"id": variable.uhash}, varinfo=varinfo)
+    assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
+
+    task = PassThroughTask(inputs={"id": variable.data_uri})
+    assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
+
+    task = PassThroughTask(inputs={"id": variable.data_proxy})
+    assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
+
+
+def test_no_validation_for_wrapped_values(tmp_path):
+    varinfo = {"root_uri": str(tmp_path / "task_results")}
+    variable = Variable("wrong type", varinfo=varinfo)
+    variable.dump()
+    varinfo = {"root_uri": str(tmp_path)}
+
+    task = PassThroughTask(inputs={"id": variable})
+    assert task.get_input_values() == {"id": "wrong type", "name": "Jane Doe"}
+
+    task = PassThroughTask(inputs={"id": variable.uhash}, varinfo=varinfo)
+    assert task.get_input_values() == {"id": "wrong type", "name": "Jane Doe"}
+
+    task = PassThroughTask(inputs={"id": variable.data_uri})
+    assert task.get_input_values() == {"id": "wrong type", "name": "Jane Doe"}
+
+    task = PassThroughTask(inputs={"id": variable.data_proxy})
+    assert task.get_input_values() == {"id": "wrong type", "name": "Jane Doe"}
 
 
 def test_run():
