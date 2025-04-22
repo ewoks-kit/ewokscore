@@ -85,12 +85,6 @@ class Task(Registered, UniversalHashable, register=False):
         # The output hash will update dynamically if any of the input
         # variables change
         varinfo = node.get_varinfo(node_attrs, varinfo)
-        # varinfo and input models do not work together for now
-        if varinfo and self._INPUT_MODEL is not None:
-            raise TypeError(
-                "Cannot use varinfo if a task uses an input_model. Remove varinfo or use input_names instead of a model."
-            )
-
         self.__inputs = VariableContainer(value=inputs, varinfo=varinfo)
         self.__outputs = VariableContainer(
             value=ovars,
@@ -118,7 +112,9 @@ class Task(Registered, UniversalHashable, register=False):
                 validated_inputs = self._INPUT_MODEL(**inputs)
             except ValidationError as e:
                 raise TaskInputError(e) from e
-            return validated_inputs.model_dump()
+            # Note: warnings are suppressed because `BaseInputModel` allows
+            # special field types like `Variable` to pass through unvalidated.
+            return validated_inputs.model_dump(warnings="none")
 
         # Check required inputs
         missing_required = set(self._INPUT_NAMES) - set(inputs.keys())

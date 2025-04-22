@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+New features:
+
+- The base Pydantic model `BaseInputModel` now supports fields to accept values of type
+  `Variable`, `UniversalHash`, `HasUhash`, `DataProxy`, or `DataUri`. When any of these special
+  types are used as input, strict validation is bypassed to allow for deferred evaluation
+  when needed.
+
 ## 1.3.0
 
 New features:
