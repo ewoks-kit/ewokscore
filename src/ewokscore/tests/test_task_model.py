@@ -58,42 +58,24 @@ def test_default_value():
     assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
 
 
-def test_wrapped_values(tmp_path):
+@pytest.mark.parametrize("value", [5, "wrong type"])
+def test_wrapped_values(tmp_path, value):
     varinfo = {"root_uri": str(tmp_path / "task_results")}
-    variable = Variable(5, varinfo=varinfo)
+    variable = Variable(value, varinfo=varinfo)
     variable.dump()
     varinfo = {"root_uri": str(tmp_path)}
 
     task = PassThroughTask(inputs={"id": variable})
-    assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
+    assert task.get_input_values() == {"id": value, "name": "Jane Doe"}
 
     task = PassThroughTask(inputs={"id": variable.uhash}, varinfo=varinfo)
-    assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
+    assert task.get_input_values() == {"id": value, "name": "Jane Doe"}
 
     task = PassThroughTask(inputs={"id": variable.data_uri})
-    assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
+    assert task.get_input_values() == {"id": value, "name": "Jane Doe"}
 
     task = PassThroughTask(inputs={"id": variable.data_proxy})
-    assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
-
-
-def test_no_validation_for_wrapped_values(tmp_path):
-    varinfo = {"root_uri": str(tmp_path / "task_results")}
-    variable = Variable("wrong type", varinfo=varinfo)
-    variable.dump()
-    varinfo = {"root_uri": str(tmp_path)}
-
-    task = PassThroughTask(inputs={"id": variable})
-    assert task.get_input_values() == {"id": "wrong type", "name": "Jane Doe"}
-
-    task = PassThroughTask(inputs={"id": variable.uhash}, varinfo=varinfo)
-    assert task.get_input_values() == {"id": "wrong type", "name": "Jane Doe"}
-
-    task = PassThroughTask(inputs={"id": variable.data_uri})
-    assert task.get_input_values() == {"id": "wrong type", "name": "Jane Doe"}
-
-    task = PassThroughTask(inputs={"id": variable.data_proxy})
-    assert task.get_input_values() == {"id": "wrong type", "name": "Jane Doe"}
+    assert task.get_input_values() == {"id": value, "name": "Jane Doe"}
 
 
 def test_run():
