@@ -112,6 +112,8 @@ class Task(Registered, UniversalHashable, register=False):
                 validated_inputs = self._INPUT_MODEL(**inputs)
             except ValidationError as e:
                 raise TaskInputError(e) from e
+            # Note: warnings are suppressed because `BaseInputModel` allows
+            # special field types like `Variable` to pass through unvalidated.
             return validated_inputs.model_dump(warnings="none")
 
         # Check required inputs
