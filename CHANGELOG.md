@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.4.0
+
 New features:
 
 - The base Pydantic model `BaseInputModel` now supports fields to accept values of type
