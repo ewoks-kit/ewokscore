@@ -4,7 +4,13 @@
 
 Changes:
 
-- improve `TaskInputError` to describe which task raises the error.
+- Improve `TaskInputError` to describe which task raises the error.
+- Improve `RuntimeError` on task failure to describe which task raises the error.
+- `BaseInputModel` validation during task execution instead of task construction.
+
+Bug fixes:
+
+- Apply `BaseInputModel` on the input values when passed with a wrapper (e.g. `Variable`).
 
 ## 1.4.0
 

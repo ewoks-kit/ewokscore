@@ -7,7 +7,6 @@ from contextlib import ExitStack, contextmanager
 from typing import Any, Generator, Mapping, Optional, Sequence, Set, Tuple, Type, Union
 
 from ewoksutils.deprecation_utils import deprecated
-from pydantic import ValidationError
 
 from . import events, missing_data, node
 from .hashing import UniversalHashable
@@ -85,20 +84,20 @@ class Task(Registered, UniversalHashable, register=False):
         # variables change
         varinfo = node.get_varinfo(node_attrs, varinfo)
         inputs = self._check_inputs(inputs)
+
         self.__inputs = VariableContainer(value=inputs, varinfo=varinfo)
+        self.__inputs_namespace = ReadOnlyVariableContainerNamespace(self.__inputs)
+        self.__missing_inputs_namespace = VariableContainerMissingNamespace(
+            self.__inputs
+        )
+
         self.__outputs = VariableContainer(
             value=ovars,
             pre_uhash=self.__inputs,
             instance_nonce=self.class_nonce(),
             varinfo=varinfo,
         )
-
-        self.__inputs_namespace = ReadOnlyVariableContainerNamespace(self.__inputs)
         self.__outputs_namespace = VariableContainerNamespace(self.__outputs)
-
-        self.__missing_inputs_namespace = VariableContainerMissingNamespace(
-            self.__inputs
-        )
         self.__missing_outputs_namespace = VariableContainerMissingNamespace(
             self.__outputs
         )
@@ -107,19 +106,15 @@ class Task(Registered, UniversalHashable, register=False):
         super().__init__(pre_uhash=self.__outputs)
 
     def _check_inputs(self, inputs: Mapping) -> Mapping:
-        if self._INPUT_MODEL:
-            try:
-                validated_inputs = self._INPUT_MODEL(**inputs)
-            except ValidationError as e:
-                self._raise_task_input_error("Invalid inputs", str(e))
-            # Note: warnings are suppressed because `BaseInputModel` allows
-            # special field types like `Variable` to pass through unvalidated.
-            return validated_inputs.model_dump(warnings="none")
+        """Check inputs without accessing the input values.
+        Persisted variables are not loaded.
+        """
+        input_names = set(inputs.keys())
 
         # Check required inputs
-        missing_required = set(self._INPUT_NAMES) - set(inputs.keys())
+        missing_required = self.required_input_names() - input_names
         if missing_required:
-            self._raise_task_input_error("Missing inputs", str(missing_required))
+            self._raise_task_input_error("Missing inputs", str(list(missing_required)))
 
         # Check required positional inputs
         nrequiredargs = self._N_REQUIRED_POSITIONAL_INPUTS
@@ -130,11 +125,29 @@ class Task(Registered, UniversalHashable, register=False):
                 )
 
         # Init missing optional inputs
-        missing_optional = set(self._OPTIONAL_INPUT_NAMES) - set(inputs.keys())
-        for varname in missing_optional:
-            inputs[varname] = self.MISSING_DATA
+        missing_optional = self.optional_input_names() - input_names
+        if missing_optional:
+            inputs = dict(inputs)
+            for varname in missing_optional:
+                inputs[varname] = self.MISSING_DATA
 
         return inputs
+
+    def _validate_inputs(self) -> None:
+        """Check inputs with accessing the input values.
+        Persisted variables are loaded.
+
+        :raises pydantic.ValidationError:
+        """
+        if self._INPUT_MODEL is None:
+            return
+
+        inputs = self.__inputs.get_variable_values()
+        model = self._INPUT_MODEL(**inputs)
+
+        validated_inputs = model.model_dump()
+        for name, value in validated_inputs.items():
+            self.__inputs[name].value = value
 
     def __init_subclass__(
         subclass,
@@ -248,27 +261,41 @@ class Task(Registered, UniversalHashable, register=False):
         return cls.get_subclass(registry_name)(**kw)
 
     @classmethod
-    def required_input_names(cls):
+    def required_input_names(cls) -> Set[str]:
+        if cls._INPUT_MODEL:
+            return {
+                name
+                for name, field in cls._INPUT_MODEL.model_fields.items()
+                if field.is_required()
+            }
         return cls._INPUT_NAMES
 
     @classmethod
-    def optional_input_names(cls):
+    def optional_input_names(cls) -> Set[str]:
+        if cls._INPUT_MODEL:
+            return {
+                name
+                for name, field in cls._INPUT_MODEL.model_fields.items()
+                if not field.is_required()
+            }
         return cls._OPTIONAL_INPUT_NAMES
 
     @classmethod
-    def input_names(cls):
+    def input_names(cls) -> Set[str]:
+        if cls._INPUT_MODEL:
+            return set(cls._INPUT_MODEL.model_fields)
         return cls._INPUT_NAMES | cls._OPTIONAL_INPUT_NAMES
 
     @classmethod
-    def output_names(cls):
+    def output_names(cls) -> Set[str]:
         return cls._OUTPUT_NAMES
 
     @classmethod
-    def input_model(cls):
+    def input_model(cls) -> BaseInputModel:
         return cls._INPUT_MODEL
 
     @classmethod
-    def n_required_positional_inputs(cls):
+    def n_required_positional_inputs(cls) -> int:
         return cls._N_REQUIRED_POSITIONAL_INPUTS
 
     @classmethod
@@ -280,20 +307,20 @@ class Task(Registered, UniversalHashable, register=False):
         )
 
     @property
-    def input_variables(self):
+    def input_variables(self) -> VariableContainer:
         if self.__inputs is None:
             raise RuntimeError("references have been removed")
         return self.__inputs
 
     @property
-    def inputs(self):
+    def inputs(self) -> ReadOnlyVariableContainerNamespace:
         return self.__inputs_namespace
 
     @property
-    def missing_inputs(self):
+    def missing_inputs(self) -> VariableContainerMissingNamespace:
         return self.__missing_inputs_namespace
 
-    def get_input_value(self, key, default: Any = missing_data.MISSING_DATA):
+    def get_input_value(self, key, default: Any = missing_data.MISSING_DATA) -> Any:
         if self.missing_inputs[key]:
             return default
         return self.inputs[key]
@@ -347,22 +374,22 @@ class Task(Registered, UniversalHashable, register=False):
         return self.n_positional_inputs
 
     @property
-    def n_positional_inputs(self):
+    def n_positional_inputs(self) -> int:
         return self.__inputs.n_positional_variables
 
     @property
-    def output_variables(self):
+    def output_variables(self) -> VariableContainer:
         return self.__outputs
 
     @property
-    def missing_outputs(self):
+    def missing_outputs(self) -> VariableContainerMissingNamespace:
         return self.__missing_outputs_namespace
 
     @property
-    def outputs(self):
+    def outputs(self) -> VariableContainerNamespace:
         return self.__outputs_namespace
 
-    def get_output_value(self, key, default: Any = missing_data.MISSING_DATA):
+    def get_output_value(self, key, default: Any = missing_data.MISSING_DATA) -> Any:
         if self.missing_outputs[key]:
             return default
         return self.outputs[key]
@@ -413,12 +440,12 @@ class Task(Registered, UniversalHashable, register=False):
             metadata.setdefault("title", self.__node_label)
 
     @property
-    def done(self):
+    def done(self) -> bool:
         """Completed (with or without exception)"""
         return self.failed or self.succeeded
 
     @property
-    def succeeded(self):
+    def succeeded(self) -> bool:
         """Completed without exception and with output values"""
         if self._OUTPUT_NAMES:
             return self.__outputs.has_value
@@ -426,12 +453,12 @@ class Task(Registered, UniversalHashable, register=False):
             return self.__succeeded
 
     @property
-    def failed(self):
+    def failed(self) -> bool:
         """Completed with exception"""
         return self.__exception is not None
 
     @property
-    def exception(self):
+    def exception(self) -> Optional[Exception]:
         return self.__exception
 
     def _get_repr_data(self):
@@ -440,9 +467,10 @@ class Task(Registered, UniversalHashable, register=False):
             data["label"] = repr(str(self.__node_label))
         else:
             data["label"] = None
+        return data
 
     @property
-    def label(self):
+    def label(self) -> str:
         if self.__node_label:
             return self.__node_label
         else:
@@ -527,16 +555,22 @@ class Task(Registered, UniversalHashable, register=False):
             )
 
     def _raise_task_input_error(self, prefix: str, message: str) -> None:
+        self._raise_task_error(prefix, message, TaskInputError)
+
+    def _raise_task_error(
+        self,
+        prefix: str,
+        message: str,
+        exc_class: Type[Exception],
+        cause: Optional[Type[Exception]] = None,
+    ) -> None:
         node_id = self.__node_id
         task_identifier = self.task_identifier
         if self.__node_label:
-            raise TaskInputError(
-                f"{prefix} for ewoks task {self.__node_label!r} (id: {node_id!r}, task: {task_identifier!r}): {message}"
-            )
+            err_msg = f"{prefix} for ewoks task {self.__node_label!r} (id: {node_id!r}, task: {task_identifier!r}): {message}"
         else:
-            raise TaskInputError(
-                f"{prefix} for ewoks task (id: {node_id!r}, task: {task_identifier!r}): {message}"
-            )
+            err_msg = f"{prefix} for ewoks task (id: {node_id!r}, task: {task_identifier!r}): {message}"
+        raise exc_class(err_msg) from cause
 
     def reset_state(self):
         self._cancelled = False
@@ -572,6 +606,8 @@ class Task(Registered, UniversalHashable, register=False):
                     return
                 self.assert_ready_to_execute()
 
+                self._validate_inputs()
+
                 self.run()
 
                 self._update_output_metadata()
@@ -580,7 +616,9 @@ class Task(Registered, UniversalHashable, register=False):
             except Exception as e:
                 self.__exception = e
                 if raise_on_error:
-                    raise RuntimeError(f"Task '{self.label}' failed") from e
+                    self._raise_task_error(
+                        "Execution failed", str(e), RuntimeError, cause=e
+                    )
             finally:
                 if cleanup_references:
                     self.cleanup_references()
