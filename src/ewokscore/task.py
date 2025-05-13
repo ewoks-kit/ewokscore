@@ -59,8 +59,6 @@ class Task(Registered, UniversalHashable, register=False):
         elif not isinstance(inputs, Mapping):
             raise TypeError(inputs, type(inputs))
 
-        inputs = self._check_inputs(inputs)
-
         # Required outputs for the task to be "done"
         ovars = {varname: self.MISSING_DATA for varname in self._OUTPUT_NAMES}
 
@@ -68,6 +66,7 @@ class Task(Registered, UniversalHashable, register=False):
         node_id = node.get_node_id(node_id, node_attrs)
         self.__node_id = node_id
         self.__node_label = node.get_node_label(node_id, node_attrs)
+        self.__task_identifier = self._get_task_identifier(inputs)
         task_id = self.class_registry_name()
         task_id = node.get_task_identifier(node_attrs, task_id)
         self.__task_id = task_id
@@ -85,6 +84,7 @@ class Task(Registered, UniversalHashable, register=False):
         # The output hash will update dynamically if any of the input
         # variables change
         varinfo = node.get_varinfo(node_attrs, varinfo)
+        inputs = self._check_inputs(inputs)
         self.__inputs = VariableContainer(value=inputs, varinfo=varinfo)
         self.__outputs = VariableContainer(
             value=ovars,
@@ -111,7 +111,7 @@ class Task(Registered, UniversalHashable, register=False):
             try:
                 validated_inputs = self._INPUT_MODEL(**inputs)
             except ValidationError as e:
-                raise TaskInputError(e) from e
+                self._raise_task_input_error("Invalid inputs", str(e))
             # Note: warnings are suppressed because `BaseInputModel` allows
             # special field types like `Variable` to pass through unvalidated.
             return validated_inputs.model_dump(warnings="none")
@@ -119,14 +119,14 @@ class Task(Registered, UniversalHashable, register=False):
         # Check required inputs
         missing_required = set(self._INPUT_NAMES) - set(inputs.keys())
         if missing_required:
-            raise TaskInputError(f"Missing inputs for {type(self)}: {missing_required}")
+            self._raise_task_input_error("Missing inputs", str(missing_required))
 
         # Check required positional inputs
         nrequiredargs = self._N_REQUIRED_POSITIONAL_INPUTS
         for i in range(nrequiredargs):
             if i not in inputs and str(i) not in inputs:
-                raise TaskInputError(
-                    f"Missing inputs for {type(self)}: positional argument #{i}"
+                self._raise_task_input_error(
+                    "Missing inputs", f"positional argument #{i}"
                 )
 
         # Init missing optional inputs
@@ -453,6 +453,13 @@ class Task(Registered, UniversalHashable, register=False):
         return self.__node_id
 
     @property
+    def task_identifier(self) -> str:
+        return self.__task_identifier
+
+    def _get_task_identifier(self, inputs: Mapping) -> str:
+        return self.class_registry_name()
+
+    @property
     def job_id(self) -> Optional[str]:
         if self.__execinfo:
             return self.__execinfo.get("job_id")
@@ -515,8 +522,20 @@ class Task(Registered, UniversalHashable, register=False):
     def assert_ready_to_execute(self):
         lst = list(self._iter_missing_input_values())
         if lst:
+            self._raise_task_input_error(
+                "The following inputs could not be loaded", str(lst)
+            )
+
+    def _raise_task_input_error(self, prefix: str, message: str) -> None:
+        node_id = self.__node_id
+        task_identifier = self.task_identifier
+        if self.__node_label:
             raise TaskInputError(
-                "The following inputs could not be loaded: " + str(lst)
+                f"{prefix} for ewoks task {self.__node_label!r} (id: {node_id!r}, task: {task_identifier!r}): {message}"
+            )
+        else:
+            raise TaskInputError(
+                f"{prefix} for ewoks task (id: {node_id!r}, task: {task_identifier!r}): {message}"
             )
 
     def reset_state(self):

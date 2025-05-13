@@ -2,6 +2,8 @@ import os
 import sys
 import logging
 import subprocess
+from typing import Mapping
+
 from .task import Task
 
 SCRIPT_ARGUMENT = "_script"
@@ -88,6 +90,9 @@ class ScriptExecutorTask(
     """
 
     SCRIPT_ARGUMENT = SCRIPT_ARGUMENT
+
+    def _get_task_identifier(self, inputs: Mapping) -> str:
+        return inputs.get(self.SCRIPT_ARGUMENT, self.class_registry_name())
 
     def run(self):
         fullname = self.inputs._script

@@ -1,5 +1,8 @@
-from .task import Task
+from typing import Mapping
+
 from ewoksutils.import_utils import import_method
+
+from .task import Task
 
 METHOD_ARGUMENT = "_method"
 PPF_DICT_ARGUMENT = "_ppfdict"
@@ -18,6 +21,9 @@ class PpfMethodExecutorTask(
 
     METHOD_ARGUMENT = METHOD_ARGUMENT
     PPF_DICT_ARGUMENT = PPF_DICT_ARGUMENT
+
+    def _get_task_identifier(self, inputs: Mapping) -> str:
+        return inputs.get(self.METHOD_ARGUMENT, self.class_registry_name())
 
     def run(self):
         method_kwargs = self.get_input_values()
@@ -39,6 +45,9 @@ class PpfPortTask(
     """A ppfmethod which represents the identity mapping"""
 
     PPF_DICT_ARGUMENT = PPF_DICT_ARGUMENT
+
+    def _get_task_identifier(self, inputs: Mapping) -> str:
+        return ""
 
     def run(self):
         method_kwargs = self.get_input_values()
