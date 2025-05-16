@@ -1,6 +1,7 @@
 from typing import Union
 
 import pytest
+from pydantic import field_validator
 
 from ewokscore.missing_data import MISSING_DATA, MissingData, is_missing_data
 from ewokscore.model import BaseInputModel
@@ -46,36 +47,60 @@ def test_error_if_input_model_used_with_input_names():
 
 
 def test_validation():
-    with pytest.raises(TaskInputError, match=r"id(\s*)Field required"):
+    with pytest.raises(TaskInputError, match=r"Missing inputs.+\['id'\]"):
         PassThroughTask(inputs={})
 
-    with pytest.raises(TaskInputError, match=r"id(\s*)Input should be a valid integer"):
-        PassThroughTask(inputs={"id": "wrong type"})
+    task = PassThroughTask(inputs={"id": "wrong type"})
+    with pytest.raises(RuntimeError, match=r"id(\s*)Input should be a valid integer"):
+        task.execute()
 
 
 def test_default_value():
     task = PassThroughTask(inputs={"id": 5})
+    task.execute()
     assert task.get_input_values() == {"id": 5, "name": "Jane Doe"}
 
 
-@pytest.mark.parametrize("value", [5, "wrong type"])
-def test_wrapped_values(tmp_path, value):
+def test_wrapped_value(tmp_path):
     varinfo = {"root_uri": str(tmp_path / "task_results")}
-    variable = Variable(value, varinfo=varinfo)
+    variable = Variable(5, varinfo=varinfo)
     variable.dump()
     varinfo = {"root_uri": str(tmp_path)}
 
     task = PassThroughTask(inputs={"id": variable})
-    assert task.get_input_values() == {"id": value, "name": "Jane Doe"}
+    task.execute()
 
     task = PassThroughTask(inputs={"id": variable.uhash}, varinfo=varinfo)
-    assert task.get_input_values() == {"id": value, "name": "Jane Doe"}
+    task.execute()
 
     task = PassThroughTask(inputs={"id": variable.data_uri})
-    assert task.get_input_values() == {"id": value, "name": "Jane Doe"}
+    task.execute()
 
     task = PassThroughTask(inputs={"id": variable.data_proxy})
-    assert task.get_input_values() == {"id": value, "name": "Jane Doe"}
+    task.execute()
+
+
+def test_wrapped_wrong_value(tmp_path):
+    varinfo = {"root_uri": str(tmp_path / "task_results")}
+    variable = Variable("wrong type", varinfo=varinfo)
+    variable.dump()
+    varinfo = {"root_uri": str(tmp_path)}
+
+    task = PassThroughTask(inputs={"id": variable})
+    with pytest.raises(RuntimeError, match=r"id(\s*)Input should be a valid integer"):
+        task.execute()
+
+    task = PassThroughTask(inputs={"id": variable.uhash}, varinfo=varinfo)
+    with pytest.raises(RuntimeError, match=r"id(\s*)Input should be a valid integer"):
+        task.execute()
+
+    task = PassThroughTask(inputs={"id": variable.data_uri})
+    with pytest.raises(RuntimeError, match=r"id(\s*)Input should be a valid integer"):
+        task.execute()
+
+    task = PassThroughTask(inputs={"id": variable.data_proxy})
+    with pytest.raises(RuntimeError, match=r"id(\s*)Input should be a valid integer"):
+        task.execute()
 
 
 def test_run():
@@ -135,7 +160,7 @@ class PassThroughSubTask(PassThroughTask, input_model=SuperUser):
 
 
 def test_subclass_validation():
-    with pytest.raises(TaskInputError, match=r"age(\s*)Field required"):
+    with pytest.raises(TaskInputError, match=r"Missing inputs.+\['age'\]"):
         PassThroughSubTask(inputs={"id": 5})
 
 
@@ -171,3 +196,98 @@ def test_missing_data():
         == regular_task.missing_inputs["two"]
         == True  # noqa: E712
     )
+
+
+class UserWithTypeCoercion(User):
+    age: int
+
+    @field_validator("age", mode="before")
+    def coerce_uri(cls, value):
+        if isinstance(value, float):
+            return int(value + 0.5)
+        if not isinstance(value, int):
+            return -1
+        return value
+
+
+class TaskWithTypeCoercion(Task, input_model=UserWithTypeCoercion):
+    def run(self):
+        pass
+
+
+def test_input_type_coercion():
+    task = TaskWithTypeCoercion(inputs={"id": 5, "age": 18})
+    task.execute()
+    assert task.get_input_values() == {"id": 5, "name": "Jane Doe", "age": 18}
+
+    task = TaskWithTypeCoercion(inputs={"id": 5, "age": 18.1})
+    task.execute()
+    assert task.get_input_values() == {"id": 5, "name": "Jane Doe", "age": 18}
+
+    task = TaskWithTypeCoercion(inputs={"id": 5, "age": "wrong type"})
+    task.execute()
+    assert task.get_input_values() == {"id": 5, "name": "Jane Doe", "age": -1}
+
+
+def test_wrapped_type_coercion(tmp_path):
+    varinfo = {"root_uri": str(tmp_path / "task_results")}
+    variable = Variable(18.1, varinfo=varinfo)
+    variable.dump()
+    varinfo = {"root_uri": str(tmp_path)}
+
+    coerced_input_values = {"id": 5, "name": "Jane Doe", "age": 18}
+
+    inputs = {"id": 5, "name": "Jane Doe", "age": 18}
+    task = TaskWithTypeCoercion(inputs=inputs, varinfo=varinfo)
+    task.execute()
+    assert task.get_input_values() == coerced_input_values
+    coerced_variable_uhash = task.input_variables["age"].uhash
+    # Includes input name "age" in hashing so not equal
+    assert coerced_variable_uhash != variable.uhash
+
+    inputs = {"id": 5, "name": "Jane Doe", "age": 18.1}
+    task = TaskWithTypeCoercion(inputs=inputs, varinfo=varinfo)
+    task.execute()
+    assert task.get_input_values() == coerced_input_values
+    uhash = task.input_variables["age"].uhash
+    assert uhash == coerced_variable_uhash
+
+    inputs = {"id": 5, "name": "Jane Doe", "age": Variable(18, varinfo=varinfo)}
+    task = TaskWithTypeCoercion(inputs=inputs, varinfo=varinfo)
+    task.execute()
+    assert task.get_input_values() == coerced_input_values
+    uhash = task.input_variables["age"].uhash
+    assert uhash == Variable(18, varinfo=varinfo).uhash
+
+    expected_uhash = uhash
+    inputs = {"id": 5, "name": "Jane Doe", "age": Variable(18.1, varinfo=varinfo)}
+    task = TaskWithTypeCoercion(inputs=inputs, varinfo=varinfo)
+    task.execute()
+    assert task.get_input_values() == coerced_input_values
+    uhash = task.input_variables["age"].uhash
+    assert uhash == expected_uhash
+
+    uhash_before = variable.uhash
+    inputs = {"id": 5, "name": "Jane Doe", "age": variable}
+    task = TaskWithTypeCoercion(inputs=inputs, varinfo=varinfo)
+    task.execute()
+    assert task.get_input_values() == coerced_input_values
+    input_variable = task.input_variables["age"]
+    assert input_variable.uhash == variable.uhash
+    assert variable.uhash != uhash_before
+
+    # Reset variable since it got modified in-memory in the previous task execution
+    varinfo = {"root_uri": str(tmp_path / "task_results")}
+    variable = Variable(18.1, varinfo=varinfo)
+    # No need for dump: was only modified in memory
+    varinfo = {"root_uri": str(tmp_path)}
+    fixed_uhash = variable.uhash
+
+    for reference in [fixed_uhash, variable.data_uri, variable.data_proxy]:
+        inputs = {"id": 5, "name": "Jane Doe", "age": reference}
+        task = TaskWithTypeCoercion(inputs=inputs, varinfo=varinfo)
+        task.execute()
+        assert task.get_input_values() == coerced_input_values
+        input_variable = task.input_variables["age"]
+        assert input_variable.uhash == fixed_uhash
+        assert variable.uhash == fixed_uhash

@@ -137,6 +137,8 @@ def run_failed_workfow(tmpdir, execute_graph, **execute_options):
 
 
 def assert_failed_workfow_events(events):
+    err_msg = "Execution failed for ewoks task 'node2' (id: 'node2', task: 'ewokscore.tests.test_workflow_events.MyTask'): abc"
+
     expected = [
         {
             "context": "job",
@@ -168,18 +170,23 @@ def assert_failed_workfow_events(events):
             "type": "start",
             "error_message": None,
         },
-        {"context": "node", "node_id": "node2", "type": "end", "error_message": "abc"},
+        {
+            "context": "node",
+            "node_id": "node2",
+            "type": "end",
+            "error_message": "abc",
+        },
         {
             "context": "workflow",
             "node_id": None,
             "type": "end",
-            "error_message": "Task 'node2' failed",
+            "error_message": err_msg,
         },
         {
             "context": "job",
             "node_id": None,
             "type": "end",
-            "error_message": "Task 'node2' failed",
+            "error_message": err_msg,
         },
     ]
     captured = [
