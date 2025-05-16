@@ -139,9 +139,6 @@ class Task(Registered, UniversalHashable, register=False):
 
         :raises pydantic.ValidationError:
         """
-        if self._INPUT_MODEL is None:
-            return
-
         inputs = self.__inputs.get_variable_values()
         model = self._INPUT_MODEL(**inputs)
 
@@ -606,7 +603,8 @@ class Task(Registered, UniversalHashable, register=False):
                     return
                 self.assert_ready_to_execute()
 
-                self._validate_inputs()
+                if self._INPUT_MODEL:
+                    self._validate_inputs()
 
                 self.run()
 
