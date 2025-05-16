@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.5.0
+
 Changes:
 
 - Improve `TaskInputError` to describe which task raises the error.
