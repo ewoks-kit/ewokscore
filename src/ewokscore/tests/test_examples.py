@@ -2,7 +2,6 @@ from typing import Iterable, Optional, Tuple, Type, Union
 from pathlib import Path
 import pytest
 
-from ewokscore import execute_graph
 from ewokscore import load_graph
 from ewokscore import convert_graph
 from ewokscore import graph_is_supported
@@ -17,7 +16,7 @@ from .utils.show import show_graph
 
 @pytest.mark.parametrize("graph_name", graph_names())
 @pytest.mark.parametrize("scheme", (None, "json", "nexus"))
-def test_execute_graph(graph_name, scheme, tmpdir):
+def test_execute_graph(engine, graph_name, scheme, tmpdir):
     graph, expected = get_graph(graph_name)
     ewoksgraph = load_graph(graph)
     if scheme:
@@ -26,12 +25,12 @@ def test_execute_graph(graph_name, scheme, tmpdir):
         varinfo = None
     if not graph_is_supported(ewoksgraph):
         with pytest.raises(RuntimeError):
-            execute_graph(ewoksgraph, varinfo=varinfo)
+            engine.execute_graph(ewoksgraph, varinfo=varinfo)
         return
 
-    result = execute_graph(ewoksgraph, varinfo=varinfo)
+    result = engine.execute_graph(ewoksgraph, varinfo=varinfo)
     assert_execute_graph_default_result(ewoksgraph, result, expected, varinfo)
-    result = execute_graph(ewoksgraph, varinfo=varinfo, output_tasks=True)
+    result = engine.execute_graph(ewoksgraph, varinfo=varinfo, output_tasks=True)
     assert_execute_graph_tasks(ewoksgraph, result, expected, varinfo)
 
 

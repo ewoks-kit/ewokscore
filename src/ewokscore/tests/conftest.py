@@ -7,6 +7,7 @@ from packaging.version import parse as parse_version
 
 from ewokscore.graph.schema import SchemaMetadata, get_versions
 from ewokscore.task_discovery import TaskDict
+from ewokscore.engine import CoreWorkflowEngine
 
 
 @pytest.fixture
@@ -207,3 +208,8 @@ def expected_tasks(module=None, task_type=None):
         for task in TASKS
         if task["task_type"] == task_type and module in task["task_identifier"]
     ]
+
+
+@pytest.fixture()
+def engine():
+    return CoreWorkflowEngine()
