@@ -288,7 +288,7 @@ class Task(Registered, UniversalHashable, register=False):
         return cls._OUTPUT_NAMES
 
     @classmethod
-    def input_model(cls) -> BaseInputModel:
+    def input_model(cls) -> Optional[BaseInputModel]:
         return cls._INPUT_MODEL
 
     @classmethod
