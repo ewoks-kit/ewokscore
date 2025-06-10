@@ -257,7 +257,7 @@ def _get_all_node_inputs(
         except Exception as import_error:
             _logger.warning(f"Cannot import {task_identifier!r}: {import_error}")
             node_input_iterator = _node_inputs_from_defaults(
-                import_error, default_input_map, node_attrs
+                default_input_map, node_attrs, import_error
             )
         else:
             node_input_iterator = _node_inputs_from_class(
@@ -271,7 +271,7 @@ def _get_all_node_inputs(
         except Exception as import_error:
             _logger.warning(f"Cannot import {task_identifier!r}: {import_error}")
             node_input_iterator = _node_inputs_from_defaults(
-                import_error, default_input_map, node_attrs
+                default_input_map, node_attrs, import_error
             )
         else:
             node_input_iterator = _node_inputs_from_class(
@@ -283,7 +283,7 @@ def _get_all_node_inputs(
         except Exception as import_error:
             _logger.warning(f"Cannot import {task_identifier!r}: {import_error}")
             node_input_iterator = _node_inputs_from_defaults(
-                import_error, default_input_map, node_attrs
+                default_input_map, node_attrs, import_error
             )
         else:
             node_input_iterator = _node_inputs_from_method(
@@ -295,7 +295,7 @@ def _get_all_node_inputs(
         )
         import_error = TypeError(f"Cannot get inputs from task type {task_type!r}")
         node_input_iterator = _node_inputs_from_defaults(
-            import_error, default_input_map, node_attrs
+            default_input_map, node_attrs, import_error
         )
 
     return list(node_input_iterator)
@@ -432,9 +432,9 @@ def _task_output_names_from_class(task_cls) -> List[str]:
 
 
 def _node_inputs_from_defaults(
-    import_error: Exception,
     default_input_map: Dict[str, Any],
     node_attrs: Dict[str, Any],
+    import_error: Exception,
 ) -> Generator[NodeInput, None, None]:
     for name, value in default_input_map.items():
         yield NodeInput(
