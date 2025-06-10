@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 1.6.0
+
+New features:
+
+- `ewoks.graph.inputs.graph_inputs`: retrieve all "free" inputs parameters of a workflow
+  (i.e. not connected to the output of a previous node).
+- `ewoks.graph.inputs.graph_inputs_as_table`: same as `graph_inputs` but the result is provided
+  in table form suitable for printing in a terminal.
+
 ## 1.5.0
 
 Changes:
