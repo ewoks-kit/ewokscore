@@ -118,11 +118,11 @@ def _graph_inputs_to_table(
     has_import_error = False
     for node_input in node_inputs:
         row = []
-        rows.append(row)
         for column_name, width in column_widths.items():
             value = _get_row_value(node_input, column_name)
             str_val = _row_value_as_string(value, width)
             row.append(str_val)
+        rows.append(row)
 
     # Remove empty columns
     columns = list(zip(*rows))
