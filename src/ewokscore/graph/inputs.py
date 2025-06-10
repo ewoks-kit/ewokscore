@@ -43,6 +43,10 @@ class NodeInput:
     def has_value(self) -> bool:
         return not is_missing_data(self.value)
 
+    @property
+    def required_without_value(self) -> bool:
+        return self.required and not self.has_value
+
 
 def graph_inputs(graph: TaskGraph) -> List[NodeInput]:
     """
@@ -100,13 +104,13 @@ def _graph_inputs_to_table(
     column_names = [s.replace("_", " ").capitalize() for s in column_widths]
 
     # Highlight required inputs without a value
-    def highlight(node_input: NodeInput) -> bool:
-        return node_input.required and not node_input.has_value
-
-    highlighted = [node_input for node_input in node_inputs if highlight(node_input)]
-    has_highlighted = bool(highlighted)
+    highlighted = [
+        node_input for node_input in node_inputs if node_input.required_without_value
+    ]
     node_inputs = highlighted + [
-        node_input for node_input in node_inputs if not highlight(node_input)
+        node_input
+        for node_input in node_inputs
+        if not node_input.required_without_value
     ]
 
     # Generate table
@@ -115,38 +119,9 @@ def _graph_inputs_to_table(
     for node_input in node_inputs:
         row = []
         rows.append(row)
-        for key, width in column_widths.items():
-            value = getattr(node_input, key)
-
-            if key == "name":
-                if highlight(node_input):
-                    value = f"{value}⁽¹⁾"
-                if node_input.import_error:
-                    has_import_error = True
-                    if has_highlighted:
-                        value = f"{value}⁽²⁾"
-                    else:
-                        value = f"{value}⁽¹⁾"
-            elif key == "value":
-                value = repr(value)
-            elif key == "examples" and value:
-                value = list(map(repr, value))
-
-            if value is None:
-                str_val = ""
-            elif isinstance(value, str):
-                str_val = value
-            elif isinstance(value, list):
-                if width:
-                    str_val = _wrap_bullet_list(value, width)
-                    width = None
-                else:
-                    str_val = "• " + "\n• ".join(value)
-            else:
-                str_val = str(value)
-
-            if width:
-                str_val = "\n".join(textwrap.wrap(str_val, width=width))
+        for column_name, width in column_widths.items():
+            value = _get_row_value(node_input, column_name)
+            str_val = _row_value_as_string(value, width)
             row.append(str_val)
 
     # Remove empty columns
@@ -159,14 +134,51 @@ def _graph_inputs_to_table(
 
     # Footnotes
     footnotes = []
-    if has_highlighted:
-        footnotes = ["⁽¹⁾ Value is required for execution."]
+    has_required_without_value = any(
+        node_input.required_without_value for node_input in node_inputs
+    )
+    if has_required_without_value:
+        footnotes = ["⁽*⁾ Value is required for execution."]
+    has_import_error = any(node_input.import_error for node_input in node_inputs)
     if has_import_error:
         footnotes.append(
-            f"{'⁽²⁾' if footnotes else '⁽¹⁾'} Information from workflow only (task cannot be imported)."
+            "⁽†⁾ Information from workflow only (task cannot be imported)."
         )
 
     return column_names, rows, footnotes
+
+
+def _get_row_value(node_input: NodeInput, column_name: str) -> Any:
+    value = getattr(node_input, column_name)
+    if column_name == "name":
+        if node_input.required_without_value:
+            return f"{value}⁽*⁾"
+        if node_input.import_error:
+            return f"{value}⁽†⁾"
+    if column_name == "value":
+        return repr(value)
+    if column_name == "examples" and value:
+        return list(map(repr, value))
+    return value
+
+
+def _row_value_as_string(value: Any, width: Optional[int]) -> str:
+    if value is None:
+        str_val = ""
+    elif isinstance(value, str):
+        str_val = value
+    elif isinstance(value, list):
+        if width:
+            str_val = _wrap_bullet_list(value, width)
+            width = None
+        else:
+            str_val = "• " + "\n• ".join(value)
+    else:
+        str_val = str(value)
+
+    if width:
+        return "\n".join(textwrap.wrap(str_val, width=width))
+    return str_val
 
 
 def _wrap_bullet_list(items: List[str], width: int) -> str:

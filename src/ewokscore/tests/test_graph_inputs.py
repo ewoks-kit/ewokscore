@@ -176,8 +176,8 @@ def test_graph_inputs_as_table():
         "Label",
     ]
     expected_rows = [
-        ["b⁽¹⁾", "<MISSING_DATA>", "", "", "ClassExample", "task1", ""],
-        ["g⁽¹⁾", "<MISSING_DATA>", "", "", "method_example", "task3", ""],
+        ["b⁽*⁾", "<MISSING_DATA>", "", "", "ClassExample", "task1", ""],
+        ["g⁽*⁾", "<MISSING_DATA>", "", "", "method_example", "task3", ""],
         ["a", "1", "", "", "ClassExample", "task1", ""],
         ["d", "<MISSING_DATA>", "", "", "ClassExample", "task1", ""],
         ["c", "<MISSING_DATA>", "", "", "ClassExample", "task1", ""],
@@ -193,12 +193,12 @@ def test_graph_inputs_as_table():
         ],
         ["e", "5", "", "", "method_example", "task3", ""],
         ["f", "-3", "", "", "method_example", "task3", ""],
-        ["guess⁽²⁾", "999", "", "", "NonExistingClass", "task4", ""],
+        ["guess⁽†⁾", "999", "", "", "NonExistingClass", "task4", ""],
     ]
     expected_metadata = {"id": "testgraph", "description": "Test graph inputs"}
     expected_footnotes = [
-        "⁽¹⁾ Value is required for execution.",
-        "⁽²⁾ Information from workflow only (task cannot be imported).",
+        "⁽*⁾ Value is required for execution.",
+        "⁽†⁾ Information from workflow only (task cannot be imported).",
     ]
 
     nrequiredmissing = 2
