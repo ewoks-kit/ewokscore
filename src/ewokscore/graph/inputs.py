@@ -315,6 +315,8 @@ def _get_all_task_output_names(task_type: str, task_identifier: str) -> List[str
             pass
         else:
             name_iterator = _task_output_names_from_class(task_cls)
+    elif task_type == "method":
+        name_iterator = ["return_value"]
 
     output_names.extend(name_iterator)
     return output_names
