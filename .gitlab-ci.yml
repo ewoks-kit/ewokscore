@@ -8,7 +8,8 @@ variables:
   WARNING3: "ignore::DeprecationWarning:traitlets.traitlets"
   WARNING4: "ignore::DeprecationWarning:papermill.parameterize"
   WARNING5: "ignore::DeprecationWarning:papermill.engines"
-  IGNORE_WARNINGS: "-W ${WARNING1} -W ${WARNING2} -W ${WARNING3} -W ${WARNING4} -W ${WARNING5}"
+  WARNING6: "ignore::RuntimeWarning:networkx.utils.backends" # https://github.com/networkx/networkx/issues/7372
+  IGNORE_WARNINGS: "-W ${WARNING1} -W ${WARNING2} -W ${WARNING3} -W ${WARNING4} -W ${WARNING5} -W ${WARNING6}"
 
 test-3.8:
   extends: .test-3.8
