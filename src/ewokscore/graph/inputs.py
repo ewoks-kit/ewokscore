@@ -67,7 +67,7 @@ def graph_inputs_as_table(
     Return table of workflow input parameters.
     """
     node_inputs = graph_inputs(graph)
-    headers, rows, footnotes = _graph_inputs_to_table(
+    column_names, rows, footnotes = _graph_inputs_to_table(
         node_inputs, column_widths=column_widths
     )
     metadata = {}
@@ -75,7 +75,7 @@ def graph_inputs_as_table(
         metadata["id"] = graph.graph_id
     if graph.graph_label:
         metadata["description"] = graph.graph_label
-    return headers, rows, metadata, footnotes
+    return column_names, rows, metadata, footnotes
 
 
 def _graph_inputs_to_table(
@@ -97,7 +97,7 @@ def _graph_inputs_to_table(
         }
 
     # Column names
-    headers = [s.replace("_", " ").capitalize() for s in column_widths]
+    column_names = [s.replace("_", " ").capitalize() for s in column_widths]
 
     # Highlight required inputs without a value
     def highlight(node_input: NodeInput) -> bool:
@@ -154,7 +154,7 @@ def _graph_inputs_to_table(
     non_empty_column_indices = [
         i for i, col in enumerate(columns) if any(cell.strip() for cell in col)
     ]
-    headers = [headers[i] for i in non_empty_column_indices]
+    column_names = [column_names[i] for i in non_empty_column_indices]
     rows = [[row[i] for i in non_empty_column_indices] for row in rows]
 
     # Footnotes
@@ -166,7 +166,7 @@ def _graph_inputs_to_table(
             f"{'⁽²⁾' if footnotes else '⁽¹⁾'} Information from workflow only (task cannot be imported)."
         )
 
-    return headers, rows, footnotes
+    return column_names, rows, footnotes
 
 
 def _wrap_bullet_list(items: List[str], width: int) -> str:

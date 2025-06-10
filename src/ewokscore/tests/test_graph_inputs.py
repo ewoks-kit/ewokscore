@@ -164,9 +164,9 @@ def test_graph_inputs():
 
 def test_graph_inputs_as_table():
     graph = create_graph()
-    headers, rows, metadata, footnotes = inputs.graph_inputs_as_table(graph)
+    column_names, rows, metadata, footnotes = inputs.graph_inputs_as_table(graph)
 
-    expected_headers = [
+    expected_column_names = [
         "Name",
         "Value",
         "Description",
@@ -205,7 +205,7 @@ def test_graph_inputs_as_table():
     assert sorted(rows[:nrequiredmissing]) == sorted(expected_rows[:nrequiredmissing])
     assert sorted(rows[nrequiredmissing:]) == sorted(expected_rows[nrequiredmissing:])
 
-    assert headers == expected_headers
+    assert column_names == expected_column_names
     assert metadata == expected_metadata
     assert footnotes == expected_footnotes
 
