@@ -64,7 +64,7 @@ def graph_inputs_as_table(
     graph: TaskGraph, column_widths: Optional[Dict[str, Optional[int]]] = None
 ) -> Tuple[List[str], List[List[str]], Dict[str, str], List[str]]:
     """
-    Return table of workflow input parameter.
+    Return table of workflow input parameters.
     """
     node_inputs = graph_inputs(graph)
     headers, rows, footnotes = _graph_inputs_to_table(
@@ -169,7 +169,7 @@ def _graph_inputs_to_table(
     return headers, rows, footnotes
 
 
-def _wrap_bullet_list(items: List[str], width: int):
+def _wrap_bullet_list(items: List[str], width: int) -> str:
     wrapper = textwrap.TextWrapper(
         width=width, initial_indent="• ", subsequent_indent="  "
     )
@@ -212,7 +212,7 @@ def _get_connected_input_names(
             if target_input:
                 connected_input_names.add(target_input)
 
-        map_all_data = link_attrs.get("map_all_data", None)
+        map_all_data = link_attrs.get("map_all_data", False)
         if map_all_data:
             node_attrs = graph.nodes[predecessor_id]
             task_type = node_attrs["task_type"]
@@ -226,7 +226,7 @@ def _get_all_node_inputs(
     node_id: NodeIdType, node_attrs: Dict[str, Any]
 ) -> List[NodeInput]:
     """
-    Return all the input parameters of a task.
+    Return all the input parameters of a node.
     """
     task_type = node_attrs["task_type"]
     task_identifier = node_attrs["task_identifier"]
@@ -279,7 +279,7 @@ def _get_all_node_inputs(
             )
     else:
         _logger.warning(
-            f"Task type {task_type!r} is not supported ({task_identifier!r}). Use default values from the workflow only."
+            f"Task type {task_type!r} is not supported ({task_identifier!r}). Only using default values from the workflow."
         )
         import_error = TypeError(f"Cannot get inputs from task type {task_type!r}")
         node_input_iterator = _node_inputs_from_defaults(
