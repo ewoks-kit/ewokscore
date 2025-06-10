@@ -305,21 +305,17 @@ def _get_all_task_output_names(task_type: str, task_identifier: str) -> List[str
     """
     Return all the output parameter names of a task.
     """
-    output_names = []
-    name_iterator = []
-
     if task_type == "class":
         try:
             task_cls = import_utils.import_qualname(task_identifier)
         except Exception:
-            pass
+            return []
         else:
-            name_iterator = _task_output_names_from_class(task_cls)
+            return list(_task_output_names_from_class(task_cls))
     elif task_type == "method":
-        name_iterator = ["return_value"]
-
-    output_names.extend(name_iterator)
-    return output_names
+        return ["return_value"]
+    else:
+        return []
 
 
 def _node_inputs_from_class(
@@ -429,7 +425,7 @@ def _node_inputs_from_method(
         )
 
 
-def _task_output_names_from_class(task_cls) -> List[str]:
+def _task_output_names_from_class(task_cls) -> Set[str]:
     return task_cls.output_names()
 
 
