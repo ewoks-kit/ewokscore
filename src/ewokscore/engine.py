@@ -3,11 +3,14 @@ from typing import Any, Optional, List, Union, Dict
 from . import bindings
 from .task import Task
 from .node import NodeIdType
-from .events.contexts import RawExecInfoType
-from .engine_interface import WorkflowEngine
+
+from .engine_interface import Path
+from .engine_interface import TaskGraph
+from .engine_interface import RawExecInfoType
+from .engine_interface import WorkflowEngineWithSerialization
 
 
-class CoreWorkflowEngine(WorkflowEngine):
+class CoreWorkflowEngine(WorkflowEngineWithSerialization):
 
     def execute_graph(
         self,
@@ -36,3 +39,44 @@ class CoreWorkflowEngine(WorkflowEngine):
             merge_outputs=merge_outputs,
             output_tasks=output_tasks,
         )
+
+    def deserialize_graph(
+        self,
+        graph: Any,
+        *,
+        inputs: Optional[List[dict]] = None,
+        representation: Optional[str] = None,
+        root_dir: Optional[Union[str, Path]] = None,
+        root_module: Optional[str] = None,
+        # Graph representation specific:
+        **load_options,
+    ) -> TaskGraph:
+        return bindings.load_graph(
+            graph,
+            inputs=inputs,
+            representation=representation,
+            root_dir=root_dir,
+            root_module=root_module,
+            **load_options,
+        )
+
+    def serialize_graph(
+        self,
+        graph: TaskGraph,
+        destination,
+        *,
+        representation: Optional[str] = None,
+        # Graph representation specific:
+        **save_options,
+    ) -> Union[str, dict]:
+        return bindings.save_graph(
+            graph, destination, representation=representation, **save_options
+        )
+
+    def can_serialize_graph(
+        self,
+        graph: Any,
+        *,
+        representation: Optional[str] = None,
+    ) -> bool:
+        return False

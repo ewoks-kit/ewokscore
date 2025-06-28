@@ -2,14 +2,12 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import Any, Optional, Union, List
 
-from . import bindings
 from .graph import TaskGraph
 from .events.contexts import RawExecInfoType
-from .graph.serialize import GraphRepresentation
 
 
 class WorkflowEngine(ABC):
-    """Python projects that provide Ewoks engines for loading, saving and executing
+    """Python projects that provide Ewoks engines for deserializing, serializing and executing
     computational Ewoks graphs can implement this interface.
 
     To make it discoverable it can be added as an entry-point the the project. For
@@ -24,7 +22,7 @@ class WorkflowEngine(ABC):
     @abstractmethod
     def execute_graph(
         self,
-        graph: Any,
+        graph: TaskGraph,
         *,
         inputs: Optional[List[dict]] = None,
         load_options: Optional[dict] = None,
@@ -39,46 +37,44 @@ class WorkflowEngine(ABC):
         """Execute a computional Ewoks graph."""
         pass
 
-    def load_graph(
+
+class WorkflowEngineWithSerialization(WorkflowEngine):
+    """Ewoks engines with graph serialization capabilities."""
+
+    @abstractmethod
+    def deserialize_graph(
         self,
         graph: Any,
         *,
         inputs: Optional[List[dict]] = None,
-        representation: Optional[Union[GraphRepresentation, str]] = None,
+        representation: Optional[str] = None,
         root_dir: Optional[Union[str, Path]] = None,
         root_module: Optional[str] = None,
         # Graph representation specific:
-        **load_options,
+        **deserialize_options,
     ) -> TaskGraph:
         """Convert a computational graph representation to the canonical in-memory representation `TaskGraph`."""
-        return bindings.load_graph(
-            graph,
-            inputs=inputs,
-            representation=representation,
-            root_dir=root_dir,
-            root_module=root_module,
-            **load_options,
-        )
+        pass
 
-    def save_graph(
+    @abstractmethod
+    def serialize_graph(
         self,
         graph: TaskGraph,
-        destination,
+        destination: Any,
         *,
-        representation: Optional[Union[GraphRepresentation, str]] = None,
+        representation: Optional[str] = None,
         # Graph representation specific:
-        **save_options,
-    ) -> Union[str, dict]:
+        **serialize_options,
+    ) -> Any:
         """Convert the canonical computational graph representation `TaskGraph` to another representation."""
-        return bindings.save_graph(
-            graph, destination, representation=representation, **save_options
-        )
+        pass
 
-    def is_native_graph(
+    @abstractmethod
+    def can_serialize_graph(
         self,
         graph: Any,
         *,
-        representation: Optional[Union[GraphRepresentation, str]] = None,
+        representation: Optional[str] = None,
     ) -> bool:
-        """Return True if the given graph representation is specific to this engine."""
-        return False
+        """Return True if the engine can (de)serialize the graph representation."""
+        pass
