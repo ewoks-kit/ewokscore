@@ -62,7 +62,7 @@ def convert_graph(
     return save_graph(graph, destination, **save_options)
 
 
-@execute_graph_decorator()
+@execute_graph_decorator(engine="core")
 def execute_graph(
     graph,
     inputs: Optional[List[dict]] = None,
