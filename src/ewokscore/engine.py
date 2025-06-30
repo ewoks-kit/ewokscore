@@ -48,7 +48,7 @@ class CoreWorkflowEngine(WorkflowEngineWithSerialization):
         representation: Optional[str] = None,
         root_dir: Optional[Union[str, Path]] = None,
         root_module: Optional[str] = None,
-        # Graph representation specific:
+        # Serializer specific:
         **load_options,
     ) -> TaskGraph:
         return bindings.load_graph(
@@ -66,7 +66,7 @@ class CoreWorkflowEngine(WorkflowEngineWithSerialization):
         destination,
         *,
         representation: Optional[str] = None,
-        # Graph representation specific:
+        # Serializer specific:
         **save_options,
     ) -> Union[str, dict]:
         return bindings.save_graph(

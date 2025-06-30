@@ -50,7 +50,7 @@ class WorkflowEngineWithSerialization(WorkflowEngine):
         representation: Optional[str] = None,
         root_dir: Optional[Union[str, Path]] = None,
         root_module: Optional[str] = None,
-        # Graph representation specific:
+        # Serializer specific:
         **deserialize_options,
     ) -> TaskGraph:
         """Convert a computational graph representation to the canonical in-memory representation `TaskGraph`."""
@@ -63,7 +63,7 @@ class WorkflowEngineWithSerialization(WorkflowEngine):
         destination: Any,
         *,
         representation: Optional[str] = None,
-        # Graph representation specific:
+        # Serializer specific:
         **serialize_options,
     ) -> Any:
         """Convert the canonical computational graph representation `TaskGraph` to another representation."""
