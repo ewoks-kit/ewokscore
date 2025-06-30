@@ -6,28 +6,11 @@ from fnmatch import fnmatch
 from types import FunctionType, ModuleType
 from typing import Generator, List, Optional, TypedDict
 
-if sys.version_info < (3, 9):
-    from importlib_metadata import entry_points as _entry_points
-
-    def iter_entry_points(group: str):
-        return _entry_points(group=group)
-
-elif sys.version_info < (3, 10):
-    from importlib.metadata import entry_points as _entry_points
-
-    def iter_entry_points(group: str):
-        return _entry_points().get(group, [])
-
-else:
-    from importlib.metadata import entry_points as _entry_points
-
-    def iter_entry_points(group: str):
-        return _entry_points(group=group)
-
 
 from ewoksutils.import_utils import import_module, qualname
 
 from .task import Task
+from .entry_points import entry_points
 
 
 class _TaskInputs(TypedDict):
@@ -211,7 +194,7 @@ def _iter_discover_all_tasks(
 
     for task_type in task_types:
         group = "ewoks.tasks." + task_type
-        for entrypoint in iter_entry_points(group):
+        for entrypoint in entry_points(group):
             module_pattern = entrypoint.name
             if module_pattern is visited:
                 continue

@@ -45,9 +45,15 @@ class TaskGraph:
         self,
         source: Optional[GraphSource] = None,
         representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
-        **load_options,
+        root_dir: Optional[Union[str, Path]] = None,
+        root_module: Optional[str] = None,
     ):
-        self.load(source=source, representation=representation, **load_options)
+        self.load(
+            source=source,
+            representation=representation,
+            root_dir=root_dir,
+            root_module=root_module,
+        )
 
     def __repr__(self):
         return self.graph_label
@@ -72,16 +78,25 @@ class TaskGraph:
         subgraph_representation: Optional[
             Union[serialize.GraphRepresentation, str]
         ] = None,
-        **load_options,
+        root_dir: Optional[Union[str, Path]] = None,
+        root_module: Optional[str] = None,
     ) -> None:
         graph = serialize.load(
-            source=source, representation=representation, **load_options
+            source=source,
+            representation=representation,
+            root_dir=root_dir,
+            root_module=root_module,
         )
 
         if subgraph_representation is not None:
             representation = subgraph_representation
 
-        subgraphs = get_subgraphs(graph, representation=representation, **load_options)
+        subgraphs = get_subgraphs(
+            graph,
+            representation=representation,
+            root_dir=root_dir,
+            root_module=root_module,
+        )
         if subgraphs:
             # Extract
             edges, update_attrs = extract_graph_nodes(graph, subgraphs)
@@ -95,7 +110,9 @@ class TaskGraph:
                 graphs,
                 graph_attrs=graph.graph,
                 rename_nodes=rename_nodes,
-                **load_options,
+                representation=representation,
+                root_dir=root_dir,
+                root_module=root_module,
             ).graph
 
             # Re-link
@@ -110,10 +127,13 @@ class TaskGraph:
         self,
         destination: Optional[Union[str, Path]] = None,
         representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
-        **kw,
+        **save_options,
     ) -> Optional[Union[str, Path, dict]]:
         return serialize.dump(
-            self.graph, destination=destination, representation=representation, **kw
+            self.graph,
+            destination=destination,
+            representation=representation,
+            **save_options,
         )
 
     def serialize(self) -> str:
@@ -142,12 +162,18 @@ class TaskGraph:
 def load_graph(
     source: Optional[Union[TaskGraph, GraphSource]] = None,
     representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
-    **load_options,
+    root_dir: Optional[Union[str, Path]] = None,
+    root_module: Optional[str] = None,
 ):
     if isinstance(source, TaskGraph):
         return source
     else:
-        return TaskGraph(source=source, representation=representation, **load_options)
+        return TaskGraph(
+            source=source,
+            representation=representation,
+            root_dir=root_dir,
+            root_module=root_module,
+        )
 
 
 def node_has_links(graph, node_id):
@@ -161,34 +187,58 @@ def node_has_links(graph, node_id):
     return True
 
 
-def merge_graphs(graphs, graph_attrs=None, rename_nodes=None, **load_options):
+def merge_graphs(
+    graphs,
+    graph_attrs=None,
+    rename_nodes=None,
+    representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
+    root_dir: Optional[Union[str, Path]] = None,
+    root_module: Optional[str] = None,
+):
     lst = list()
     if rename_nodes is None:
         rename_nodes = [True] * len(graphs)
     else:
         assert len(graphs) == len(rename_nodes)
     for g, rename in zip(graphs, rename_nodes):
-        g = load_graph(g, **load_options)
+        g = load_graph(
+            g, representation=representation, root_dir=root_dir, root_module=root_module
+        )
         gname = repr(g)
         g = g.graph
         if rename:
             mapping = {s: (gname, s) for s in g.nodes}
             g = networkx.relabel_nodes(g, mapping, copy=True)
         lst.append(g)
-    ret = load_graph(networkx.compose_all(lst), **load_options)
+    ret = load_graph(
+        networkx.compose_all(lst),
+        representation=representation,
+        root_dir=root_dir,
+        root_module=root_module,
+    )
     if graph_attrs:
         ret.graph.graph.update(graph_attrs)
     return ret
 
 
-def get_subgraphs(graph: networkx.DiGraph, **load_options):
+def get_subgraphs(
+    graph: networkx.DiGraph,
+    representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
+    root_dir: Optional[Union[str, Path]] = None,
+    root_module: Optional[str] = None,
+):
     subgraphs = dict()
     for node_id, node_attrs in graph.nodes.items():
         task_type, task_info = inittask.task_executable_info(
             node_id, node_attrs, all=True
         )
         if task_type == "graph":
-            g = load_graph(task_info["task_identifier"], **load_options)
+            g = load_graph(
+                task_info["task_identifier"],
+                representation=representation,
+                root_dir=root_dir,
+                root_module=root_module,
+            )
             g.graph.graph["id"] = node_id
             node_label = node_attrs.get("label")
             if node_label:

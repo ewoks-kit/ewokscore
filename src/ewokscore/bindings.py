@@ -1,8 +1,13 @@
-from typing import Any, Optional, List, Union
+from pathlib import Path
+from typing import Any, Optional, List, Union, Dict
+
+from .task import Task
+from .node import NodeIdType
 from .graph import load_graph as _load_graph
 from .graph import TaskGraph
 from .graph.execute import sequential
 from .graph.graph_io import update_default_inputs
+from .graph.serialize import GraphRepresentation
 from .events import job_decorator as execute_graph_decorator
 
 __all__ = [
@@ -16,16 +21,30 @@ __all__ = [
 
 
 def load_graph(
-    graph: Any, inputs: Optional[List[dict]] = None, **load_options
+    graph: Any,
+    inputs: Optional[List[dict]] = None,
+    representation: Optional[Union[GraphRepresentation, str]] = None,
+    root_dir: Optional[Union[str, Path]] = None,
+    root_module: Optional[str] = None,
 ) -> TaskGraph:
-    taskgraph = _load_graph(source=graph, **load_options)
+    taskgraph = _load_graph(
+        source=graph,
+        representation=representation,
+        root_dir=root_dir,
+        root_module=root_module,
+    )
     if inputs:
         update_default_inputs(taskgraph.graph, inputs)
     return taskgraph
 
 
-def save_graph(graph: TaskGraph, destination, **save_options) -> Union[str, dict]:
-    return graph.dump(destination, **save_options)
+def save_graph(
+    graph: TaskGraph,
+    destination,
+    representation: Optional[Union[GraphRepresentation, str]] = None,
+    **save_options,
+) -> Union[str, dict]:
+    return graph.dump(destination, representation=representation, **save_options)
 
 
 def convert_graph(
@@ -48,12 +67,27 @@ def execute_graph(
     graph,
     inputs: Optional[List[dict]] = None,
     load_options: Optional[dict] = None,
-    **execute_options,
-):
+    varinfo: Optional[dict] = None,
+    execinfo: Optional[dict] = None,
+    task_options: Optional[dict] = None,
+    raise_on_error: Optional[bool] = True,
+    outputs: Optional[List[dict]] = None,
+    merge_outputs: Optional[bool] = True,
+    output_tasks: Optional[bool] = False,
+) -> Union[Dict[NodeIdType, Task], Dict[str, Any]]:
     if load_options is None:
         load_options = dict()
     taskgraph = load_graph(graph, inputs=inputs, **load_options)
-    return sequential.execute_graph(taskgraph.graph, **execute_options)
+    return sequential.execute_graph(
+        taskgraph.graph,
+        varinfo=varinfo,
+        execinfo=execinfo,
+        task_options=task_options,
+        raise_on_error=raise_on_error,
+        outputs=outputs,
+        merge_outputs=merge_outputs,
+        output_tasks=output_tasks,
+    )
 
 
 def graph_is_supported(graph: TaskGraph) -> bool:
