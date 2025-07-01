@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.0.0
+
 New features:
 
 - Ewoks workflow entry interfaces `WorkflowEngine` and `WorkflowEngineWithSerialization`.
