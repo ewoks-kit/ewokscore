@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Union
 
 import pytest
@@ -291,3 +292,23 @@ def test_wrapped_type_coercion(tmp_path):
         input_variable = task.input_variables["age"]
         assert input_variable.uhash == fixed_uhash
         assert variable.uhash == fixed_uhash
+
+
+def test_dataclass_field_stays_dataclass():
+    @dataclass
+    class Address:
+        city: str
+        street: str
+
+    class Inputs(BaseInputModel):
+        address: Address
+
+    class CheckAddress(Task, input_model=Inputs):
+        def run(self):
+            address = self.inputs.address
+            assert isinstance(address, Address)
+
+    task = CheckAddress(
+        inputs={"address": Address(city="Grenoble", street="Jean-Jaurès")}
+    )
+    task.execute()
