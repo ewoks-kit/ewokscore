@@ -70,11 +70,6 @@ class WorkflowEngineWithSerialization(WorkflowEngine):
         pass
 
     @abstractmethod
-    def can_serialize_graph(
-        self,
-        graph: Any,
-        *,
-        representation: Optional[str] = None,
-    ) -> bool:
-        """Return True if the engine can (de)serialize the graph representation."""
+    def get_graph_representation(self, graph: Any) -> Optional[str]:
+        """Return the representation if the engine recognizes the graph object."""
         pass

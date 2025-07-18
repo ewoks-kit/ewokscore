@@ -11,7 +11,9 @@
 New features:
 
 - Ewoks workflow entry interfaces `WorkflowEngine` and `WorkflowEngineWithSerialization`.
-- Add `ewoks.engines` entry point for the core engine.
+- Implement the `WorkflowEngineWithSerialization` interface.
+- Add an entry point to the group `ewoks.engines`.
+- Add an entry point to the group `ewoks.engines.serialization.representations`.
 
 ## 1.6.0
 
