@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fields of task input models are no longer serialized when executing the task. For example, a `dataclass` stays a `dataclass` instead of becoming a `dict`.
+
 ## 2.0.0
 
 New features:
@@ -54,7 +58,7 @@ Bug fixes:
 
 Deprecations:
 
-- `ewokscore.task.Task`: `npositional_inputs`  is deprecated in favor of `n_positional_inputs`
+- `ewokscore.task.Task`: `npositional_inputs` is deprecated in favor of `n_positional_inputs`
 
 ## 1.2.0
 

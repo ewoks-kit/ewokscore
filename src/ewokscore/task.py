@@ -139,12 +139,15 @@ class Task(Registered, UniversalHashable, register=False):
 
         :raises pydantic.ValidationError:
         """
+        if self._INPUT_MODEL is None:
+            raise ValueError(
+                "Trying to validate inputs while no input model was specified"
+            )
         inputs = self.__inputs.get_variable_values()
         model = self._INPUT_MODEL(**inputs)
 
-        validated_inputs = model.model_dump()
-        for name, value in validated_inputs.items():
-            self.__inputs[name].value = value
+        for name in self._INPUT_MODEL.model_fields.keys():
+            self.__inputs[name].value = getattr(model, name)
 
     def __init_subclass__(
         subclass,
