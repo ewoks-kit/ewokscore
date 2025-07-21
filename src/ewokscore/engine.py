@@ -1,4 +1,5 @@
 from typing import Any, Optional, List, Union, Dict
+from collections.abc import Mapping
 
 from . import bindings
 from .task import Task
@@ -73,10 +74,15 @@ class CoreWorkflowEngine(WorkflowEngineWithSerialization):
             graph, destination, representation=representation, **save_options
         )
 
-    def can_serialize_graph(
-        self,
-        graph: Any,
-        *,
-        representation: Optional[str] = None,
-    ) -> bool:
-        return False
+    def get_graph_representation(self, graph: Any) -> Optional[str]:
+        if isinstance(graph, Mapping):
+            return "json_dict"
+        if isinstance(graph, (str, Path)):
+            if isinstance(graph, str) and "{" in graph and "}" in graph:
+                return "json_string"
+            else:
+                filename = str(graph).lower()
+                if filename.endswith(".json"):
+                    return "json"
+                elif filename.endswith((".yml", ".yaml")):
+                    return "yaml"
