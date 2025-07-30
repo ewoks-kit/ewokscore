@@ -153,8 +153,9 @@ Node attributes
         {
             "default_inputs": [{"name":"a", "value":1}]
         }
-* *force_start_node* (optional): when set to `True`, the node will be forcefully defined as a start node i.e. a node that should be executed before all others 
-(to be used as an escape hatch when the graph analysis fails to correctly assert the start nodes).
+* *force_start_node* (optional): when set to `True`, the node will be forcefully defined as a start node i.e. a node that
+  should be executed before all others  (to be used as an escape hatch when the graph analysis fails to correctly assert
+  the start nodes).
 * *conditions_else_value* (optional): value used in conditional links to indicate the *else* value (Default: `None`)
 * *default_error_node* (optional): when set to `True` all nodes without error handler will be linked to this node.
 * *default_error_attributes* (optional): when `default_error_node=True` this dictionary is used as attributes for the
