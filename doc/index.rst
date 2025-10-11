@@ -32,8 +32,7 @@ Run the tests
 .. toctree::
     :hidden:
 
-    tutorials
-    definitions
-    howtoguides
-    implementation
-    api
+    tutorials/index
+    howtoguides/index
+    explanations/index
+    reference/index

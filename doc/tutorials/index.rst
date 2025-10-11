@@ -2,5 +2,6 @@ Tutorials
 =========
 
 .. toctree::
+    :maxdepth: 1
 
-    tutorials/hello_world
+    hello_world

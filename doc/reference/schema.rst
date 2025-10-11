@@ -1,5 +1,5 @@
-Workflow definition
-===================
+Workflow definition schema
+==========================
 
 A **workflow** is a directed graph of tasks. A directed graph consists of nodes and links.
 
