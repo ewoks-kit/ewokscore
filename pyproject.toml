@@ -54,6 +54,7 @@ doc = [
     "docutils < 0.21",
     "nbsphinx_link",
     "pydata-sphinx-theme",
+    "sphinx-copybutton",
 ]
 
 [tool.setuptools]

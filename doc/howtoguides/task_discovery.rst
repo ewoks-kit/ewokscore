@@ -3,7 +3,7 @@ Task discovery
 
 All ewoks tasks provided by one or more python modules can be discovered as follows
 
-.. code:: python
+.. code-block:: python
 
     from ewokscore.task_discovery import discover_tasks_from_modules
 
@@ -17,7 +17,7 @@ The `task_type` can have one of these values
 
 To discover all tasks provided by all installed python packages
 
-.. code:: python
+.. code-block:: python
 
     from ewokscore.task_discovery import discover_all_tasks
 
@@ -26,7 +26,7 @@ To discover all tasks provided by all installed python packages
 For this to work the package that provides ewoks tasks should declare its task modules
 via the entry point mechanism.
 
-.. code:: ini
+.. code-block:: ini
 
     # setup.cfg
 
@@ -46,7 +46,7 @@ unique because of the way entry points work. Module names can contain wildcards 
 A project that provides ewoks tasks can also add the `"ewoks"` keyword to be discoverable in
 a package repository like PyPi:
 
-.. code:: ini
+.. code-block:: ini
 
     # setup.cfg
 

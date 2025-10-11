@@ -3,7 +3,7 @@ Hello world
 
 A short script that defines a task, creates a workflow and executes it.
 
-.. code:: python
+.. code-block:: python
 
     from ewokscore import Task
     from ewokscore import execute_graph
