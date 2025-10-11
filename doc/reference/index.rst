@@ -7,5 +7,4 @@ Ewoks workflow definition schema and Python API reference.
     :maxdepth: 1
 
     schema
-    implementation
     api
