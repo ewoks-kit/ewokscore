@@ -37,54 +37,54 @@ class ScriptExecutorTask(
 
     - **Single-character argument names**:
 
-        .. code:: bash
+        .. code-block:: bash
 
             python -c "print('hello')"
 
-        .. code:: python
+        .. code-block:: python
 
             inputs = {SCRIPT_ARGUMENT: "python", "c": "print('hello')"}
 
     - **Arguments without a value**:
 
-        .. code:: bash
+        .. code-block:: bash
 
             ls -a
 
-        .. code:: python
+        .. code-block:: python
 
             inputs = {SCRIPT_ARGUMENT: "ls", "a": ""}
 
     - **Multi-character argument names**:
 
-        .. code:: bash
+        .. code-block:: bash
 
             ls --all
 
-        .. code:: python
+        .. code-block:: python
 
             inputs = {SCRIPT_ARGUMENT: "ls", "all": ""}
 
     - **Arguments without a name**:
 
-        .. code:: bash
+        .. code-block:: bash
 
             ls .
 
-        .. code:: python
+        .. code-block:: python
 
             inputs = {SCRIPT_ARGUMENT: "ls", 0: "."}
 
     - **Merged single-character argument names**:
 
-        .. code:: bash
+        .. code-block:: bash
 
             ls -ltrh
 
         Since we need `-ltrh` instead of `--ltrh` we can specify
         it as a positional argument
 
-        .. code:: python
+        .. code-block:: python
 
             inputs = {SCRIPT_ARGUMENT: "ls", 0: "-ltrh"}
     """

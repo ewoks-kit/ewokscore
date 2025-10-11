@@ -9,7 +9,7 @@ Use an Ewoks event handler
 
 If you want to record workflow events you have to specify one or more event handlers when executing a workflow:
 
-.. code:: python
+.. code-block:: python
 
     from ewokscore import execute_graph
 
@@ -36,7 +36,7 @@ You can use any handler derived from `logging.Handler` as an Ewoks event handler
 have a `Connection` class with a constructor that accepts two arguments, you can define an ewoks
 event handler as follows:
 
-.. code:: python
+.. code-block:: python
 
     # ./myproject/handlers.py
 
@@ -66,7 +66,7 @@ event handler as follows:
 
 To use this example handler
 
-.. code:: python
+.. code-block:: python
 
     from ewokscore import execute_graph
 

@@ -97,7 +97,7 @@ Example:
 
 A task which takes a single integer as input and an array as output
 
-.. code:: python
+.. code-block:: python
 
   class MyTask(Task, input_names=["N"], output_names=["array"]):
 
@@ -106,7 +106,7 @@ A task which takes a single integer as input and an array as output
 
 When instantiating `MyTask`, the following happens
 
-.. code:: python
+.. code-block:: python
 
    self.input_variables = VariableContainer(value={"N": N})
    self.output_variables = VariableContainer(value={"array": self.MISSING_DATA},
@@ -118,7 +118,7 @@ The *universal hash* of the task is equal to the *universal hash* of the output 
 
 The input variable container instantiates this variable
 
-.. code:: python
+.. code-block:: python
 
   input_variables["N"] = Variable(value=100000)
   # N is a `Variable` (task input in this case)
@@ -127,7 +127,7 @@ The input variable container instantiates this variable
 
 The output variable container instantiates this variable
 
-.. code:: python
+.. code-block:: python
 
   output_variables["array"] = Variable(value=output_variables.MISSING_DATA,
                                        pre_uhash=output_variables.pre_uhash,

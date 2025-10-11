@@ -3,7 +3,7 @@ Workflow inputs and outputs
 
 Workflow inputs and outputs can be provided when executing a workflow
 
-.. code:: python
+.. code-block:: python
 
     from ewokscore import execute_graph
 
@@ -29,7 +29,7 @@ An example to provide the following input arguments to the workflow nodes
 * all start nodes receive `collectionId=1234`
 * all `mypackage.mymodule.IntegrationTask` tasks receive `nbpts_azi=1024`
 
-.. code:: python
+.. code-block:: python
 
     from ewokscore import execute_graph
 
@@ -52,7 +52,7 @@ The dictionary keys for outputs are
 
 When no outputs are provided, the output variables of all *end nodes* are returned
 
-.. code:: python
+.. code-block:: python
 
     from ewokscore import execute_graph
 
@@ -63,7 +63,7 @@ When no outputs are provided, the output variables of all *end nodes* are return
 
 An example where we use the return value of two tasks as the workflow output
 
-.. code:: python
+.. code-block:: python
 
     from ewokscore import execute_graph
 
