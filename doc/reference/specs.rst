@@ -1,5 +1,5 @@
-Workflow definition schema
-==========================
+Ewoks workflow specification
+============================
 
 A **workflow** is a directed graph of tasks. A directed graph consists of nodes and links.
 
