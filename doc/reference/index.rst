@@ -1,10 +1,10 @@
 Reference
 =========
 
-Ewoks workflow definition schema and Python API reference.
+Ewoks workflow specification schema and Python API reference.
 
 .. toctree::
     :maxdepth: 1
 
-    schema
+    specs
     api
