@@ -3,21 +3,30 @@ import os
 import random
 import re
 import time
-from contextlib import ExitStack, contextmanager
-from typing import Any, Generator, Mapping, Optional, Sequence, Set, Tuple, Type, Union
+from contextlib import ExitStack
+from contextlib import contextmanager
+from typing import Any
+from typing import Generator
+from typing import Mapping
+from typing import Optional
+from typing import Sequence
+from typing import Set
+from typing import Tuple
+from typing import Type
+from typing import Union
 
 from ewoksutils.deprecation_utils import deprecated
 
-from . import events, missing_data, node
+from . import events
+from . import missing_data
+from . import node
 from .hashing import UniversalHashable
 from .model import BaseInputModel
 from .registration import Registered
-from .variable import (
-    ReadOnlyVariableContainerNamespace,
-    VariableContainer,
-    VariableContainerMissingNamespace,
-    VariableContainerNamespace,
-)
+from .variable import ReadOnlyVariableContainerNamespace
+from .variable import VariableContainer
+from .variable import VariableContainerMissingNamespace
+from .variable import VariableContainerNamespace
 
 
 class TaskInputError(ValueError):

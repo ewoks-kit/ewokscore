@@ -4,15 +4,16 @@ event fields and sending start/end events.
 
 from contextlib import contextmanager
 from functools import wraps
-from typing import Mapping, Union
+from typing import Mapping
+from typing import Union
+
+from . import global_state
+from .initialize_events import init_job
+from .initialize_events import init_node
+from .initialize_events import init_workflow
+from .send_events import ExecInfoType
 from .send_events import send_job_event
 from .send_events import send_workflow_event
-from .send_events import ExecInfoType
-from .initialize_events import init_job
-from .initialize_events import init_workflow
-from .initialize_events import init_node
-from . import global_state
-
 
 RawExecInfoType = Union[Mapping, bool, str, None]
 

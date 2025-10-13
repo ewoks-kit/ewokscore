@@ -1,6 +1,7 @@
+from ewoksutils.import_utils import qualname
+
 from ewokscore import execute_graph
 from ewokscore.graph import load_graph
-from ewoksutils.import_utils import qualname
 from ewokscore.node import node_id_as_string
 
 from .utils.results import assert_execute_graph_tasks

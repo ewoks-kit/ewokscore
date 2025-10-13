@@ -1,14 +1,17 @@
-from typing import Any, Optional, List, Union, Dict
 from collections.abc import Mapping
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
 from . import bindings
-from .task import Task
-from .node import NodeIdType
-
 from .engine_interface import Path
-from .engine_interface import TaskGraph
 from .engine_interface import RawExecInfoType
+from .engine_interface import TaskGraph
 from .engine_interface import WorkflowEngineWithSerialization
+from .node import NodeIdType
+from .task import Task
 
 
 class CoreWorkflowEngine(WorkflowEngineWithSerialization):

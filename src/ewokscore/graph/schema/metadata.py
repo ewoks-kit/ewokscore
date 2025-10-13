@@ -1,6 +1,9 @@
-from typing import Callable, Optional, Tuple
-from packaging.version import parse as parse_version
+from typing import Callable
+from typing import Optional
+from typing import Tuple
+
 import networkx
+from packaging.version import parse as parse_version
 
 
 class SchemaMetadata:

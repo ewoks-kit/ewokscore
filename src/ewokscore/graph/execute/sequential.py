@@ -1,14 +1,19 @@
-from typing import Optional, Dict, List, Union, Any
 from collections import Counter
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
+
 import networkx
 
+from ... import events
+from ...inittask import add_dynamic_inputs
+from ...inittask import instantiate_task as _instantiate_task
 from ...node import NodeIdType
 from ...task import Task
-from ...inittask import instantiate_task as _instantiate_task
-from ...inittask import add_dynamic_inputs
 from .. import analysis
 from .. import graph_io
-from ... import events
 
 
 def instantiate_task(graph: networkx.DiGraph, node_id: NodeIdType, **kw) -> Task:

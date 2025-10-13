@@ -3,13 +3,19 @@
 import logging
 import os
 from contextlib import contextmanager
-from typing import Dict, Iterator, List, Optional, Tuple
+from typing import Dict
+from typing import Iterator
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 from ewoksutils.deprecation_utils import deprecated
 from ewoksutils.logging_utils.asyncwrapper import AsyncHandlerWrapper
-from ewoksutils.logging_utils.cleanup import cleanup_logger, protect_logging_state
+from ewoksutils.logging_utils.cleanup import cleanup_logger
+from ewoksutils.logging_utils.cleanup import protect_logging_state
 
-from .handlers import instantiate_handler, is_ewoks_event_handler
+from .handlers import instantiate_handler
+from .handlers import is_ewoks_event_handler
 
 _app_logger = logging.getLogger(__name__)
 EWOKS_EVENT_LOGGER_NAME = f"__{__name__}__"

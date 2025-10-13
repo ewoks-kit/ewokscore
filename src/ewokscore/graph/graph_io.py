@@ -1,12 +1,18 @@
-from typing import Dict, Iterator, List, Mapping, Optional, Union
+from typing import Dict
+from typing import Iterator
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Union
+
 import networkx
 
-from .analysis import start_nodes
-from .analysis import end_nodes
+from .. import missing_data
 from ..node import NodeIdType
 from ..node import get_node_label
-from .. import missing_data
 from ..task import Task
+from .analysis import end_nodes
+from .analysis import start_nodes
 
 
 def update_default_inputs(

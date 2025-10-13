@@ -1,14 +1,18 @@
 from pathlib import Path
-from typing import Any, Optional, List, Union, Dict
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
-from .task import Task
-from .node import NodeIdType
-from .graph import load_graph as _load_graph
+from .events import job_decorator as execute_graph_decorator
 from .graph import TaskGraph
+from .graph import load_graph as _load_graph
 from .graph.execute import sequential
 from .graph.graph_io import update_default_inputs
 from .graph.serialize import GraphRepresentation
-from .events import job_decorator as execute_graph_decorator
+from .node import NodeIdType
+from .task import Task
 
 __all__ = [
     "execute_graph",

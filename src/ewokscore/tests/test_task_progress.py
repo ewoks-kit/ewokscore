@@ -2,10 +2,11 @@ import logging
 
 import numpy.random
 
-from .examples.tasks.sumlist import SumList
-from ewokscore.progress import TextProgress
 from ewokscore.events import job_context
 from ewokscore.events import workflow_context
+from ewokscore.progress import TextProgress
+
+from .examples.tasks.sumlist import SumList
 
 
 def test_no_progress_stdout(capsys):

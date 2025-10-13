@@ -1,5 +1,7 @@
-import networkx
 from pprint import pprint
+
+import networkx
+
 from ewokscore.graph import load_graph
 
 

@@ -1,11 +1,15 @@
 import itertools
-from typing import Iterator, Optional, Tuple, Union, Any
-import networkx
 from copy import deepcopy
+from typing import Any
+from typing import Iterator
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
-from ..utils import dict_merge
+import networkx
+
 from ..node import flatten_node_id
-
+from ..utils import dict_merge
 
 NodeIdType = Union[str, Tuple[str, Any]]  # Any is NodeIdType
 

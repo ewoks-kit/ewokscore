@@ -1,19 +1,23 @@
 from pathlib import Path
-from typing import Hashable, Optional, Sequence, Union
+from typing import Hashable
+from typing import Optional
+from typing import Sequence
+from typing import Union
+
 import networkx
 from ewoksutils.import_utils import qualname
 
 from .. import inittask
-from .subgraph import extract_graph_nodes
-from .subgraph import add_subgraph_links
 from . import analysis
 from . import serialize
-from .validate import validate_graph
-from .multigraph import flatten_multigraph
+from .compare import graphs_are_equal
 from .error_handlers import connect_default_error_handlers
 from .execute.sequential import execute_graph
-from .compare import graphs_are_equal
 from .models import GraphSource
+from .multigraph import flatten_multigraph
+from .subgraph import add_subgraph_links
+from .subgraph import extract_graph_nodes
+from .validate import validate_graph
 
 
 class TaskGraph:

@@ -5,9 +5,10 @@ from ipykernel.kernelspec import install as install_kernel
 from jupyter_client.kernelspec import KernelSpecManager
 from packaging.version import parse as parse_version
 
-from ewokscore.graph.schema import SchemaMetadata, get_versions
-from ewokscore.task_discovery import TaskDict
 from ewokscore.engine import CoreWorkflowEngine
+from ewokscore.graph.schema import SchemaMetadata
+from ewokscore.graph.schema import get_versions
+from ewokscore.task_discovery import TaskDict
 
 
 @pytest.fixture

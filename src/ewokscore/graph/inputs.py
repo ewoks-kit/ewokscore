@@ -1,28 +1,28 @@
 import inspect
-import textwrap
 import logging
-from typing import List
-from typing import Dict
-from typing import Any
-from typing import Set
-from typing import Generator
-from typing import Optional
-from typing import Tuple
-from typing import Callable
-from typing import Type
-from typing import Sequence
+import textwrap
 from dataclasses import dataclass
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import Generator
+from typing import List
+from typing import Optional
+from typing import Sequence
+from typing import Set
+from typing import Tuple
+from typing import Type
 
 import networkx
 from ewoksutils import import_utils
 
-from .taskgraph import TaskGraph
-from ..node import NodeIdType
-from ..task import Task
-from ..model import BaseInputModel
+from ..dynamictask import get_dynamically_task_class
 from ..missing_data import MISSING_DATA
 from ..missing_data import is_missing_data
-from ..dynamictask import get_dynamically_task_class
+from ..model import BaseInputModel
+from ..node import NodeIdType
+from ..task import Task
+from .taskgraph import TaskGraph
 
 _logger = logging.getLogger(__name__)
 

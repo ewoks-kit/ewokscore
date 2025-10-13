@@ -1,9 +1,11 @@
 import os
-import sys
 import re
+import sys
 import urllib.parse
 from pathlib import Path
-from typing import Iterable, Tuple, Union
+from typing import Iterable
+from typing import Tuple
+from typing import Union
 
 _WIN32 = sys.platform == "win32"
 

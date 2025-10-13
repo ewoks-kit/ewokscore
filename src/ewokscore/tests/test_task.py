@@ -1,10 +1,13 @@
 import gc
-import pytest
 import json
 from glob import glob
 from pathlib import Path
+
+import pytest
+
 from ewokscore.task import Task
 from ewokscore.task import TaskInputError
+
 from .examples.tasks.sumtask import SumTask
 
 

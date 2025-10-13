@@ -1,9 +1,16 @@
-import random
 import hashlib
-from typing import Any, Optional, Type, Union
-from collections.abc import Mapping, Iterable, Set
+import random
+from collections.abc import Iterable
+from collections.abc import Mapping
+from collections.abc import Set
+from typing import Any
+from typing import Optional
+from typing import Type
+from typing import Union
+
 import numpy
 from ewoksutils.import_utils import qualname
+
 from . import missing_data
 
 

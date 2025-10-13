@@ -3,14 +3,18 @@ import logging
 import pkgutil
 import sys
 from fnmatch import fnmatch
-from types import FunctionType, ModuleType
-from typing import Generator, List, Optional, TypedDict
+from types import FunctionType
+from types import ModuleType
+from typing import Generator
+from typing import List
+from typing import Optional
+from typing import TypedDict
 
+from ewoksutils.import_utils import import_module
+from ewoksutils.import_utils import qualname
 
-from ewoksutils.import_utils import import_module, qualname
-
-from .task import Task
 from .entry_points import entry_points
+from .task import Task
 
 
 class _TaskInputs(TypedDict):

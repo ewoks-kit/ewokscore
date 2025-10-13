@@ -1,9 +1,11 @@
-from typing import Any, Mapping, MutableMapping
-from pathlib import Path
 import json
+from pathlib import Path
+from typing import Any
+from typing import Mapping
+from typing import MutableMapping
 
-from .file import FileProxy
 from . import atomic
+from .file import FileProxy
 
 
 def modify_dict(target: Mapping, source: MutableMapping):

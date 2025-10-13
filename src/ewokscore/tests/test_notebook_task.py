@@ -1,8 +1,10 @@
 import os
 import sys
+
 import pytest
-from ewokscore.task import Task
+
 from ewokscore.inittask import instantiate_task
+from ewokscore.task import Task
 
 from .examples import tasks
 

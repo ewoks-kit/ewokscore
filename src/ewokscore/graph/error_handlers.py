@@ -1,4 +1,5 @@
 from typing import Mapping
+
 import networkx
 
 from .analysis import node_ancestors

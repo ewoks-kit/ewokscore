@@ -1,7 +1,9 @@
-from typing import Callable, Optional
-from .task import Task
+from typing import Callable
+from typing import Optional
+
 from ewoksutils.import_utils import import_method
 
+from .task import Task
 
 _GENERATORS = dict()
 

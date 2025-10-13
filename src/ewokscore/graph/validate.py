@@ -1,14 +1,11 @@
 import networkx
 from packaging.version import parse as parse_version
 
-
 from ..inittask import validate_task_executable
 from .analysis import required_predecessors
-from .schema import (
-    LATEST_VERSION,
-    normalize_schema_version,
-    update_graph_schema,
-)
+from .schema import LATEST_VERSION
+from .schema import normalize_schema_version
+from .schema import update_graph_schema
 
 
 def validate_graph(graph: networkx.DiGraph) -> None:

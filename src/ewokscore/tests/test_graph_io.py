@@ -1,4 +1,5 @@
 import pytest
+
 from ewokscore import load_graph
 from ewokscore.graph import graph_io
 
