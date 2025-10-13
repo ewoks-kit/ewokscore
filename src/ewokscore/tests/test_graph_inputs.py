@@ -1,15 +1,15 @@
-from typing import Union
 from copy import deepcopy
+from typing import Union
 
 from pydantic import Field
 
-from ..task import Task
-from ..model import BaseInputModel
+from ..bindings import execute_graph
+from ..bindings import load_graph
 from ..graph import inputs
 from ..graph.taskgraph import TaskGraph
-from ..bindings import load_graph
-from ..bindings import execute_graph
 from ..missing_data import MISSING_DATA
+from ..model import BaseInputModel
+from ..task import Task
 
 
 def test_shorten_task_identifiers():

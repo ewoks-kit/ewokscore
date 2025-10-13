@@ -1,6 +1,6 @@
+import logging
 import sys
 from enum import Enum
-import logging
 
 _logger = logging.getLogger(__name__)
 

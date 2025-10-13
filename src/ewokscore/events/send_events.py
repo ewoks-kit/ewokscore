@@ -1,9 +1,12 @@
 """Define and parse ewoks events"""
 
 import traceback
-from numbers import Number
 from datetime import datetime
-from typing import Dict, List, Mapping, Optional
+from numbers import Number
+from typing import Dict
+from typing import List
+from typing import Mapping
+from typing import Optional
 
 from ewoksutils.event_utils import FIELD_TYPES
 

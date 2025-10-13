@@ -1,6 +1,6 @@
 from ewokscore.graph import load_graph
-from ewokscore.graph.analysis import start_nodes
 from ewokscore.graph.analysis import end_nodes
+from ewokscore.graph.analysis import start_nodes
 
 
 def test_graph_start_end_nodes():

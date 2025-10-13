@@ -1,6 +1,7 @@
-from ewokscore import execute_graph
-from ewokscore import Task
 from ewoksutils.import_utils import qualname
+
+from ewokscore import Task
+from ewokscore import execute_graph
 
 
 class SumTask(

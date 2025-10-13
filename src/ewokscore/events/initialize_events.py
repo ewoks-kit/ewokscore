@@ -1,10 +1,13 @@
 """Initialize ewoks event fields"""
 
-import os
 import getpass
+import os
 import socket
+from typing import Mapping
+from typing import Optional
+from typing import Union
 from uuid import uuid4
-from typing import Mapping, Optional, Union
+
 import networkx
 
 ExecInfoType = Union[Mapping, None]

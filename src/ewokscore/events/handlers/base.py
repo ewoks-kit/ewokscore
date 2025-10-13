@@ -1,4 +1,5 @@
 import logging
+
 from ewoksutils.event_utils import FIELD_TYPES
 
 __all__ = ["is_ewoks_event_handler", "EwoksEventHandlerMixIn", "EwoksEventHandler"]

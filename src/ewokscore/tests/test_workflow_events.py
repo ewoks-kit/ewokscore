@@ -1,17 +1,18 @@
 import logging
-from pprint import pformat
 import sqlite3
+from pprint import pformat
 from time import sleep
-from typing import Dict, List, Optional
+from typing import Dict
+from typing import List
+from typing import Optional
 
+from ewoksutils.event_utils import FIELD_TYPES
 from ewoksutils.import_utils import qualname
 from ewoksutils.sqlite3_utils import select
-from ewoksutils.event_utils import FIELD_TYPES
 
-from ewokscore import execute_graph
 from ewokscore import Task
+from ewokscore import execute_graph
 from ewokscore.events import cleanup as cleanup_events
-
 
 logger = logging.getLogger(__name__)
 

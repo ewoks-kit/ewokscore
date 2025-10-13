@@ -1,9 +1,9 @@
 import sys
 from typing import Tuple
 
-
 if sys.version_info < (3, 9):
     from importlib.metadata import EntryPoint
+
     from importlib_metadata import entry_points as _entry_points
 
     def entry_points(group: str) -> Tuple[EntryPoint]:

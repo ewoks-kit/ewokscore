@@ -1,12 +1,14 @@
 from pathlib import Path
+from typing import Any
+from typing import List
+from typing import Optional
 from urllib.parse import ParseResult
-from typing import List, Optional, Any
 
 from silx.utils.proxy import docstring
 
-from .uri import path_from_uri
-from . import proxy
 from .. import missing_data
+from . import proxy
+from .uri import path_from_uri
 
 
 class FileProxy(proxy.DataProxy, register=False):

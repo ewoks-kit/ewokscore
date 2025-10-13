@@ -1,8 +1,12 @@
-import networkx
-from typing import Iterator, Set, Dict
 from collections import defaultdict
-from ..node import NodeIdType
+from typing import Dict
+from typing import Iterator
+from typing import Set
+
+import networkx
+
 from ..inittask import get_task_class
+from ..node import NodeIdType
 
 
 def graph_is_cyclic(graph: networkx.DiGraph) -> bool:

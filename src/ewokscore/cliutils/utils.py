@@ -1,5 +1,6 @@
 import json
-from typing import Tuple, Any
+from typing import Any
+from typing import Tuple
 
 
 def parse_value(value: str) -> Any:
@@ -39,7 +40,8 @@ def parse_option(option: str) -> Tuple[str, Any]:
 
 def parse_workflow(args):
     if args.test:
-        from ewokscore.tests.examples.graphs import graph_names, get_graph
+        from ewokscore.tests.examples.graphs import get_graph
+        from ewokscore.tests.examples.graphs import graph_names
 
         graphs = list(graph_names())
         if args.workflow not in graphs:

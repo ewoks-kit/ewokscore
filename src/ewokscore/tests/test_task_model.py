@@ -4,9 +4,12 @@ from typing import Union
 import pytest
 from pydantic import field_validator
 
-from ewokscore.missing_data import MISSING_DATA, MissingData, is_missing_data
+from ewokscore.missing_data import MISSING_DATA
+from ewokscore.missing_data import MissingData
+from ewokscore.missing_data import is_missing_data
 from ewokscore.model import BaseInputModel
-from ewokscore.task import Task, TaskInputError
+from ewokscore.task import Task
+from ewokscore.task import TaskInputError
 from ewokscore.variable import Variable
 
 from .examples.tasks.sumtask import SumTask

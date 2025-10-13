@@ -1,5 +1,7 @@
 import gc
+
 import numpy
+
 from ewokscore import hashing
 
 

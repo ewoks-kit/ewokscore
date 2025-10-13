@@ -1,4 +1,5 @@
 from ewoksutils.logging_utils.sqlite3 import Sqlite3Handler
+
 from .base import EwoksEventHandlerMixIn
 
 

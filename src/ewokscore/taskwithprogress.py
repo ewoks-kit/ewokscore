@@ -1,6 +1,7 @@
 from typing import Optional
-from .task import Task
+
 from .progress import BaseProgress
+from .task import Task
 
 
 class TaskWithProgress(Task, register=False):

@@ -1,10 +1,12 @@
 import os
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
+
+from ewokscore.persistence.uri import parse_query
 from ewokscore.persistence.uri import parse_uri
 from ewokscore.persistence.uri import path_from_uri
-from ewokscore.persistence.uri import parse_query
 
 
 @pytest.mark.skipif(

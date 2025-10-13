@@ -1,11 +1,18 @@
-import numpy
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Union
 from urllib.parse import ParseResult
-from typing import Any, Dict, Union, Optional
 
-from .uri import parse_query, parse_uri, join_uri, uri_as_string
-from ..registration import Registered
-from ..hashing import UniversalHash
+import numpy
+
 from ..hashing import HasUhash
+from ..hashing import UniversalHash
+from ..registration import Registered
+from .uri import join_uri
+from .uri import parse_query
+from .uri import parse_uri
+from .uri import uri_as_string
 
 
 class PersistenceError(RuntimeError):

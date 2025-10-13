@@ -1,9 +1,13 @@
+from abc import ABC
+from abc import abstractmethod
 from pathlib import Path
-from abc import ABC, abstractmethod
-from typing import Any, Optional, Union, List
+from typing import Any
+from typing import List
+from typing import Optional
+from typing import Union
 
-from .graph import TaskGraph
 from .events.contexts import RawExecInfoType
+from .graph import TaskGraph
 
 
 class WorkflowEngine(ABC):

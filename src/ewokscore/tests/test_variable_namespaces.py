@@ -1,11 +1,12 @@
 import pytest
+
 from ewokscore import missing_data
-from ewokscore.variable import MutableVariableContainer
-from ewokscore.variable import VariableContainerNamespace
-from ewokscore.variable import ReadOnlyVariableContainerNamespace
-from ewokscore.variable import VariableContainerMissingNamespace
 from ewokscore.variable import MissingVariableError
+from ewokscore.variable import MutableVariableContainer
+from ewokscore.variable import ReadOnlyVariableContainerNamespace
 from ewokscore.variable import ReadOnlyVariableError
+from ewokscore.variable import VariableContainerMissingNamespace
+from ewokscore.variable import VariableContainerNamespace
 
 
 def test_namespace():

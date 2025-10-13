@@ -1,9 +1,11 @@
 import logging
-from queue import Queue, Empty
 from contextlib import contextmanager
 from logging.handlers import QueueHandler
+from queue import Empty
+from queue import Queue
 
 import pytest
+
 from ewokscore import events
 
 

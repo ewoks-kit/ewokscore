@@ -5,7 +5,9 @@ import logging
 import os
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
 import networkx
 import yaml

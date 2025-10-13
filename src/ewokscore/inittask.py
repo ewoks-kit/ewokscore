@@ -1,20 +1,20 @@
-from functools import partial
-from typing import Optional, Tuple
 import warnings
+from functools import partial
+from typing import Optional
+from typing import Tuple
 
 from ewoksutils.import_utils import import_method
 from ewoksutils.import_utils import import_qualname
 
-from .task import Task
+from .dynamictask import get_dynamically_task_class
 from .methodtask import MethodExecutorTask
-from .scripttask import ScriptExecutorTask
+from .node import NodeIdType
+from .node import get_node_label
+from .notebooktask import NotebookExecutorTask
 from .ppftasks import PpfMethodExecutorTask
 from .ppftasks import PpfPortTask
-from .notebooktask import NotebookExecutorTask
-from .dynamictask import get_dynamically_task_class
-from .node import get_node_label
-from .node import NodeIdType
-
+from .scripttask import ScriptExecutorTask
+from .task import Task
 
 TASK_EXECUTABLE_ATTRIBUTE = (
     "class",

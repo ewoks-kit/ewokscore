@@ -1,12 +1,20 @@
-from collections.abc import Iterable, Mapping, MutableMapping, Sequence
+from collections.abc import Iterable
+from collections.abc import Mapping
+from collections.abc import MutableMapping
+from collections.abc import Sequence
 from numbers import Integral
-from typing import Any, Dict, Optional, Union
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Union
 
 from ewoksutils.deprecation_utils import deprecated
 
-from . import hashing, missing_data
+from . import hashing
+from . import missing_data
 from .persistence import instantiate_data_proxy
-from .persistence.proxy import DataProxy, DataUri
+from .persistence.proxy import DataProxy
+from .persistence.proxy import DataUri
 
 
 def data_proxy_from_varinfo(

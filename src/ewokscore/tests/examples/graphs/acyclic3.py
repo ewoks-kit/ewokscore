@@ -1,5 +1,6 @@
-from . import graph
 from ewokscore import missing_data
+
+from . import graph
 
 
 @graph

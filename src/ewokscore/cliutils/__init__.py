@@ -1,6 +1,6 @@
-from . import clilogutils
-from . import cliexecuteutils
 from . import cliconvertutils
+from . import cliexecuteutils
+from . import clilogutils
 
 
 def add_execute_parameters(parser, shell=False):

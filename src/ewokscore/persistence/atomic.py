@@ -1,9 +1,12 @@
 import os
-import string
 import random
-from pathlib import Path
+import string
 from contextlib import contextmanager
-from typing import Iterator, Optional, Tuple
+from pathlib import Path
+from typing import Iterator
+from typing import Optional
+from typing import Tuple
+
 from silx.io import h5py_utils
 
 

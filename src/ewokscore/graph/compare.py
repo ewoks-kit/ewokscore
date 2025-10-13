@@ -1,4 +1,6 @@
-from typing import List, Sequence
+from typing import List
+from typing import Sequence
+
 import networkx
 
 

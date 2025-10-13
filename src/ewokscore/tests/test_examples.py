@@ -1,14 +1,19 @@
-from typing import Iterable, Optional, Tuple, Type, Union
 from pathlib import Path
+from typing import Iterable
+from typing import Optional
+from typing import Tuple
+from typing import Type
+from typing import Union
+
 import pytest
 
-from ewokscore import load_graph
 from ewokscore import convert_graph
 from ewokscore import graph_is_supported
+from ewokscore import load_graph
 from ewokscore.graph.analysis import start_nodes
 
-from .examples.graphs import graph_names
 from .examples.graphs import get_graph
+from .examples.graphs import graph_names
 from .utils.results import assert_execute_graph_default_result
 from .utils.results import assert_execute_graph_tasks
 from .utils.show import show_graph

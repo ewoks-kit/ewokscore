@@ -1,6 +1,8 @@
 import os
 import sys
+
 import pytest
+
 from ewokscore.task import Task
 
 WIN32 = sys.platform == "win32"

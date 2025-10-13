@@ -1,12 +1,14 @@
-from typing import Dict, Union
-import networkx
-from packaging.version import parse as parse_version, Version
 import logging
+from typing import Dict
+from typing import Union
+
+import networkx
+from packaging.version import Version
+from packaging.version import parse as parse_version
 
 from .metadata import SchemaMetadata
-
-from .update import from_v1_0_to_v1_1, v0_update
-
+from .update import from_v1_0_to_v1_1
+from .update import v0_update
 
 _VERSIONS = None
 

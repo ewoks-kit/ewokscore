@@ -1,6 +1,8 @@
 import json
-import yaml
+
 import pytest
+import yaml
+
 from ewokscore import execute_graph
 from ewokscore.graph import load_graph
 
