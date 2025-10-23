@@ -115,9 +115,9 @@ def test_graph_inputs():
             id="task3",
             label=None,
             task_identifier="method_example",
-            name="f",
-            value=-3,
-            required=False,
+            name="g",
+            value=MISSING_DATA,
+            required=True,
             description=None,
             examples=None,
             import_error=None,
@@ -126,9 +126,9 @@ def test_graph_inputs():
             id="task3",
             label=None,
             task_identifier="method_example",
-            name="g",
-            value=MISSING_DATA,
-            required=True,
+            name="f",
+            value=-3,
+            required=False,
             description=None,
             examples=None,
             import_error=None,
@@ -145,11 +145,6 @@ def test_graph_inputs():
             import_error=ModuleNotFoundError("No module named 'does'"),
         ),
     ]
-
-    def sort(node_input):
-        return node_input.id, node_input.name
-
-    node_inputs = sorted(node_inputs, key=sort)
 
     # Patch exceptions for comparison
     for node_input in node_inputs:
@@ -179,8 +174,8 @@ def test_graph_inputs_as_table():
         ["b⁽*⁾", "<MISSING_DATA>", "", "", "ClassExample", "task1", ""],
         ["g⁽*⁾", "<MISSING_DATA>", "", "", "method_example", "task3", ""],
         ["a", "1", "", "", "ClassExample", "task1", ""],
-        ["d", "<MISSING_DATA>", "", "", "ClassExample", "task1", ""],
         ["c", "<MISSING_DATA>", "", "", "ClassExample", "task1", ""],
+        ["d", "<MISSING_DATA>", "", "", "ClassExample", "task1", ""],
         ["c", "4", "parameter c", "", "ClassExampleWithModel", "task2", "task2 label"],
         [
             "d",
@@ -201,10 +196,7 @@ def test_graph_inputs_as_table():
         "⁽†⁾ Information from workflow only (task cannot be imported).",
     ]
 
-    nrequiredmissing = 2
-    assert sorted(rows[:nrequiredmissing]) == sorted(expected_rows[:nrequiredmissing])
-    assert sorted(rows[nrequiredmissing:]) == sorted(expected_rows[nrequiredmissing:])
-
+    assert rows == expected_rows
     assert column_names == expected_column_names
     assert metadata == expected_metadata
     assert footnotes == expected_footnotes

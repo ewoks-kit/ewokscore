@@ -311,7 +311,7 @@ def _get_all_task_output_names(task_type: str, task_identifier: str) -> List[str
         except Exception:
             return []
         else:
-            return list(_task_output_names_from_class(task_cls))
+            return _task_output_names_from_class(task_cls)
     elif task_type == "method":
         return ["return_value"]
     else:
@@ -376,8 +376,8 @@ def _node_inputs_from_class_methods(
     """
     Return all task input parameters based on a task class.
     """
-    input_names = [(name, True) for name in task_cls.required_input_names()]
-    input_names += [(name, False) for name in task_cls.optional_input_names()]
+    input_names = [(name, True) for name in sorted(task_cls.required_input_names())]
+    input_names += [(name, False) for name in sorted(task_cls.optional_input_names())]
 
     for name, required in input_names:
         value = default_input_map.get(name, MISSING_DATA)
@@ -425,8 +425,8 @@ def _node_inputs_from_method(
         )
 
 
-def _task_output_names_from_class(task_cls) -> Set[str]:
-    return task_cls.output_names()
+def _task_output_names_from_class(task_cls) -> List[str]:
+    return sorted(task_cls.output_names())
 
 
 def _node_inputs_from_defaults(
