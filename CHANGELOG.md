@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2025-10-23
+
 ### Fixed
 
 - `ewokscore.graph.inputs.graph_inputs`: deterministic order of task inputs.
@@ -328,7 +330,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `execute_graph` for naive task scheduling in a single thread.
 - Execution events based on python's logging facility.
 
-[unreleased]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v2.0.0...HEAD
+[unreleased]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v2.0.1...HEAD
+[2.0.1]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v2.0.0...v2.0.1
 [2.0.0]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v1.6.0...v2.0.0
 [1.6.0]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v1.5.0...v1.6.0
 [1.5.0]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v1.4.0...v1.5.0
