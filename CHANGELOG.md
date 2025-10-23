@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `ewokscore.graph.inputs.graph_inputs`: deterministic order of task inputs.
+
 ## [2.0.0] - 2025-07-25
 
 ### Added
