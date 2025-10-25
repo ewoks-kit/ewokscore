@@ -85,6 +85,7 @@ omit = ["*/tests/*"]
 "json_string" = "ewokscore.engine:CoreWorkflowEngine"
 "json_module" = "ewokscore.engine:CoreWorkflowEngine"
 "yaml" = "ewokscore.engine:CoreWorkflowEngine"
+"test_core" = "ewokscore.engine:CoreWorkflowEngine"
 
 [tool.isort]
 profile = "black"

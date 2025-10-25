@@ -22,7 +22,7 @@ from .schema import normalize_schema_version
 logger = logging.getLogger(__name__)
 
 GraphRepresentation = enum.Enum(
-    "GraphRepresentation", "json json_dict json_string json_module yaml"
+    "GraphRepresentation", "json json_dict json_string json_module yaml test_core"
 )
 
 network_x_version = Version(networkx.__version__)
@@ -83,6 +83,9 @@ def dump(
             graph, destination=destination, representation="json", **save_options
         )
 
+    if representation == GraphRepresentation.test_core:
+        raise TypeError("'test_core' workflows representations cannot be saved")
+
     raise TypeError(representation, type(representation))
 
 
@@ -95,6 +98,7 @@ def load(
     """From persistent to runtime representation"""
     if isinstance(representation, str):
         representation = GraphRepresentation.__members__[representation]
+
     if representation is None:
         if isinstance(source, Mapping):
             representation = GraphRepresentation.json_dict
@@ -140,6 +144,10 @@ def load(
             root_dir=root_dir,
             root_module=root_module,
         )
+    elif representation == GraphRepresentation.test_core:
+        from ..tests.examples.graphs import get_graph
+
+        return load(get_graph(source)[0], representation="json_dict")
     else:
         raise TypeError(representation, type(representation))
 
