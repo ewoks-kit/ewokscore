@@ -81,11 +81,12 @@ class CoreWorkflowEngine(WorkflowEngineWithSerialization):
         if isinstance(graph, Mapping):
             return "json_dict"
         if isinstance(graph, (str, Path)):
+            if graph == "test_core":
+                return "test_core"
             if isinstance(graph, str) and "{" in graph and "}" in graph:
                 return "json_string"
-            else:
-                filename = str(graph).lower()
-                if filename.endswith(".json"):
-                    return "json"
-                elif filename.endswith((".yml", ".yaml")):
-                    return "yaml"
+            filename = str(graph).lower()
+            if filename.endswith(".json"):
+                return "json"
+            elif filename.endswith((".yml", ".yaml")):
+                return "yaml"
