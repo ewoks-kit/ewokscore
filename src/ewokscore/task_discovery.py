@@ -29,6 +29,7 @@ class _CommonTaskFields(_TaskInputs):
     category: str
     description: Optional[str]
     input_model: Optional[str]
+    output_model: Optional[str]
 
 
 class TaskDict(_CommonTaskFields):
@@ -122,6 +123,7 @@ def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, No
             continue
 
         input_model = cls.input_model()
+        output_model = cls.output_model()
         yield {
             "task_type": "class",
             "task_identifier": task_identifier,
@@ -131,6 +133,7 @@ def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, No
             "category": category,
             "description": cls.__doc__,
             "input_model": qualname(input_model) if input_model else None,
+            "output_model": qualname(output_model) if output_model else None,
             "n_required_positional_inputs": cls.n_required_positional_inputs(),
         }
 
@@ -311,4 +314,5 @@ def _common_method_task_fields(
         "category": task_identifier.split(".")[0],
         "description": method.__doc__,
         "input_model": None,
+        "output_model": None,
     }

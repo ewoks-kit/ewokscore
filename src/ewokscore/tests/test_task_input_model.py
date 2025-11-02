@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Union
 
 import pytest
+from pydantic import BaseModel
 from pydantic import field_validator
 
 from ewokscore.missing_data import MISSING_DATA
@@ -26,8 +27,6 @@ class PassThroughTask(Task, input_model=User, output_names=["result"]):
 
 
 def test_error_if_input_model_does_not_derive_from_base_model():
-    from pydantic import BaseModel
-
     class WrongBaseModelUser(BaseModel):
         id: int
         name: str = "Jane Doe"
@@ -190,23 +189,17 @@ def test_missing_data():
     assert (
         model_task.get_input_values() == regular_task.get_input_values() == {"one": 1}
     )
-    assert (
-        is_missing_data(model_task.get_input_value("two"))
-        == is_missing_data(regular_task.get_input_value("two"))
-        == True  # noqa: E712
-    )
-    assert (
-        model_task.missing_inputs["two"]
-        == regular_task.missing_inputs["two"]
-        == True  # noqa: E712
-    )
+    assert is_missing_data(model_task.get_input_value("two"))
+    assert is_missing_data(regular_task.get_input_value("two"))
+    assert model_task.missing_inputs["two"]
+    assert regular_task.missing_inputs["two"]
 
 
 class UserWithTypeCoercion(User):
     age: int
 
     @field_validator("age", mode="before")
-    def coerce_uri(cls, value):
+    def coerce_age(cls, value):
         if isinstance(value, float):
             return int(value + 0.5)
         if not isinstance(value, int):

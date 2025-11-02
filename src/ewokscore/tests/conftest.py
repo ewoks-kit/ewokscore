@@ -62,6 +62,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test 1",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -73,6 +74,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": None,
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -84,6 +86,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": None,
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 2,
         },
         {
@@ -95,6 +98,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test 3",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -106,6 +110,19 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": None,
             "input_model": "ewokscore.tests.discover.module2.Task4Inputs",
+            "output_model": None,
+            "n_required_positional_inputs": 0,
+        },
+        {
+            "task_type": "class",
+            "task_identifier": "ewokscore.tests.discover.module2.MyTask5",
+            "required_input_names": [],
+            "optional_input_names": [],
+            "output_names": ["a", "b", "c", "d"],
+            "category": "ewokscore",
+            "description": None,
+            "input_model": None,
+            "output_model": "ewokscore.tests.discover.module2.Task5Outputs",
             "n_required_positional_inputs": 0,
         },
     ]
@@ -120,6 +137,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test 2",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -131,6 +149,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": None,
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -142,6 +161,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": None,
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 2,
         },
         {
@@ -153,6 +173,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -164,6 +185,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": None,
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
     ]
@@ -178,6 +200,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test 2",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -189,6 +212,7 @@ def expected_tasks(module=None, task_type=None):
             "category": "ewokscore",
             "description": "Test",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
     ]

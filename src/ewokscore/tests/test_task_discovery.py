@@ -40,6 +40,7 @@ def test_all_tasks_discovery():
             "task_type": "class",
             "description": "Check whether a value is too small",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -51,6 +52,7 @@ def test_all_tasks_discovery():
             "task_type": "class",
             "description": "Add two number with intentional exception",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -62,6 +64,7 @@ def test_all_tasks_discovery():
             "task_type": "class",
             "description": "A task without outputs",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -69,11 +72,11 @@ def test_all_tasks_discovery():
             "optional_input_names": ["delay"],
             "output_names": ["sum"],
             "required_input_names": ["list"],
-            "input_model": None,
             "task_identifier": "ewokscore.tests.examples.tasks.sumlist.SumList",
             "task_type": "class",
             "description": "Add items from a list",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -85,6 +88,7 @@ def test_all_tasks_discovery():
             "task_type": "class",
             "description": "Add two numbers with a delay",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -96,6 +100,7 @@ def test_all_tasks_discovery():
             "output_names": ["return_value"],
             "description": "Add 1 to the first argument",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -107,6 +112,7 @@ def test_all_tasks_discovery():
             "output_names": ["return_value"],
             "description": "Sum objects and add 1",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
         {
@@ -118,6 +124,7 @@ def test_all_tasks_discovery():
             "output_names": ["return_value"],
             "description": "Return positional arguments as a tuple",
             "input_model": None,
+            "output_model": None,
             "n_required_positional_inputs": 0,
         },
     ]
