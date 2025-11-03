@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Task outputs can now defined via a Pydantic model (`output_model`) instead of `output_names`.
+  These two ways of defining outputs are incompatible: one must be used or the other but never simultaneously (including when subclassing tasks).
+- Task discovery results now include an `output_model` field. This field is the full qualified name of the model if
+  an output model was set for the task, `None` otherwise.
+
 ## [3.0.0] - 2025-10-31
 
 ### Added
@@ -73,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Task inputs can now defined via a Pydantic model (`input_model`) instead of `input_names`, `optional_input_names`.
   These two ways of defining inputs are incompatible: one must be used or the other but never simultaneously (including when subclassing tasks).
-- Task discovery results now include a `input_model` field. This field is the full qualified name of the model if
+- Task discovery results now include an `input_model` field. This field is the full qualified name of the model if
   an input model was set for the task, `None` otherwise.
 
 ### Deprecated

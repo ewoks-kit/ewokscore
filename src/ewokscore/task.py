@@ -22,6 +22,7 @@ from . import missing_data
 from . import node
 from .hashing import UniversalHashable
 from .model import BaseInputModel
+from .model import BaseOutputModel
 from .registration import Registered
 from .variable import ReadOnlyVariableContainerNamespace
 from .variable import VariableContainer
@@ -51,6 +52,7 @@ class Task(Registered, UniversalHashable, register=False):
     _OUTPUT_NAMES: Set[str] = set()
     _N_REQUIRED_POSITIONAL_INPUTS: int = 0
     _INPUT_MODEL: Union[Type[BaseInputModel], None] = None
+    _OUTPUT_MODEL: Union[Type[BaseOutputModel], None] = None
 
     def __init__(
         self,
@@ -158,6 +160,22 @@ class Task(Registered, UniversalHashable, register=False):
         for name in self._INPUT_MODEL.model_fields.keys():
             self.__inputs[name].value = getattr(model, name)
 
+    def _validate_outputs(self) -> None:
+        """Check outputs with accessing the output values.
+        Persisted variables are loaded.
+
+        :raises pydantic.ValidationError:
+        """
+        if self._OUTPUT_MODEL is None:
+            raise ValueError(
+                "Trying to validate outputs while no output model was specified"
+            )
+        outputs = self.__outputs.get_variable_values()
+        model = self._OUTPUT_MODEL(**outputs)
+
+        for name in self._OUTPUT_MODEL.model_fields.keys():
+            self.__outputs[name].value = getattr(model, name)
+
     def __init_subclass__(
         subclass,
         input_names: Sequence[str] = tuple(),
@@ -165,6 +183,7 @@ class Task(Registered, UniversalHashable, register=False):
         output_names: Sequence[str] = tuple(),
         n_required_positional_inputs: int = 0,
         input_model: Union[Type[BaseInputModel], None] = None,
+        output_model: Union[Type[BaseInputModel], None] = None,
         **kwargs,
     ):
         super().__init_subclass__(**kwargs)
@@ -175,7 +194,7 @@ class Task(Registered, UniversalHashable, register=False):
             n_required_positional_inputs,
             input_model,
         )
-        output_names_set = set(output_names)
+        output_names_set = subclass._generate_outputs_set(output_names, output_model)
 
         reserved = subclass._reserved_variable_names()
         forbidden = input_names_set & reserved
@@ -195,6 +214,7 @@ class Task(Registered, UniversalHashable, register=False):
         subclass._OUTPUT_NAMES = subclass._OUTPUT_NAMES | output_names_set
         subclass._N_REQUIRED_POSITIONAL_INPUTS = n_required_positional_inputs
         subclass._INPUT_MODEL = input_model
+        subclass._OUTPUT_MODEL = output_model
 
     @classmethod
     def _generate_inputs_sets(
@@ -255,6 +275,51 @@ class Task(Registered, UniversalHashable, register=False):
             set(name for name, field in fields.items() if not field.is_required()),
         )
 
+    @classmethod
+    def _generate_outputs_set(
+        subclass,
+        output_names: Sequence[str],
+        output_model: Union[Type[BaseOutputModel], None],
+    ) -> Set[str]:
+        if output_model is None:
+            output_names_set = set(output_names)
+
+            has_output_names = bool(output_names_set)
+            if has_output_names and subclass._OUTPUT_MODEL is not None:
+                raise TypeError(
+                    f"""Cannot use output_names since the original task {subclass} uses a output model.
+                    Specify outputs via a subclass of the original task output model."""
+                )
+
+            return output_names_set
+
+        if not issubclass(output_model, BaseOutputModel):
+            raise TypeError(
+                "output_model should be a subclass of ewokscore.model.BaseOutputModel"
+            )
+
+        if output_names:
+            raise TypeError(
+                "output_model cannot be used with output_names. Please use one or the other"
+            )
+
+        subclass_has_output_names = bool(subclass._OUTPUT_NAMES)
+        if subclass_has_output_names and subclass._OUTPUT_MODEL is None:
+            raise TypeError(
+                f"""Cannot use output_model since the original task {subclass} uses output_names.
+                Specify outputs via a output_names."""
+            )
+
+        if subclass._OUTPUT_MODEL is not None and not issubclass(
+            output_model, subclass._OUTPUT_MODEL
+        ):
+            raise TypeError(
+                f"Output model {output_model} from task subclass must be a subclass of the original task output model {subclass._OUTPUT_MODEL}"
+            )
+
+        fields = output_model.model_fields
+        return set(fields)
+
     @staticmethod
     def _reserved_variable_names():
         return VariableContainerNamespace._reserved_variable_names()
@@ -302,6 +367,10 @@ class Task(Registered, UniversalHashable, register=False):
     @classmethod
     def input_model(cls) -> Optional[BaseInputModel]:
         return cls._INPUT_MODEL
+
+    @classmethod
+    def output_model(cls) -> Optional[BaseOutputModel]:
+        return cls._OUTPUT_MODEL
 
     @classmethod
     def n_required_positional_inputs(cls) -> int:
@@ -620,6 +689,8 @@ class Task(Registered, UniversalHashable, register=False):
 
                 self.run()
 
+                if self._OUTPUT_MODEL:
+                    self._validate_outputs()
                 self._update_output_metadata()
                 self.__outputs.dump()
                 self.__succeeded = True

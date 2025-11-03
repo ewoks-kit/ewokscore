@@ -1,5 +1,6 @@
 from ewokscore import Task
 from ewokscore.model import BaseInputModel
+from ewokscore.model import BaseOutputModel
 
 
 class MyTask3(
@@ -31,4 +32,15 @@ class Task4Inputs(BaseInputModel):
 
 
 class MyTask4(Task, input_model=Task4Inputs):
+    pass
+
+
+class Task5Outputs(BaseOutputModel):
+    a: int
+    b: float
+    c: int = 0
+    d: str = "DEFAULT"
+
+
+class MyTask5(Task, output_model=Task5Outputs):
     pass
