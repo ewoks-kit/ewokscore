@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2025-11-03
+
 ### Added
 
 - Task outputs can now defined via a Pydantic model (`output_model`) instead of `output_names`.
@@ -347,7 +349,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `execute_graph` for naive task scheduling in a single thread.
 - Execution events based on python's logging facility.
 
-[unreleased]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v3.0.0...HEAD
+[unreleased]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v3.1.0...HEAD
+[3.1.0]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v3.0.0...v3.1.0
 [3.0.0]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v2.0.1...v3.0.0
 [2.0.1]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v2.0.0...v2.0.1
 [2.0.0]: https://gitlab.esrf.fr/workflow/ewoks/ewokscore/compare/v1.6.0...v2.0.0
