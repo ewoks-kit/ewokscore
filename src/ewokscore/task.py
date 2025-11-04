@@ -51,8 +51,8 @@ class Task(Registered, UniversalHashable, register=False):
     _OPTIONAL_INPUT_NAMES: Set[str] = set()
     _OUTPUT_NAMES: Set[str] = set()
     _N_REQUIRED_POSITIONAL_INPUTS: int = 0
-    _INPUT_MODEL: Union[Type[BaseInputModel], None] = None
-    _OUTPUT_MODEL: Union[Type[BaseOutputModel], None] = None
+    _INPUT_MODEL: Optional[Type[BaseInputModel]] = None
+    _OUTPUT_MODEL: Optional[Type[BaseOutputModel]] = None
 
     def __init__(
         self,
@@ -365,11 +365,11 @@ class Task(Registered, UniversalHashable, register=False):
         return cls._OUTPUT_NAMES
 
     @classmethod
-    def input_model(cls) -> Optional[BaseInputModel]:
+    def input_model(cls) -> Optional[Type[BaseInputModel]]:
         return cls._INPUT_MODEL
 
     @classmethod
-    def output_model(cls) -> Optional[BaseOutputModel]:
+    def output_model(cls) -> Optional[Type[BaseOutputModel]]:
         return cls._OUTPUT_MODEL
 
     @classmethod
