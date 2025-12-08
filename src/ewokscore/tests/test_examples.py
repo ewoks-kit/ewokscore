@@ -21,11 +21,11 @@ from .utils.show import show_graph
 
 @pytest.mark.parametrize("graph_name", graph_names())
 @pytest.mark.parametrize("scheme", (None, "json", "nexus"))
-def test_execute_graph(engine, graph_name, scheme, tmpdir):
+def test_execute_graph(engine, graph_name, scheme, tmp_path):
     graph, expected = get_graph(graph_name)
     ewoksgraph = load_graph(graph)
     if scheme:
-        varinfo = {"root_uri": str(tmpdir), "scheme": scheme}
+        varinfo = {"root_uri": str(tmp_path), "scheme": scheme}
     else:
         varinfo = None
     if not graph_is_supported(ewoksgraph):
@@ -80,13 +80,13 @@ def test_start_nodes():
     "representation", (None, "json", "json_dict", "json_string", "yaml")
 )
 @pytest.mark.parametrize("path_format", (str, Path))
-def test_serialize_graph(graph_name, representation, path_format, tmpdir):
+def test_serialize_graph(graph_name, representation, path_format, tmp_path):
     graph, _ = get_graph(graph_name)
     ewoksgraph = load_graph(graph)
     if representation == "yaml":
-        destination = path_format(tmpdir / "file.yml")
+        destination = path_format(tmp_path / "file.yml")
     elif representation == "json":
-        destination = path_format(tmpdir / "file.json")
+        destination = path_format(tmp_path / "file.json")
     else:
         destination = None
     inmemorydump = ewoksgraph.dump(destination, representation=representation)
@@ -102,16 +102,16 @@ def test_serialize_graph(graph_name, representation, path_format, tmpdir):
 
 @pytest.mark.parametrize("graph_name", graph_names())
 @pytest.mark.parametrize("path_format", (str, Path))
-def test_convert_graph(graph_name, path_format, tmpdir):
+def test_convert_graph(graph_name, path_format, tmp_path):
     graph, _ = get_graph(graph_name)
     ewoksgraph = load_graph(graph)
-    assert_convert_graph(convert_graph, ewoksgraph, tmpdir, path_format)
+    assert_convert_graph(convert_graph, ewoksgraph, tmp_path, path_format)
 
 
 def assert_convert_graph(
     convert_graph,
     ewoksgraph,
-    tmpdir,
+    tmp_path,
     path_format: Optional[Union[Type[str], Type[Path]]] = None,
     representations: Optional[Iterable[Tuple[dict, dict, Optional[str]]]] = None,
 ):
@@ -139,7 +139,7 @@ def assert_convert_graph(
         load_options, _, _ = convert_from
         _, save_options, fileext = convert_to
         if fileext:
-            destination = path_format(tmpdir / f"file.{fileext}")
+            destination = path_format(tmp_path / f"file.{fileext}")
         else:
             destination = None
         result = convert_graph(

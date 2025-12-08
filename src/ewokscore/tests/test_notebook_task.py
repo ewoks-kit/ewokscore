@@ -37,8 +37,8 @@ def test_notebook_task(notebook, testkernel):
 
 
 @pytest.mark.xfail(sys.version_info < (3, 8), reason="papermill #711", strict=False)
-def test_notebook_task_save(tmpdir, notebook, testkernel):
-    output_notebook = tmpdir / "nb.ipynb"
+def test_notebook_task_save(tmp_path, notebook, testkernel):
+    output_notebook = tmp_path / "nb.ipynb"
     notebook = os.path.join(tasks.__path__[0], "notebooktask.ipynb")
     task = Task.instantiate(
         "NotebookExecutorTask",

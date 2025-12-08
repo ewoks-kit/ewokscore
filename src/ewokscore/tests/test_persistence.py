@@ -8,7 +8,7 @@ from ewokscore.persistence.json import JsonProxy
 from ewokscore.persistence.nexus import NexusProxy
 
 
-def test_json_proxy_uri(tmpdir):
+def test_json_proxy_uri(tmp_path):
     hashable = UniversalHashable(uhash("somedata"))
     identifier = str(hashable.uhash)
     proxy = JsonProxy()
@@ -16,9 +16,9 @@ def test_json_proxy_uri(tmpdir):
     proxy = JsonProxy(uhash_source=hashable)
     assert proxy.uri is None
 
-    proxy = JsonProxy(uhash_source=hashable, root_uri=str(tmpdir))
-    assert str(proxy.uri) == f"json://{tmpdir/identifier}.json"
-    tmpfile = tmpdir / "file"
+    proxy = JsonProxy(uhash_source=hashable, root_uri=str(tmp_path))
+    assert str(proxy.uri) == f"json://{tmp_path/identifier}.json"
+    tmpfile = tmp_path / "file"
     proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json")
     assert str(proxy.uri) == f"json://{tmpfile/identifier}.json"
     proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json?path=/a")
@@ -33,7 +33,7 @@ def test_json_proxy_uri(tmpdir):
     assert str(proxy2.uri) == f"json://{tmpfile/'a'/'b'/'c'/identifier}.json"
 
 
-def test_nexus_proxy_uri(tmpdir):
+def test_nexus_proxy_uri(tmp_path):
     hashable = UniversalHashable(uhash("somedata"))
     identifier = str(hashable.uhash)
     proxy = NexusProxy()
@@ -41,9 +41,9 @@ def test_nexus_proxy_uri(tmpdir):
     proxy = NexusProxy(uhash_source=hashable)
     assert proxy.uri is None
 
-    proxy = NexusProxy(uhash_source=hashable, root_uri=str(tmpdir))
-    assert str(proxy.uri) == f"nexus://{tmpdir/identifier}.nx?path={identifier}"
-    tmpfile = tmpdir / "file"
+    proxy = NexusProxy(uhash_source=hashable, root_uri=str(tmp_path))
+    assert str(proxy.uri) == f"nexus://{tmp_path/identifier}.nx?path={identifier}"
+    tmpfile = tmp_path / "file"
     proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.nx")
     assert str(proxy.uri) == f"nexus://{tmpfile}.nx?path={identifier}"
     proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.h5?path=/a")
@@ -60,13 +60,13 @@ def test_nexus_proxy_uri(tmpdir):
 
 @pytest.mark.parametrize("scheme", ("json", "nexus"))
 @pytest.mark.parametrize("full", (True, False))
-def test_proxy_dump(scheme, full, tmpdir):
+def test_proxy_dump(scheme, full, tmp_path):
     if scheme == "nexus":
         extension = ".nx"
     else:
         extension = ".json"
 
-    root_uri = tmpdir
+    root_uri = tmp_path
     if full:
         root_uri /= f"dataset{extension}::/scan/task/output_variable_a"
     root_uri = f"{scheme}://{root_uri}"

@@ -21,11 +21,11 @@ if __name__ == "__main__":
 
 @pytest.mark.parametrize("shebang", [True, False])
 @pytest.mark.parametrize("fail", [True, False])
-def test_python_script_task(tmpdir, varinfo, shebang, fail):
+def test_python_script_task(tmp_path, varinfo, shebang, fail):
     if WIN32 and shebang:
         pytest.skip("windows does not have shebangs")
 
-    pyscriptname = tmpdir / "test.py"
+    pyscriptname = tmp_path / "test.py"
     with open(pyscriptname, mode="w") as f:
         if shebang:
             f.write(f"#!{sys.executable}\n")
@@ -101,14 +101,14 @@ fi
 
 @pytest.mark.parametrize("shebang", [True, False])
 @pytest.mark.parametrize("fail", [True, False])
-def test_shell_script_task(tmpdir, varinfo, shebang, fail):
+def test_shell_script_task(tmp_path, varinfo, shebang, fail):
     if WIN32:
         if shebang:
             pytest.skip("windows does not have shebangs")
         ext = ".bat"
     else:
         ext = ".sh"
-    filename = tmpdir / f"test{ext}"
+    filename = tmp_path / f"test{ext}"
     with open(filename, mode="w") as f:
         if shebang:
             f.write("#!/bin/bash\n")
@@ -135,15 +135,15 @@ def test_shell_script_task(tmpdir, varinfo, shebang, fail):
     _assert_outputs(task, a, fail)
 
 
-def test_command_task(tmpdir, varinfo):
-    filename = tmpdir / "test.txt"
+def test_command_task(tmp_path, varinfo):
+    filename = tmp_path / "test.txt"
     with open(filename, mode="w"):
         pass
 
     task = Task.instantiate(
         "ScriptExecutorTask",
         inputs={
-            "0": str(tmpdir),
+            "0": str(tmp_path),
             "_script": "dir",
             "_capture_output": True,
             "_raise_on_error": False,

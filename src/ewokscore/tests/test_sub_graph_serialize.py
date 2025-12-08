@@ -220,31 +220,31 @@ def graph(_subgraph):
     }
 
 
-def savegraph(graph, tmpdir, name, representation="json"):
+def savegraph(graph, tmp_path, name, representation="json"):
     if representation == "json":
         filename = name + ".json"
-        with open(tmpdir / filename, mode="w") as f:
+        with open(tmp_path / filename, mode="w") as f:
             json.dump(graph, f, indent=2)
     elif representation == "yaml":
         filename = name + ".yml"
-        with open(tmpdir / filename, mode="w") as f:
+        with open(tmp_path / filename, mode="w") as f:
             yaml.dump(graph, f)
     else:
         raise ValueError(representation)
     return filename
 
 
-def serialized_graph(tmpdir, representation="json") -> str:
+def serialized_graph(tmp_path, representation="json") -> str:
     subname = savegraph(
-        subsubsubgraph(), tmpdir, "subsubsubgraph", representation=representation
+        subsubsubgraph(), tmp_path, "subsubsubgraph", representation=representation
     )
     subname = savegraph(
-        subsubgraph(subname), tmpdir, "subsubgraph", representation=representation
+        subsubgraph(subname), tmp_path, "subsubgraph", representation=representation
     )
     subname = savegraph(
-        subgraph(subname), tmpdir, "subgraph", representation=representation
+        subgraph(subname), tmp_path, "subgraph", representation=representation
     )
-    return savegraph(graph(subname), tmpdir, "graph", representation=representation)
+    return savegraph(graph(subname), tmp_path, "graph", representation=representation)
 
 
 def nonserialized_graph() -> dict:
@@ -254,12 +254,12 @@ def nonserialized_graph() -> dict:
 @pytest.mark.parametrize(
     "representation", (None, "json", "json_dict", "json_string", "yaml")
 )
-def test_sub_graph_serialize(representation, tmpdir):
+def test_sub_graph_serialize(representation, tmp_path):
     ewoksgraph = load_graph(nonserialized_graph())
     if representation == "yaml":
-        destination = str(tmpdir / "file.yml")
+        destination = str(tmp_path / "file.yml")
     elif representation == "json":
-        destination = str(tmpdir / "file.json")
+        destination = str(tmp_path / "file.json")
     else:
         destination = None
     inmemorydump = ewoksgraph.dump(destination, representation=representation)
@@ -274,9 +274,9 @@ def test_sub_graph_serialize(representation, tmpdir):
 
 
 @pytest.mark.parametrize("representation", ("json", "yaml"))
-def test_sub_graph_execute(representation, tmpdir):
-    g = serialized_graph(tmpdir, representation=representation)
-    ewoksgraph = load_graph(g, root_dir=str(tmpdir))
+def test_sub_graph_execute(representation, tmp_path):
+    g = serialized_graph(tmp_path, representation=representation)
+    ewoksgraph = load_graph(g, root_dir=str(tmp_path))
 
     tasks = execute_graph(ewoksgraph, output_tasks=True)
 

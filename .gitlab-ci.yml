@@ -56,6 +56,12 @@ test-3.13:
     JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error ${IGNORE_WARNINGS}"
 
+test-3.14:
+  extends: .test-3.14
+  variables:
+    JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
+    PYTEST_WARNINGS: "-W error ${IGNORE_WARNINGS}"
+
 build_sdist:
   extends: .build_sdist
 
@@ -91,6 +97,12 @@ test_sdist-3.12:
 
 test_sdist-3.13:
   extends: .test_sdist-3.13
+  variables:
+    JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
+    PYTEST_WARNINGS: "-W error ${IGNORE_WARNINGS}"
+
+test_sdist-3.14:
+  extends: .test_sdist-3.14
   variables:
     JUPYTER_PLATFORM_DIRS: "1" # jupyter_client deprecation warning
     PYTEST_WARNINGS: "-W error ${IGNORE_WARNINGS}"

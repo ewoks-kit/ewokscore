@@ -10,13 +10,13 @@ from ewokscore.graph import load_graph
 @pytest.mark.parametrize("with_ext", [True, False])
 @pytest.mark.parametrize("with_representation", [True, False])
 @pytest.mark.parametrize("path_format", [str, Path])
-def test_graph_discovery_json(with_ext, with_representation, tmpdir, path_format):
-    _dump_graph_and_subgraph(tmpdir, "json", with_ext)
+def test_graph_discovery_json(with_ext, with_representation, tmp_path, path_format):
+    _dump_graph_and_subgraph(tmp_path, "json", with_ext)
 
     ewoksgraph = load_graph(
         source=path_format("graph"),
         representation="json" if with_representation else None,
-        root_dir=path_format(tmpdir),
+        root_dir=path_format(tmp_path),
     )
 
     assert set(ewoksgraph.graph.nodes) == {"node1", ("node2", "subnode1")}
@@ -25,13 +25,13 @@ def test_graph_discovery_json(with_ext, with_representation, tmpdir, path_format
 @pytest.mark.parametrize("with_ext", [True, False])
 @pytest.mark.parametrize("with_representation", [True, False])
 @pytest.mark.parametrize("path_format", [str, Path])
-def test_graph_discovery_yaml(with_ext, with_representation, tmpdir, path_format):
-    _dump_graph_and_subgraph(tmpdir, "yaml", with_ext)
+def test_graph_discovery_yaml(with_ext, with_representation, tmp_path, path_format):
+    _dump_graph_and_subgraph(tmp_path, "yaml", with_ext)
 
     ewoksgraph = load_graph(
         source=path_format("graph"),
         representation="yaml" if with_representation else None,
-        root_dir=path_format(tmpdir),
+        root_dir=path_format(tmp_path),
     )
 
     assert set(ewoksgraph.graph.nodes) == {"node1", ("node2", "subnode1")}
@@ -55,7 +55,7 @@ def test_graph_discovery_json_module(with_representation):
     assert set(ewoksgraph.graph.nodes) == {"node1", ("node2", "subnode1")}
 
 
-def _dump_graph_and_subgraph(tmpdir, format, with_ext):
+def _dump_graph_and_subgraph(tmp_path, format, with_ext):
     if format == "yaml":
         dump = yaml.dump
 
@@ -63,9 +63,9 @@ def _dump_graph_and_subgraph(tmpdir, format, with_ext):
         dump = json.dump
 
     ext = f".{format}" if with_ext else ""
-    with open(tmpdir / "subgraph" + ext, mode="w") as f:
+    with open(tmp_path / f"subgraph{ext}", mode="w") as f:
         dump(_SUBGRAPH, f)
-    with open(tmpdir / "graph" + ext, mode="w") as f:
+    with open(tmp_path / f"graph{ext}", mode="w") as f:
         dump(_GRAPH, f)
 
 

@@ -248,18 +248,18 @@ def test_variable_nonce(varinfo):
 
 @pytest.mark.parametrize("scheme", ("json", "nexus"))
 @pytest.mark.parametrize("root_uri_type", ("directory", "filename", "path_in_file"))
-def test_variable_container_metadata(scheme, root_uri_type, tmpdir):
+def test_variable_container_metadata(scheme, root_uri_type, tmp_path):
     if scheme == "nexus":
         extension = ".nx"
     else:
         extension = ".json"
 
     if root_uri_type == "path_in_file":
-        root_uri = tmpdir / f"dataset_name{extension}::/scan_name"
+        root_uri = tmp_path / f"dataset_name{extension}::/scan_name"
     elif root_uri_type == "filename":
-        root_uri = tmpdir / f"dataset_name{extension}"
+        root_uri = tmp_path / f"dataset_name{extension}"
     elif root_uri_type == "directory":
-        root_uri = tmpdir
+        root_uri = tmp_path
     varinfo = {"root_uri": str(root_uri), "scheme": scheme}
 
     values = {f"var{i}": i for i in range(3)}
@@ -371,8 +371,8 @@ def test_variable_fixed_uhash():
     assert var2.uhash == var3.uhash
 
 
-def test_variable_uri(tmpdir):
-    var1 = Variable(value=10, varinfo={"root_uri": str(tmpdir)})
+def test_variable_uri(tmp_path):
+    var1 = Variable(value=10, varinfo={"root_uri": str(tmp_path)})
     var1.dump()
 
     var2 = Variable(data_uri=str(var1.data_uri))
@@ -381,8 +381,10 @@ def test_variable_uri(tmpdir):
     assert var1 == var2
 
 
-def test_variable_container_uri(tmpdir):
-    var1 = VariableContainer(value={"a": 1, "b": 2}, varinfo={"root_uri": str(tmpdir)})
+def test_variable_container_uri(tmp_path):
+    var1 = VariableContainer(
+        value={"a": 1, "b": 2}, varinfo={"root_uri": str(tmp_path)}
+    )
     var1.dump()
 
     var2 = VariableContainer(data_uri=str(var1.data_uri))
@@ -391,16 +393,16 @@ def test_variable_container_uri(tmpdir):
     assert var1 == var2
 
 
-def test_variable_container_reset(tmpdir):
-    var = VariableContainer(value={"a": 1, "b": 2}, varinfo={"root_uri": str(tmpdir)})
+def test_variable_container_reset(tmp_path):
+    var = VariableContainer(value={"a": 1, "b": 2}, varinfo={"root_uri": str(tmp_path)})
     assert var.get_named_variable_values() == {"a": 1, "b": 2}
     var.reset()
     assert var.get_named_variable_values() == {}
 
 
 @pytest.mark.parametrize("scheme", ("json", "nexus"))
-def test_variable_none_dump(scheme, tmpdir):
-    var = Variable(value=None, varinfo={"root_uri": str(tmpdir), "scheme": scheme})
+def test_variable_none_dump(scheme, tmp_path):
+    var = Variable(value=None, varinfo={"root_uri": str(tmp_path), "scheme": scheme})
     var.dump()
     var.load()
 
