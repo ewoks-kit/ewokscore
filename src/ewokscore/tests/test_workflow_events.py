@@ -1,5 +1,4 @@
 import logging
-import sqlite3
 from pprint import pformat
 from time import sleep
 from typing import Dict
@@ -8,6 +7,7 @@ from typing import Optional
 
 from ewoksutils.event_utils import FIELD_TYPES
 from ewoksutils.import_utils import qualname
+from ewoksutils.sqlite3_utils import connect
 from ewoksutils.sqlite3_utils import select
 
 from ewokscore import Task
@@ -238,7 +238,7 @@ def fetch_events(uri: str, nevents: int) -> List[Dict[str, Optional[str]]]:
         events = list()
         for _ in range(30):
             try:
-                with sqlite3.connect(uri, uri=True) as conn:
+                with connect(uri, uri=True) as conn:
                     events = list(select(conn, "ewoks_events", field_types=FIELD_TYPES))
 
                 if len(events) != nevents:
