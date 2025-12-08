@@ -12,8 +12,8 @@ from ewokscore.task_discovery import TaskDict
 
 
 @pytest.fixture
-def varinfo(tmpdir):
-    yield {"root_uri": str(tmpdir)}
+def varinfo(tmp_path):
+    yield {"root_uri": str(tmp_path)}
 
 
 @pytest.fixture(scope="session")

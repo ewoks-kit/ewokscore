@@ -11,8 +11,8 @@ from ewokscore.task import TaskInputError
 from .examples.tasks.sumtask import SumTask
 
 
-def find_files(tmpdir: Path, extension):
-    return glob(str(tmpdir / "**" / "*" + extension), recursive=True)
+def find_files(tmp_path: Path, extension):
+    return glob(str(tmp_path / "**" / f"*{extension}"), recursive=True)
 
 
 def expected_task_output_storage(task):
@@ -21,9 +21,9 @@ def expected_task_output_storage(task):
     return expected
 
 
-def assert_storage(tmpdir, expected):
+def assert_storage(tmp_path, expected):
     lst = []
-    for filename in find_files(tmpdir, ".json"):
+    for filename in find_files(tmp_path, ".json"):
         with open(filename, "r") as fileobj:
             lst.append(json.load(fileobj))
     for v in lst:
@@ -50,14 +50,14 @@ def test_task_readonly_input():
         task.inputs.a = 10
 
 
-def test_task_optional_input(tmpdir, varinfo):
+def test_task_optional_input(tmp_path, varinfo):
     task = SumTask(inputs={"a": 10}, varinfo=varinfo)
     assert not task.done
     task.execute()
     assert task.done
     assert task.outputs.result == 10
     expected = expected_task_output_storage(task)
-    assert_storage(tmpdir, expected)
+    assert_storage(tmp_path, expected)
 
 
 def test_task_done(varinfo):
@@ -90,19 +90,19 @@ def test_task_uhash(varinfo):
     assert task.uhash != task.input_variables.uhash
 
 
-def test_task_storage(tmpdir, varinfo):
+def test_task_storage(tmp_path, varinfo):
     task = SumTask(inputs={"a": 10, "b": 2}, varinfo=varinfo)
     assert not task.done
     task.execute()
     assert task.done
     assert task.outputs.result == 12
     expected = expected_task_output_storage(task)
-    assert_storage(tmpdir, expected)
+    assert_storage(tmp_path, expected)
 
     task = SumTask(inputs={"a": 10, "b": 2}, varinfo=varinfo)
     assert task.done
     assert task.outputs.result == 12
-    assert_storage(tmpdir, expected)
+    assert_storage(tmp_path, expected)
 
     task = SumTask({"a": 2, "b": 10}, varinfo=varinfo)
     assert not task.done
@@ -110,7 +110,7 @@ def test_task_storage(tmpdir, varinfo):
     assert task.done
     assert task.outputs.result == 12
     expected += expected_task_output_storage(task)
-    assert_storage(tmpdir, expected)
+    assert_storage(tmp_path, expected)
 
     task = SumTask({"a": task.output_variables["result"], "b": 0}, varinfo=varinfo)
     assert not task.done
@@ -118,7 +118,7 @@ def test_task_storage(tmpdir, varinfo):
     assert task.done
     assert task.outputs.result == 12
     expected += expected_task_output_storage(task)
-    assert_storage(tmpdir, expected)
+    assert_storage(tmp_path, expected)
 
     task = SumTask(
         {"a": 1, "b": task.output_variables["result"].data_proxy}, varinfo=varinfo
@@ -128,7 +128,7 @@ def test_task_storage(tmpdir, varinfo):
     assert task.done
     assert task.outputs.result == 13
     expected += expected_task_output_storage(task)
-    assert_storage(tmpdir, expected)
+    assert_storage(tmp_path, expected)
 
     task = SumTask(
         {"a": 1, "b": task.output_variables["result"].data_proxy.uri}, varinfo=varinfo
@@ -138,7 +138,7 @@ def test_task_storage(tmpdir, varinfo):
     assert task.done
     assert task.outputs.result == 14
     expected += expected_task_output_storage(task)
-    assert_storage(tmpdir, expected)
+    assert_storage(tmp_path, expected)
 
 
 def test_task_required_positional_inputs():

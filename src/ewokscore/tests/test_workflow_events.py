@@ -17,14 +17,14 @@ from ewokscore.events import cleanup as cleanup_events
 logger = logging.getLogger(__name__)
 
 
-def test_succesfull_workfow(tmpdir):
-    uri = run_succesfull_workfow(tmpdir, execute_graph)
+def test_succesfull_workfow(tmp_path):
+    uri = run_succesfull_workfow(tmp_path, execute_graph)
     events = fetch_events(uri, 10)
     assert_succesfull_workfow_events(events)
 
 
-def test_failed_workfow(tmpdir):
-    uri = run_failed_workfow(tmpdir, execute_graph)
+def test_failed_workfow(tmp_path):
+    uri = run_failed_workfow(tmp_path, execute_graph)
     events = fetch_events(uri, 8)
     assert_failed_workfow_events(events)
 
@@ -39,7 +39,7 @@ class MyTask(
             self.outputs.ctr = self.inputs.ctr + 1
 
 
-def run_succesfull_workfow(tmpdir, execute_graph, **execute_options):
+def run_succesfull_workfow(tmp_path, execute_graph, **execute_options):
     graph = {"id": "test_graph", "schema_version": "1.1"}
     nodes = [
         {
@@ -74,7 +74,7 @@ def run_succesfull_workfow(tmpdir, execute_graph, **execute_options):
         },
     ]
     taskgraph = {"graph": graph, "nodes": nodes, "links": links}
-    return _execute_graph(tmpdir, taskgraph, execute_graph, **execute_options)
+    return _execute_graph(tmp_path, taskgraph, execute_graph, **execute_options)
 
 
 def assert_succesfull_workfow_events(events):
@@ -96,7 +96,7 @@ def assert_succesfull_workfow_events(events):
     _assert_events(expected, captured)
 
 
-def run_failed_workfow(tmpdir, execute_graph, **execute_options):
+def run_failed_workfow(tmp_path, execute_graph, **execute_options):
     graph = {"id": "test_graph", "schema_version": "1.1"}
     nodes = [
         {
@@ -134,7 +134,7 @@ def run_failed_workfow(tmpdir, execute_graph, **execute_options):
         },
     ]
     graph = {"graph": graph, "nodes": nodes, "links": links}
-    return _execute_graph(tmpdir, graph, execute_graph, **execute_options)
+    return _execute_graph(tmp_path, graph, execute_graph, **execute_options)
 
 
 def assert_failed_workfow_events(events):
@@ -197,8 +197,8 @@ def assert_failed_workfow_events(events):
     _assert_events(expected, captured)
 
 
-def _execute_graph(tmpdir, graph, execute_graph, **execute_options):
-    uri = f"file:{tmpdir / 'ewoks_events.db'}"
+def _execute_graph(tmp_path, graph, execute_graph, **execute_options):
+    uri = f"file:{tmp_path / 'ewoks_events.db'}"
     execinfo = execute_options.setdefault("execinfo", dict())
     handlers = execinfo.setdefault("handlers", list())
     handlers.append(
