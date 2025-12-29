@@ -5,11 +5,11 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+import pytest
 from ewoksutils.event_utils import FIELD_TYPES
 from ewoksutils.import_utils import qualname
 from ewoksutils.sqlite3_utils import connect
 from ewoksutils.sqlite3_utils import select
-from ewoksutils.uri_utils import parse_uri
 
 from ..bindings import execute_graph
 from ..events import cleanup as cleanup_events
@@ -18,16 +18,43 @@ from ..task import Task
 logger = logging.getLogger(__name__)
 
 
-def test_succesfull_workfow(tmp_path):
-    uri = run_succesfull_workfow(tmp_path, execute_graph)
-    events = fetch_events(uri, 10)
+@pytest.fixture
+def sqlite_path(tmp_path):
+    try:
+        yield tmp_path
+    finally:
+        cleanup_events()
+
+
+def test_succesfull_workfow(sqlite_path):
+    database = sqlite_path / "ewoks_events.db"
+    run_succesfull_workfow(database, execute_graph)
+    events = fetch_events(database, 10)
     assert_succesfull_workfow_events(events)
 
 
-def test_failed_workfow(tmp_path):
-    uri = run_failed_workfow(tmp_path, execute_graph)
-    events = fetch_events(uri, 8)
+def test_failed_workfow(sqlite_path):
+    database = sqlite_path / "ewoks_events.db"
+    run_failed_workfow(database, execute_graph)
+    events = fetch_events(database, 8)
     assert_failed_workfow_events(events)
+
+
+def test_changing_handlers(sqlite_path):
+    database1 = sqlite_path / "ewoks_events1.db"
+    run_succesfull_workfow(database1, execute_graph)
+    events = fetch_events(database1, 10)
+    assert len(events) == 10
+
+    size_before = database1.stat().st_size
+
+    database2 = sqlite_path / "ewoks_events2.db"
+    run_succesfull_workfow(database2, execute_graph)
+    events = fetch_events(database2, 10)
+    assert len(events) == 10
+
+    size_after = database1.stat().st_size
+    assert size_before == size_after
 
 
 class MyTask(
@@ -40,7 +67,7 @@ class MyTask(
             self.outputs.ctr = self.inputs.ctr + 1
 
 
-def run_succesfull_workfow(tmp_path, execute_graph, **execute_options):
+def run_succesfull_workfow(database, execute_graph, **execute_options):
     graph = {"id": "test_graph", "schema_version": "1.1"}
     nodes = [
         {
@@ -75,7 +102,7 @@ def run_succesfull_workfow(tmp_path, execute_graph, **execute_options):
         },
     ]
     taskgraph = {"graph": graph, "nodes": nodes, "links": links}
-    return _execute_graph(tmp_path, taskgraph, execute_graph, **execute_options)
+    _execute_graph(database, taskgraph, execute_graph, **execute_options)
 
 
 def assert_succesfull_workfow_events(events):
@@ -97,7 +124,7 @@ def assert_succesfull_workfow_events(events):
     _assert_events(expected, captured)
 
 
-def run_failed_workfow(tmp_path, execute_graph, **execute_options):
+def run_failed_workfow(database, execute_graph, **execute_options):
     graph = {"id": "test_graph", "schema_version": "1.1"}
     nodes = [
         {
@@ -135,7 +162,7 @@ def run_failed_workfow(tmp_path, execute_graph, **execute_options):
         },
     ]
     graph = {"graph": graph, "nodes": nodes, "links": links}
-    return _execute_graph(tmp_path, graph, execute_graph, **execute_options)
+    _execute_graph(database, graph, execute_graph, **execute_options)
 
 
 def assert_failed_workfow_events(events):
@@ -198,23 +225,19 @@ def assert_failed_workfow_events(events):
     _assert_events(expected, captured)
 
 
-def _execute_graph(tmp_path, graph, execute_graph, **execute_options):
-    database = tmp_path / "ewoks_events.db"
-    uri = parse_uri(database).geturl()
+def _execute_graph(database, graph, execute_graph, **execute_options):
     execinfo = execute_options.setdefault("execinfo", dict())
     handlers = execinfo.setdefault("handlers", list())
     handlers.append(
         {
             "class": "ewokscore.events.handlers.Sqlite3EwoksEventHandler",
-            "arguments": [{"name": "uri", "value": uri}],
+            "arguments": [{"name": "uri", "value": database}],
         }
     )
-    cleanup_events()
     try:
         execute_graph(graph, **execute_options)
     except RuntimeError:
         pass
-    return uri
 
 
 def _assert_events(expected, captured):
@@ -231,28 +254,23 @@ def _assert_events(expected, captured):
         )
 
 
-def fetch_events(uri: str, nevents: int) -> List[Dict[str, Optional[str]]]:
+def fetch_events(database: str, nevents: int) -> List[Dict[str, Optional[str]]]:
     """Events are handled asynchronously so wait until we have the required `nevents`
     up to 3 seconds.
     """
-    try:
-        exception = None
-        events = list()
-        for _ in range(30):
-            try:
-                with connect(uri, uri=True) as conn:
-                    events = list(select(conn, "ewoks_events", field_types=FIELD_TYPES))
+    exception = None
+    events = list()
+    for _ in range(30):
+        try:
+            with connect(database) as conn:
+                events = list(select(conn, "ewoks_events", field_types=FIELD_TYPES))
 
-                if len(events) != nevents:
-                    raise RuntimeError(
-                        f"{len(events)} ewoks events instead of {nevents}"
-                    )
-                return events
-            except Exception as e:
-                exception = e
-                sleep(0.1)
-        if exception:
-            logger.error(exception)
-        return events
-    finally:
-        cleanup_events()
+            if len(events) != nevents:
+                raise RuntimeError(f"{len(events)} ewoks events instead of {nevents}")
+            return events
+        except Exception as e:
+            exception = e
+            sleep(0.1)
+    if exception:
+        logger.error(exception)
+    return events
