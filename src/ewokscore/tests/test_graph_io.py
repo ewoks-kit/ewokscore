@@ -1,7 +1,7 @@
 import pytest
 
-from ewokscore import load_graph
-from ewokscore.graph import graph_io
+from ..bindings import load_graph
+from ..graph import graph_io
 
 
 @pytest.fixture(scope="module")

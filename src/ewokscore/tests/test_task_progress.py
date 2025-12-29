@@ -2,10 +2,9 @@ import logging
 
 import numpy.random
 
-from ewokscore.events import job_context
-from ewokscore.events import workflow_context
-from ewokscore.progress import TextProgress
-
+from ..events import job_context
+from ..events import workflow_context
+from ..progress import TextProgress
 from .examples.tasks.sumlist import SumList
 
 

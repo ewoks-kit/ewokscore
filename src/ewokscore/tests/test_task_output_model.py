@@ -4,9 +4,8 @@ import pytest
 from pydantic import BaseModel
 from pydantic import field_validator
 
-from ewokscore.model import BaseOutputModel
-from ewokscore.task import Task
-
+from ..model import BaseOutputModel
+from ..task import Task
 from .examples.tasks.sumtask import SumTask
 
 

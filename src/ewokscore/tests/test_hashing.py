@@ -2,7 +2,7 @@ import gc
 
 import numpy
 
-from ewokscore import hashing
+from .. import hashing
 
 
 def test_hashing_unique():

@@ -1,21 +1,22 @@
+import sys
 from pathlib import Path
 from typing import Any
 from typing import List
 from typing import Optional
-from urllib.parse import ParseResult
 
+from ewoksutils import uri_utils
 from silx.utils.proxy import docstring
 
 from .. import missing_data
 from . import proxy
-from .uri import path_from_uri
 
 
 class FileProxy(proxy.DataProxy, register=False):
     """Example root URI's:
-    * "file://path/to/directory"
-    * "file://path/to/name.ext"
-    * "file://path/to/name.ext?path=/path/in/file"
+
+    * "file:///path/to/directory"
+    * "file:///path/to/name.ext"
+    * "file:///path/to/name.ext?path=/path/in/file"
     """
 
     EXTENSIONS = NotImplemented
@@ -27,11 +28,9 @@ class FileProxy(proxy.DataProxy, register=False):
 
     @property
     def path(self) -> Optional[Path]:
-        """return 'path' from the following URI representation:
-        URI = scheme ":" "//" path ["?" query] ["#" fragment]
-        """
+        """Extract file path from the following URI representation."""
         if self.is_fixed_uri:
-            return path_from_uri(self.uri.parse())
+            return uri_utils.path_from_uri(self.uri.parse())
         parsed_root_uri = self.parsed_root_uri
         if parsed_root_uri is None:
             return None
@@ -40,7 +39,7 @@ class FileProxy(proxy.DataProxy, register=False):
             return None
 
         # Directory or file name
-        root_path = path_from_uri(parsed_root_uri)
+        root_path = uri_utils.path_from_uri(parsed_root_uri)
         extension = root_path.suffix
         path_is_file = bool(extension)
         if extension not in self.EXTENSIONS:
@@ -77,8 +76,7 @@ class FileProxy(proxy.DataProxy, register=False):
     @property
     def _root_uri_path_in_file(self) -> str:
         """
-        return '**data root** path query' result
-        for data at "file://path/to/name.ext?path=/path/in/file" return "/path/in"
+        For "file:///path/to/name.ext?path=/path/in/file" return "/path/in"
         """
         return self.root_uri_query.get("path", "")
 
@@ -94,8 +92,7 @@ class FileProxy(proxy.DataProxy, register=False):
         self,
     ) -> Optional[str]:
         """
-        return '**data** path query' result
-        for data at "file://path/to/name.ext?path=/path/in/file" return "path/in/file"
+        For "file:///path/to/name.ext?path=/path/in/file" return "path/in/file"
         """
         if self.ALLOW_PATH_IN_FILE:
             return self.SEP_IN_FILE.join(self._path_in_file_parts())
@@ -107,8 +104,7 @@ class FileProxy(proxy.DataProxy, register=False):
         self,
     ) -> Optional[str]:
         """
-        return '**data** path query' result
-        for data at "file://path/to/name.ext?path=/path/in/file" return "path/in"
+        For "file:///path/to/name.ext?path=/path/in/file" return "path/in"
         """
         if self.ALLOW_PATH_IN_FILE:
             parts = self._path_in_file_parts()[:-1]
@@ -119,8 +115,7 @@ class FileProxy(proxy.DataProxy, register=False):
     @property
     def path_in_file_name(self) -> Optional[str]:
         """
-        Return '**data** path query' last part
-        for data at "file://path/to/name.ext?path=/path/in/file" return "file"
+        For "file:///path/to/name.ext?path=/path/in/file" return "file"
         """
         if self.ALLOW_PATH_IN_FILE:
             return self._path_in_file_parts()[-1]
@@ -131,16 +126,12 @@ class FileProxy(proxy.DataProxy, register=False):
         path = self.path
         if path is None:
             return
-        query = dict()
-        path_in_file = self.path_in_file
-        if path_in_file:
-            query["path"] = path_in_file
-        if query:
-            query = "&".join([f"{name}={value}" for name, value in query.items()])
+        if sys.platform == "win32" and path.is_absolute():
+            uri = f"{self.SCHEME}:///{path}"
         else:
-            query = ""
-
-        uri = ParseResult(self.SCHEME, str(path), "", "", query, "")
+            uri = f"{self.SCHEME}://{path}"
+        if self.path_in_file:
+            uri = f"{uri}?path={self.path_in_file}"
         return proxy.DataUri(uri, self.uhash)
 
     @docstring(proxy.DataProxy)

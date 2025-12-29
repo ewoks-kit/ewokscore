@@ -1,11 +1,13 @@
+import sys
+
 import pytest
 from silx.io.dictdump import nxtodict
 
-from ewokscore.hashing import UniversalHashable
-from ewokscore.hashing import uhash
-from ewokscore.persistence import instantiate_data_proxy
-from ewokscore.persistence.json import JsonProxy
-from ewokscore.persistence.nexus import NexusProxy
+from ..hashing import UniversalHashable
+from ..hashing import uhash
+from ..persistence import instantiate_data_proxy
+from ..persistence.json import JsonProxy
+from ..persistence.nexus import NexusProxy
 
 
 def test_json_proxy_uri(tmp_path):
@@ -16,21 +18,26 @@ def test_json_proxy_uri(tmp_path):
     proxy = JsonProxy(uhash_source=hashable)
     assert proxy.uri is None
 
+    if sys.platform == "win32":
+        prefix = "json:///"
+    else:
+        prefix = "json://"
+
     proxy = JsonProxy(uhash_source=hashable, root_uri=str(tmp_path))
-    assert str(proxy.uri) == f"json://{tmp_path/identifier}.json"
+    assert str(proxy.uri) == f"{prefix}{tmp_path/identifier}.json"
     tmpfile = tmp_path / "file"
     proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json")
-    assert str(proxy.uri) == f"json://{tmpfile/identifier}.json"
+    assert str(proxy.uri) == f"{prefix}{tmpfile/identifier}.json"
     proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json?path=/a")
-    assert str(proxy.uri) == f"json://{tmpfile/'a'/identifier}.json"
+    assert str(proxy.uri) == f"{prefix}{tmpfile/'a'/identifier}.json"
     proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json?path=/a/b")
-    assert str(proxy.uri) == f"json://{tmpfile/'a'/'b'/identifier}.json"
+    assert str(proxy.uri) == f"{prefix}{tmpfile/'a'/'b'/identifier}.json"
     proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json?path=/a/b/c")
-    assert str(proxy.uri) == f"json://{tmpfile/'a'/'b'/'c'/identifier}.json"
+    assert str(proxy.uri) == f"{prefix}{tmpfile/'a'/'b'/'c'/identifier}.json"
 
     proxy2 = JsonProxy(proxy.uri)
     assert proxy.uri == proxy2.uri
-    assert str(proxy2.uri) == f"json://{tmpfile/'a'/'b'/'c'/identifier}.json"
+    assert str(proxy2.uri) == f"{prefix}{tmpfile/'a'/'b'/'c'/identifier}.json"
 
 
 def test_nexus_proxy_uri(tmp_path):
@@ -41,21 +48,26 @@ def test_nexus_proxy_uri(tmp_path):
     proxy = NexusProxy(uhash_source=hashable)
     assert proxy.uri is None
 
+    if sys.platform == "win32":
+        prefix = "nexus:///"
+    else:
+        prefix = "nexus://"
+
     proxy = NexusProxy(uhash_source=hashable, root_uri=str(tmp_path))
-    assert str(proxy.uri) == f"nexus://{tmp_path/identifier}.nx?path={identifier}"
+    assert str(proxy.uri) == f"{prefix}{tmp_path/identifier}.nx?path={identifier}"
     tmpfile = tmp_path / "file"
     proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.nx")
-    assert str(proxy.uri) == f"nexus://{tmpfile}.nx?path={identifier}"
+    assert str(proxy.uri) == f"{prefix}{tmpfile}.nx?path={identifier}"
     proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.h5?path=/a")
-    assert str(proxy.uri) == f"nexus://{tmpfile}.h5?path=a/{identifier}"
+    assert str(proxy.uri) == f"{prefix}{tmpfile}.h5?path=a/{identifier}"
     proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.nx?path=/a/b")
-    assert str(proxy.uri) == f"nexus://{tmpfile}.nx?path=a/b/{identifier}"
+    assert str(proxy.uri) == f"{prefix}{tmpfile}.nx?path=a/b/{identifier}"
     proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.nx?path=/a/b/c")
-    assert str(proxy.uri) == f"nexus://{tmpfile}.nx?path=a/b/c/{identifier}"
+    assert str(proxy.uri) == f"{prefix}{tmpfile}.nx?path=a/b/c/{identifier}"
 
     proxy2 = JsonProxy(proxy.uri)
     assert proxy.uri == proxy2.uri
-    assert str(proxy2.uri) == f"nexus://{tmpfile}.nx?path=a/b/c/{identifier}"
+    assert str(proxy2.uri) == f"{prefix}{tmpfile}.nx?path=a/b/c/{identifier}"
 
 
 @pytest.mark.parametrize("scheme", ("json", "nexus"))
@@ -69,7 +81,11 @@ def test_proxy_dump(scheme, full, tmp_path):
     root_uri = tmp_path
     if full:
         root_uri /= f"dataset{extension}::/scan/task/output_variable_a"
-    root_uri = f"{scheme}://{root_uri}"
+
+    if sys.platform == "win32":
+        root_uri = f"{scheme}:///{root_uri}"
+    else:
+        root_uri = f"{scheme}://{root_uri}"
 
     hashable = UniversalHashable(uhash("somedata"))
     proxy = instantiate_data_proxy(

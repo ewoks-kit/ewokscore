@@ -5,10 +5,10 @@ from ipykernel.kernelspec import install as install_kernel
 from jupyter_client.kernelspec import KernelSpecManager
 from packaging.version import parse as parse_version
 
-from ewokscore.engine import CoreWorkflowEngine
-from ewokscore.graph.schema import SchemaMetadata
-from ewokscore.graph.schema import get_versions
-from ewokscore.task_discovery import TaskDict
+from ..engine import CoreWorkflowEngine
+from ..graph.schema import SchemaMetadata
+from ..graph.schema import get_versions
+from ..task_discovery import TaskDict
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def testkernel():
 
 @pytest.fixture
 def use_test_schema_versions(monkeypatch):
-    from ewokscore.graph import schema
+    from ..graph import schema
 
     def no_update(graph):
         pass

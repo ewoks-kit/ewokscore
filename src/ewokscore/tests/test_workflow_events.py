@@ -9,10 +9,11 @@ from ewoksutils.event_utils import FIELD_TYPES
 from ewoksutils.import_utils import qualname
 from ewoksutils.sqlite3_utils import connect
 from ewoksutils.sqlite3_utils import select
+from ewoksutils.uri_utils import parse_uri
 
-from ewokscore import Task
-from ewokscore import execute_graph
-from ewokscore.events import cleanup as cleanup_events
+from ..bindings import execute_graph
+from ..events import cleanup as cleanup_events
+from ..task import Task
 
 logger = logging.getLogger(__name__)
 
@@ -198,7 +199,8 @@ def assert_failed_workfow_events(events):
 
 
 def _execute_graph(tmp_path, graph, execute_graph, **execute_options):
-    uri = f"file:{tmp_path / 'ewoks_events.db'}"
+    database = tmp_path / "ewoks_events.db"
+    uri = parse_uri(database).geturl()
     execinfo = execute_options.setdefault("execinfo", dict())
     handlers = execinfo.setdefault("handlers", list())
     handlers.append(

@@ -3,8 +3,8 @@ import json
 import pytest
 import yaml
 
-from ewokscore import execute_graph
-from ewokscore.graph import load_graph
+from ..bindings import execute_graph
+from ..graph import load_graph
 
 
 def subsubsubgraph():

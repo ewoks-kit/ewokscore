@@ -2,8 +2,7 @@ from typing import List
 
 import pytest
 
-from ewokscore import task_discovery
-
+from .. import task_discovery
 from .conftest import expected_tasks
 
 

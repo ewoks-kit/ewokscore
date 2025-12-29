@@ -3,10 +3,10 @@ from contextlib import contextmanager
 
 import pytest
 
-from ewokscore.missing_data import MISSING_DATA
-from ewokscore.variable import MutableVariableContainer
-from ewokscore.variable import Variable
-from ewokscore.variable import VariableContainer
+from ..missing_data import MISSING_DATA
+from ..variable import MutableVariableContainer
+from ..variable import Variable
+from ..variable import VariableContainer
 
 VALUES = [None, True, 10, "string", 10.1, [1, 2, 3], {"1": 1, "2": {"2": [10, 20]}}]
 

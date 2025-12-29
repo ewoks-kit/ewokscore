@@ -5,9 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from ewokscore.task import Task
-from ewokscore.task import TaskInputError
-
+from ..task import Task
+from ..task import TaskInputError
 from .examples.tasks.sumtask import SumTask
 
 

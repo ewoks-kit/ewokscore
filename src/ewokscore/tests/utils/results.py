@@ -3,14 +3,14 @@ from typing import Dict
 from typing import Optional
 from typing import Union
 
-from ewokscore import missing_data
-from ewokscore.graph import load_graph
-from ewokscore.graph.analysis import end_nodes
-from ewokscore.graph.execute.sequential import instantiate_task_static
-from ewokscore.graph.taskgraph import TaskGraph
-from ewokscore.node import NodeIdType
-from ewokscore.task import Task
-from ewokscore.variable import value_from_transfer
+from ... import missing_data
+from ...graph import load_graph
+from ...graph.analysis import end_nodes
+from ...graph.execute.sequential import instantiate_task_static
+from ...graph.taskgraph import TaskGraph
+from ...node import NodeIdType
+from ...task import Task
+from ...variable import value_from_transfer
 
 
 def assert_execute_graph_default_result(
