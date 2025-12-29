@@ -10,8 +10,8 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
-from ewoksutils.deprecation_utils import deprecated
 from ewoksutils.logging_utils.asyncwrapper import AsyncHandlerWrapper
+from ewoksutils.logging_utils.cleanup import cleanup_handler
 from ewoksutils.logging_utils.cleanup import cleanup_logger
 from ewoksutils.logging_utils.cleanup import protect_logging_state
 
@@ -54,15 +54,12 @@ def add_handler(
         logger.addHandler(handler)
 
 
-@deprecated(
-    "Explicit Ewoks handler removal will be removed.",
-)
 def remove_handler(handler: logging.Handler) -> None:
     """Remove a handler from all loggers that receive EWOKS events."""
     with _ewoks_event_logger() as logger:
         for linstance, hinstance in _iter_handler_owners(logger, handler):
             linstance.removeHandler(hinstance)
-            hinstance.close()
+            cleanup_handler(hinstance)
 
 
 def cleanup():
