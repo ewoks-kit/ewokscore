@@ -3,6 +3,7 @@
 import logging
 import os
 from contextlib import contextmanager
+from typing import Any
 from typing import Dict
 from typing import Iterator
 from typing import List
@@ -24,12 +25,14 @@ ENABLE_EWOKS_EVENTS_BY_DEFAULT = True
 
 def send(
     *args,
-    handlers: Optional[List[Dict[str, str]]] = None,
+    handlers: Optional[List[Dict[str, Any]]] = None,
     asynchronous: Optional[bool] = None,
     **kw,
 ) -> None:
     """Log an EWOKS event with the EWOKS event handlers and the application handlers."""
-    with _ewoks_event_logger(handlers=handlers, asynchronous=asynchronous) as logger:
+    with _ewoks_event_logger(
+        handlers=handlers, asynchronous=asynchronous, cleanup_on_different_handlers=True
+    ) as logger:
         # Send to the EWOKS event handlers
         logger.info(*args, **kw)
         # Send to the application log handlers
@@ -37,7 +40,7 @@ def send(
 
 
 def add_handler(
-    handler,
+    handler: logging.Handler,
     asynchronous: Optional[bool] = None,
 ) -> None:
     """Add a handler to the global EWOKS event logger."""
@@ -55,7 +58,7 @@ def add_handler(
     "Explicit Ewoks handler removal will be removed.",
 )
 def remove_handler(handler: logging.Handler) -> None:
-    """Remove a handler from all loggers that receive EWOKS event."""
+    """Remove a handler from all loggers that receive EWOKS events."""
     with _ewoks_event_logger() as logger:
         for linstance, hinstance in _iter_handler_owners(logger, handler):
             linstance.removeHandler(hinstance)
@@ -78,14 +81,19 @@ if hasattr(os, "register_at_fork"):
 
 @contextmanager
 def _ewoks_event_logger(
-    handlers: Optional[List[Dict[str, str]]] = None, asynchronous: Optional[bool] = None
+    handlers: Optional[List[Dict[str, Any]]] = None,
+    asynchronous: Optional[bool] = None,
+    cleanup_on_different_handlers: bool = False,
 ) -> Iterator[logging.Logger]:
     """Initialize and yield the EWOKS event logger"""
     # Issue with logging and forking:
     # https://pythonspeed.com/articles/python-multiprocessing/
 
     with protect_logging_state():
-        if _ewoks_event_logger_requires_cleanup():
+        if _ewoks_event_logger_requires_cleanup(
+            handlers=handlers,
+            cleanup_on_different_handlers=cleanup_on_different_handlers,
+        ):
             _cleanup_ewoks_event_logger()
         if _ewoks_event_logger_requires_init():
             _init_ewoks_event_logger(handlers, asynchronous)
@@ -102,18 +110,34 @@ def _ewoks_event_logger_requires_init() -> bool:
     return not hasattr(logger, "ewoks_pid")
 
 
-def _ewoks_event_logger_requires_cleanup() -> bool:
+def _ewoks_event_logger_requires_cleanup(
+    handlers: Optional[List[Dict[str, Any]]] = None,
+    cleanup_on_different_handlers: bool = False,
+) -> bool:
     logger = logging.getLogger(EWOKS_EVENT_LOGGER_NAME)
+
     ewoks_pid = getattr(logger, "ewoks_pid", None)
-    return ewoks_pid is not None and ewoks_pid != os.getpid()
+    if ewoks_pid is not None and ewoks_pid != os.getpid():
+        # Process forked
+        return True
+
+    if cleanup_on_different_handlers:
+        # WARNING: this will cause a problem when multiple
+        # workflow are running in the same process.
+        ewoks_handlers = getattr(logger, "ewoks_handlers", None)
+        if ewoks_handlers != handlers:
+            return True
+
+    return False
 
 
 def _init_ewoks_event_logger(
-    handlers: Optional[List[Dict[str, str]]], asynchronous: Optional[bool]
+    handlers: Optional[List[Dict[str, Any]]], asynchronous: Optional[bool]
 ):
     logger = logging.getLogger(EWOKS_EVENT_LOGGER_NAME)
     logger.setLevel(logging.DEBUG)
     logger.ewoks_pid = os.getpid()
+    logger.ewoks_handlers = handlers
     logger.propagate = False
     if not handlers:
         return
