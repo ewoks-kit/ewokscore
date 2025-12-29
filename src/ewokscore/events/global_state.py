@@ -119,8 +119,6 @@ def _ewoks_event_logger_requires_cleanup(
         return True
 
     if cleanup_on_different_handlers:
-        # WARNING: this will cause a problem when multiple
-        # workflow are running in the same process.
         ewoks_handlers = getattr(logger, "ewoks_handlers", None)
         if ewoks_handlers != handlers:
             return True

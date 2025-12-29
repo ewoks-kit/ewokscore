@@ -1,6 +1,7 @@
 import logging
+import threading
+import time
 from pprint import pformat
-from time import sleep
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -28,36 +29,72 @@ def sqlite_path(tmp_path):
 
 def test_succesfull_workfow(sqlite_path):
     database = sqlite_path / "ewoks_events.db"
-    run_succesfull_workfow(database, execute_graph)
-    events = fetch_events(database, 10)
-    assert_succesfull_workfow_events(events)
+    _run_succesfull_workfow(database, execute_graph)
+    events = _fetch_events(database, 10)
+    _assert_succesfull_workfow_events(events)
 
 
 def test_failed_workfow(sqlite_path):
     database = sqlite_path / "ewoks_events.db"
-    run_failed_workfow(database, execute_graph)
-    events = fetch_events(database, 8)
-    assert_failed_workfow_events(events)
+    _run_failed_workfow(database, execute_graph)
+    events = _fetch_events(database, 8)
+    _assert_failed_workfow_events(events)
 
 
 def test_changing_handlers(sqlite_path):
     database1 = sqlite_path / "ewoks_events1.db"
-    run_succesfull_workfow(database1, execute_graph)
-    events = fetch_events(database1, 10)
+    _run_succesfull_workfow(database1, execute_graph)
+    events = _fetch_events(database1, 10)
     assert len(events) == 10
 
     size_before = database1.stat().st_size
 
     database2 = sqlite_path / "ewoks_events2.db"
-    run_succesfull_workfow(database2, execute_graph)
-    events = fetch_events(database2, 10)
+    _run_succesfull_workfow(database2, execute_graph)
+    events = _fetch_events(database2, 10)
     assert len(events) == 10
 
     size_after = database1.stat().st_size
     assert size_before == size_after
 
 
-class MyTask(
+def test_changing_handlers_parallel(sqlite_path, n_concurrent=4):
+    databases = [sqlite_path / f"ewoks_events_{i}.db" for i in range(n_concurrent)]
+
+    threads = [
+        threading.Thread(target=_run_sleep_workfow, args=(db, execute_graph))
+        for db in databases
+    ]
+
+    _run_threads(threads)
+
+    sizes = []
+    for db in databases:
+        events = _fetch_events(db, 10)
+        assert len(events) == 10
+        sizes.append(db.stat().st_size)
+
+    assert len(set(sizes)) == 1
+
+
+def _run_threads(threads):
+    for t in threads:
+        t.start()
+
+    deadline = time.time() + 20
+
+    for t in threads:
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            pytest.fail("Timeout while waiting for workflow threads to finish")
+
+        t.join(timeout=remaining)
+
+        if t.is_alive():
+            pytest.fail(f"Workflow thread {t.name} did not finish within {deadline}s")
+
+
+class _MyTask(
     Task, input_names=["ctr"], optional_input_names=["error_msg"], output_names=["ctr"]
 ):
     def run(self):
@@ -67,25 +104,34 @@ class MyTask(
             self.outputs.ctr = self.inputs.ctr + 1
 
 
-def run_succesfull_workfow(database, execute_graph, **execute_options):
+class _MySleepTask(
+    Task, input_names=["ctr"], optional_input_names=["error_msg"], output_names=["ctr"]
+):
+
+    def run(self):
+        time.sleep(0.2)
+        self.outputs.ctr = self.inputs.ctr + 1
+
+
+def _run_succesfull_workfow(database, execute_graph, **execute_options):
     graph = {"id": "test_graph", "schema_version": "1.1"}
     nodes = [
         {
             "id": "node1",
             "task_type": "class",
-            "task_identifier": qualname(MyTask),
+            "task_identifier": qualname(_MyTask),
             "default_inputs": [{"name": "ctr", "value": 0}],
         },
         {
             "id": "node2",
             "task_type": "class",
-            "task_identifier": qualname(MyTask),
+            "task_identifier": qualname(_MyTask),
             "default_inputs": [{"name": "ctr", "value": 0}],
         },
         {
             "id": "node3",
             "task_type": "class",
-            "task_identifier": qualname(MyTask),
+            "task_identifier": qualname(_MyTask),
             "default_inputs": [{"name": "ctr", "value": 0}],
         },
     ]
@@ -105,7 +151,7 @@ def run_succesfull_workfow(database, execute_graph, **execute_options):
     _execute_graph(database, taskgraph, execute_graph, **execute_options)
 
 
-def assert_succesfull_workfow_events(events):
+def _assert_succesfull_workfow_events(events):
     expected = [
         {"context": "job", "node_id": None, "type": "start"},
         {"context": "workflow", "node_id": None, "type": "start"},
@@ -124,19 +170,19 @@ def assert_succesfull_workfow_events(events):
     _assert_events(expected, captured)
 
 
-def run_failed_workfow(database, execute_graph, **execute_options):
+def _run_failed_workfow(database, execute_graph, **execute_options):
     graph = {"id": "test_graph", "schema_version": "1.1"}
     nodes = [
         {
             "id": "node1",
             "task_type": "class",
-            "task_identifier": qualname(MyTask),
+            "task_identifier": qualname(_MyTask),
             "default_inputs": [{"name": "ctr", "value": 0}],
         },
         {
             "id": "node2",
             "task_type": "class",
-            "task_identifier": qualname(MyTask),
+            "task_identifier": qualname(_MyTask),
             "default_inputs": [
                 {"name": "ctr", "value": 0},
                 {"name": "error_msg", "value": "abc"},
@@ -145,7 +191,7 @@ def run_failed_workfow(database, execute_graph, **execute_options):
         {
             "id": "node3",
             "task_type": "class",
-            "task_identifier": qualname(MyTask),
+            "task_identifier": qualname(_MyTask),
             "default_inputs": [{"name": "ctr", "value": 0}],
         },
     ]
@@ -165,8 +211,8 @@ def run_failed_workfow(database, execute_graph, **execute_options):
     _execute_graph(database, graph, execute_graph, **execute_options)
 
 
-def assert_failed_workfow_events(events):
-    err_msg = "Execution failed for ewoks task 'node2' (id: 'node2', task: 'ewokscore.tests.test_workflow_events.MyTask'): abc"
+def _assert_failed_workfow_events(events):
+    err_msg = "Execution failed for ewoks task 'node2' (id: 'node2', task: 'ewokscore.tests.test_workflow_events._MyTask'): abc"
 
     expected = [
         {
@@ -225,6 +271,44 @@ def assert_failed_workfow_events(events):
     _assert_events(expected, captured)
 
 
+def _run_sleep_workfow(database, execute_graph, **execute_options):
+    graph = {"id": "test_graph", "schema_version": "1.1"}
+    nodes = [
+        {
+            "id": "node1",
+            "task_type": "class",
+            "task_identifier": qualname(_MySleepTask),
+            "default_inputs": [{"name": "ctr", "value": 0}],
+        },
+        {
+            "id": "node2",
+            "task_type": "class",
+            "task_identifier": qualname(_MySleepTask),
+            "default_inputs": [{"name": "ctr", "value": 0}],
+        },
+        {
+            "id": "node3",
+            "task_type": "class",
+            "task_identifier": qualname(_MySleepTask),
+            "default_inputs": [{"name": "ctr", "value": 0}],
+        },
+    ]
+    links = [
+        {
+            "source": "node1",
+            "target": "node2",
+            "data_mapping": [{"source_output": "ctr", "target_input": "ctr"}],
+        },
+        {
+            "source": "node2",
+            "target": "node3",
+            "data_mapping": [{"source_output": "ctr", "target_input": "ctr"}],
+        },
+    ]
+    taskgraph = {"graph": graph, "nodes": nodes, "links": links}
+    _execute_graph(database, taskgraph, execute_graph, **execute_options)
+
+
 def _execute_graph(database, graph, execute_graph, **execute_options):
     execinfo = execute_options.setdefault("execinfo", dict())
     handlers = execinfo.setdefault("handlers", list())
@@ -254,7 +338,7 @@ def _assert_events(expected, captured):
         )
 
 
-def fetch_events(database: str, nevents: int) -> List[Dict[str, Optional[str]]]:
+def _fetch_events(database: str, nevents: int) -> List[Dict[str, Optional[str]]]:
     """Events are handled asynchronously so wait until we have the required `nevents`
     up to 3 seconds.
     """
@@ -270,7 +354,7 @@ def fetch_events(database: str, nevents: int) -> List[Dict[str, Optional[str]]]:
             return events
         except Exception as e:
             exception = e
-            sleep(0.1)
+            time.sleep(0.1)
     if exception:
         logger.error(exception)
     return events
