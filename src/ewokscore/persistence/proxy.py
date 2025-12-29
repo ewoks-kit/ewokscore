@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import Optional
@@ -21,12 +22,20 @@ class UriNotFoundError(PersistenceError):
 
 
 class DataUri(HasUhash):
-    def __init__(self, uri: str, uhash: Union[UniversalHash, str]):
+    def __init__(
+        self, uri: Union[str, Path, ParseResult], uhash: Union[UniversalHash, str]
+    ):
         if isinstance(uri, numpy.ndarray):
             uri = uri.item()
         if isinstance(uhash, numpy.ndarray):
             uhash = uhash.item()
-        self.__uri = uri_utils.uri_as_string(uri)
+
+        is_file = None
+        if isinstance(uri, ParseResult):
+            is_file = uri.scheme in ("json", "nexus")
+
+        self.__uri = uri_utils.uri_as_string(uri, is_file=is_file)
+
         if isinstance(uhash, str):
             uhash = UniversalHash(uhash)
         self.__uhash = uhash
@@ -85,11 +94,13 @@ class DataProxy(Registered, HasUhash, register=False):
         self.__parsed_root_uri = None
         self.__fixed_uri = uri
         self.__uhash_source = uri
+
         if uri is None:
             self.__uhash_source = uhash_source
         else:
             root_uri = str(uri)
             relative_uri = None
+
         if root_uri:
             parsed_root_uri = uri_utils.parse_uri(root_uri)
             if relative_uri:
@@ -108,8 +119,8 @@ class DataProxy(Registered, HasUhash, register=False):
         cls,
         scheme: Optional[str] = None,
         uri: Optional[DataUri] = None,
-        uhash_source: Optional[Union[UniversalHash, HasUhash]] = None,
-        root_uri: Optional[str] = None,
+        uhash_source: Union[UniversalHash, HasUhash, None] = None,
+        root_uri: Union[str, DataUri, "DataProxy", None] = None,
         relative_uri: Optional[str] = None,
     ):
         if uri is not None:
@@ -120,6 +131,10 @@ class DataProxy(Registered, HasUhash, register=False):
             scheme = root_uri.parse().scheme
         for subclass in cls.get_subclasses():
             if subclass.SCHEME == scheme:
+                if root_uri:
+                    root_uri = str(root_uri)
+                if relative_uri:
+                    relative_uri = str(relative_uri)
                 return subclass(
                     uri=uri,
                     uhash_source=uhash_source,

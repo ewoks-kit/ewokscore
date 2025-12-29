@@ -1,8 +1,8 @@
+import sys
 from pathlib import Path
 from typing import Any
 from typing import List
 from typing import Optional
-from urllib.parse import ParseResult
 
 from ewoksutils import uri_utils
 from silx.utils.proxy import docstring
@@ -28,8 +28,7 @@ class FileProxy(proxy.DataProxy, register=False):
 
     @property
     def path(self) -> Optional[Path]:
-        """Extract file path from the following URI representation.
-        """
+        """Extract file path from the following URI representation."""
         if self.is_fixed_uri:
             return uri_utils.path_from_uri(self.uri.parse())
         parsed_root_uri = self.parsed_root_uri
@@ -127,16 +126,12 @@ class FileProxy(proxy.DataProxy, register=False):
         path = self.path
         if path is None:
             return
-        query = dict()
-        path_in_file = self.path_in_file
-        if path_in_file:
-            query["path"] = path_in_file
-        if query:
-            query = "&".join([f"{name}={value}" for name, value in query.items()])
+        if sys.platform == "win32" and path.is_absolute():
+            uri = f"{self.SCHEME}:///{path}"
         else:
-            query = ""
-
-        uri = ParseResult(self.SCHEME, str(path), "", "", query, "")
+            uri = f"{self.SCHEME}://{path}"
+        if self.path_in_file:
+            uri = f"{uri}?path={self.path_in_file}"
         return proxy.DataUri(uri, self.uhash)
 
     @docstring(proxy.DataProxy)
