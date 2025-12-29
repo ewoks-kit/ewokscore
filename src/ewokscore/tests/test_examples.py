@@ -7,11 +7,10 @@ from typing import Union
 
 import pytest
 
-from ewokscore import convert_graph
-from ewokscore import graph_is_supported
-from ewokscore import load_graph
-from ewokscore.graph.analysis import start_nodes
-
+from ..bindings import convert_graph
+from ..bindings import graph_is_supported
+from ..bindings import load_graph
+from ..graph.analysis import start_nodes
 from .examples.graphs import get_graph
 from .examples.graphs import graph_names
 from .utils.results import assert_execute_graph_default_result

@@ -3,9 +3,8 @@ import sys
 
 import pytest
 
-from ewokscore.inittask import instantiate_task
-from ewokscore.task import Task
-
+from ..inittask import instantiate_task
+from ..task import Task
 from .examples import tasks
 
 

@@ -5,14 +5,11 @@ from typing import Union
 from urllib.parse import ParseResult
 
 import numpy
+from ewoksutils import uri_utils
 
 from ..hashing import HasUhash
 from ..hashing import UniversalHash
 from ..registration import Registered
-from .uri import join_uri
-from .uri import parse_query
-from .uri import parse_uri
-from .uri import uri_as_string
 
 
 class PersistenceError(RuntimeError):
@@ -29,7 +26,7 @@ class DataUri(HasUhash):
             uri = uri.item()
         if isinstance(uhash, numpy.ndarray):
             uhash = uhash.item()
-        self.__uri = uri_as_string(uri)
+        self.__uri = uri_utils.uri_as_string(uri)
         if isinstance(uhash, str):
             uhash = UniversalHash(uhash)
         self.__uhash = uhash
@@ -41,7 +38,7 @@ class DataUri(HasUhash):
         return self.__uri
 
     def parse(self) -> ParseResult:
-        return parse_uri(self.__uri)
+        return uri_utils.parse_uri(self.__uri)
 
     def __eq__(self, other):
         if isinstance(other, str):
@@ -94,9 +91,9 @@ class DataProxy(Registered, HasUhash, register=False):
             root_uri = str(uri)
             relative_uri = None
         if root_uri:
-            parsed_root_uri = parse_uri(root_uri)
+            parsed_root_uri = uri_utils.parse_uri(root_uri)
             if relative_uri:
-                parsed_root_uri = join_uri(parsed_root_uri, relative_uri)
+                parsed_root_uri = uri_utils.join_uri(parsed_root_uri, relative_uri)
             self.__parsed_root_uri = parsed_root_uri
 
     def __repr__(self):
@@ -168,7 +165,7 @@ class DataProxy(Registered, HasUhash, register=False):
     def root_uri_query(self) -> dict:
         parsed_root_uri = self.parsed_root_uri
         if parsed_root_uri:
-            return parse_query(parsed_root_uri)
+            return uri_utils.parse_query(parsed_root_uri)
         return dict()
 
     @property

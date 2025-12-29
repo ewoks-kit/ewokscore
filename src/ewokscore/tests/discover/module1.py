@@ -1,4 +1,4 @@
-from ewokscore import Task
+from ...task import Task
 
 
 class MyTask1(

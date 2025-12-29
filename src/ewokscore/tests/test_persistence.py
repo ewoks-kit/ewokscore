@@ -1,11 +1,11 @@
 import pytest
 from silx.io.dictdump import nxtodict
 
-from ewokscore.hashing import UniversalHashable
-from ewokscore.hashing import uhash
-from ewokscore.persistence import instantiate_data_proxy
-from ewokscore.persistence.json import JsonProxy
-from ewokscore.persistence.nexus import NexusProxy
+from ..hashing import UniversalHashable
+from ..hashing import uhash
+from ..persistence import instantiate_data_proxy
+from ..persistence.json import JsonProxy
+from ..persistence.nexus import NexusProxy
 
 
 def test_json_proxy_uri(tmp_path):

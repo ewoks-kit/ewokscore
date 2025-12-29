@@ -5,14 +5,13 @@ import pytest
 from pydantic import BaseModel
 from pydantic import field_validator
 
-from ewokscore.missing_data import MISSING_DATA
-from ewokscore.missing_data import MissingData
-from ewokscore.missing_data import is_missing_data
-from ewokscore.model import BaseInputModel
-from ewokscore.task import Task
-from ewokscore.task import TaskInputError
-from ewokscore.variable import Variable
-
+from ..missing_data import MISSING_DATA
+from ..missing_data import MissingData
+from ..missing_data import is_missing_data
+from ..model import BaseInputModel
+from ..task import Task
+from ..task import TaskInputError
+from ..variable import Variable
 from .examples.tasks.sumtask import SumTask
 
 

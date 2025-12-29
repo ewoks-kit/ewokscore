@@ -1,5 +1,5 @@
-from ewokscore.graph import load_graph
-from ewokscore.graph.analysis import link_is_required
+from ..graph import load_graph
+from ..graph.analysis import link_is_required
 
 
 def test_graph_link_is_required_conditions1():

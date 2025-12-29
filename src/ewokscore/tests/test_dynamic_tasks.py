@@ -1,7 +1,7 @@
 from ewoksutils.import_utils import qualname
 
-from ewokscore import Task
-from ewokscore.inittask import instantiate_task
+from ..inittask import instantiate_task
+from ..task import Task
 
 
 def task_class_generator(qualname):

@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-from ewokscore.task import Task
+from ..task import Task
 
 WIN32 = sys.platform == "win32"
 

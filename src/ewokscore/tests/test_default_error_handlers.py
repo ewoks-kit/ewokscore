@@ -1,5 +1,5 @@
-from ewokscore.graph import load_graph
-from ewokscore.node import get_node_label
+from ..graph import load_graph
+from ..node import get_node_label
 
 
 def subsubmodel1():

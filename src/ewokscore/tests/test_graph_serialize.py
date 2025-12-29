@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from ewokscore.graph import load_graph
+from ..graph import load_graph
 
 
 @pytest.mark.parametrize("with_ext", [True, False])

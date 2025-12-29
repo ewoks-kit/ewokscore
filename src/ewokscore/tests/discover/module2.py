@@ -1,6 +1,6 @@
-from ewokscore import Task
-from ewokscore.model import BaseInputModel
-from ewokscore.model import BaseOutputModel
+from ...model import BaseInputModel
+from ...model import BaseOutputModel
+from ...task import Task
 
 
 class MyTask3(

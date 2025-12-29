@@ -2,7 +2,7 @@ from pprint import pprint
 
 import networkx
 
-from ewokscore.graph import load_graph
+from ...graph import load_graph
 
 
 def show_graph(graph, stdout=True, plot=True, show=True):

@@ -6,7 +6,7 @@ from queue import Queue
 
 import pytest
 
-from ewokscore import events
+from .. import events
 
 
 @contextmanager

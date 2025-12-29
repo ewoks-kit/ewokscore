@@ -2,9 +2,9 @@ import logging
 
 import pytest
 
-from ewokscore.graph import load_graph
-from ewokscore.graph.schema import LATEST_VERSION
-from ewokscore.graph.schema import get_versions
+from ..graph import load_graph
+from ..graph.schema import LATEST_VERSION
+from ..graph.schema import get_versions
 
 LATEST_VERSION = str(LATEST_VERSION)
 

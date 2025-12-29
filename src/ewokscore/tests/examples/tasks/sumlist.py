@@ -1,6 +1,6 @@
 from time import sleep as _sleep  # hide from task discovery
 
-from ewokscore.taskwithprogress import TaskWithProgress
+from ....taskwithprogress import TaskWithProgress
 
 
 class SumList(
