@@ -45,14 +45,14 @@ def test_changing_handlers(sqlite_path):
     database1 = sqlite_path / "ewoks_events1.db"
     _run_succesfull_workfow(database1, execute_graph)
     events = _fetch_events(database1, 10)
-    assert len(events) == 10
+    _assert_sleep_workfow_events(events)
 
     size_before = database1.stat().st_size
 
     database2 = sqlite_path / "ewoks_events2.db"
     _run_succesfull_workfow(database2, execute_graph)
     events = _fetch_events(database2, 10)
-    assert len(events) == 10
+    _assert_sleep_workfow_events(events)
 
     size_after = database1.stat().st_size
     assert size_before == size_after
@@ -71,7 +71,7 @@ def test_changing_handlers_parallel(sqlite_path, n_concurrent=4):
     sizes = []
     for db in databases:
         events = _fetch_events(db, 10)
-        assert len(events) == 10
+        _assert_sleep_workfow_events(events)
         sizes.append(db.stat().st_size)
 
     assert len(set(sizes)) == 1
@@ -307,6 +307,25 @@ def _run_sleep_workfow(database, execute_graph, **execute_options):
     ]
     taskgraph = {"graph": graph, "nodes": nodes, "links": links}
     _execute_graph(database, taskgraph, execute_graph, **execute_options)
+
+
+def _assert_sleep_workfow_events(events):
+    expected = [
+        {"context": "job", "node_id": None, "type": "start"},
+        {"context": "workflow", "node_id": None, "type": "start"},
+        {"context": "node", "node_id": "node1", "type": "start"},
+        {"context": "node", "node_id": "node1", "type": "end"},
+        {"context": "node", "node_id": "node2", "type": "start"},
+        {"context": "node", "node_id": "node2", "type": "end"},
+        {"context": "node", "node_id": "node3", "type": "start"},
+        {"context": "node", "node_id": "node3", "type": "end"},
+        {"context": "workflow", "node_id": None, "type": "end"},
+        {"context": "job", "node_id": None, "type": "end"},
+    ]
+    captured = [
+        {k: event[k] for k in ("context", "node_id", "type")} for event in events
+    ]
+    _assert_events(expected, captured)
 
 
 def _execute_graph(database, graph, execute_graph, **execute_options):

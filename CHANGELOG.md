@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Use `ewoksutils.uri_utils` and adapt to proper file URI's on Windows.
-  For example `file:///C:\Windows\Tmp`, note the leading `/` before `C:\`.
+  For example `file:///C:\Windows\Temp`, note the leading `/` before `C:\`.
 
 ### Removed
 
