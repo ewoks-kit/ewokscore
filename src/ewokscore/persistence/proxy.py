@@ -30,11 +30,7 @@ class DataUri(HasUhash):
         if isinstance(uhash, numpy.ndarray):
             uhash = uhash.item()
 
-        is_file = None
-        if isinstance(uri, ParseResult):
-            is_file = uri.scheme in ("json", "nexus")
-
-        self.__uri = uri_utils.uri_as_string(uri, is_file=is_file)
+        self.__uri = uri_utils.uri_as_string(uri)
 
         if isinstance(uhash, str):
             uhash = UniversalHash(uhash)
