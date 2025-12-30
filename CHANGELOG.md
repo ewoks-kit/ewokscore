@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [4.0.0] - 2025-12-30
+## [4.0.1] - 2025-12-30
+
+### Fixed
+
+- Make functions in `ewokscore.tests.test_workflow_events` public again.
+
+## [4.0.0] - 2025-12-30 [YANKED]
 
 ### Changed
 
