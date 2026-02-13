@@ -1,0 +1,1 @@
+{"graph": {"id": "subgraph", "input_nodes": [{"id": "in", "node": "subnode1"}]}, "nodes": [{"id": "subnode1", "task_type": "method", "task_identifier": "dummy", "default_inputs": [{"name": "name", "value": "subnode1"}, {"name": "value", "value": 0}]}]}
