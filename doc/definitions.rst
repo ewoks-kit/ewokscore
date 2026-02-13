@@ -11,7 +11,7 @@ in the graph representation. (OOP analogy: a task is a node instance).
 
 A **link** connects a source node to a target node. A link can have the following properties:
   * **conditional**: has a set of statements that combined are either True or False
-  * **required**: either marked as “required” in the graph representation or “unconditional
+  * **required**: either "marked as required” in the graph representation" or “unconditional
     and all ancestors of the source node are required”
   * **data_mapping**: describes data transfer from source to target.
 
@@ -65,44 +65,69 @@ Graph definition
 
 Graph attributes
 ^^^^^^^^^^^^^^^^
-* *id* (optional): graph identifier unique to a database of graphs
+* *id* (optional): graph identifier unique to a database of graphs (Default: "notspecified")
 * *label* (optional): non-unique label to be used when identifying a graph for human consumption
+* *schema_version* (optional): the schema version of this graph representation (Default: "1.0")
+* *requirements* (optional): a list of projects that should be present in the Python environment for the 
+  graph to be executed.
 * *input_nodes* (optional): nodes that are expected to be used as link targets when the graph
   is used as a subgraph.
 * *output_nodes* (optional): nodes that are expected to be used as link sources when the graph
   is used as a subgraph.
 
-The *input_nodes* and *output_nodes* define nodes which refer to nodes from the node attributes. For example
+The *input_nodes* and *output_nodes* have these attributes
+
+* *id*: non-unique node identifier which will be used in links with a super graph. When there are
+  multiple nodes with the same *id*, a single link will be expanded to multiple links at runtime.
+* *node*: node identifier which should be in the node attributes of this graphs
+* *sub_node* (optional): in case *node* is a graph we need to specify the node *id* inside
+  that graph. The *sub_node* can be an *id* from the node attributes of the sub-graph or
+  from sub-graph attributes *input_nodes* or *output_nodes*.
+* *link_attributes* (optional): default link attributes used in links with a super graph. The
+  link attributes specified in the super graph have priority over these defaults.
+
+For example for a graph with normal nodes `"id1"` and `"id3"` and a sub-graph node `"id2"`
+which in turn has an input node `"start"` and output node `"end"`:
 
 .. code-block:: json
 
     {
         "graph": {
+            "label": "subgraph",
             "input_nodes": [
-                {"id": "alias1", "node": "name1"},
-                {"id": "alias2", "node": "name2"},
+                {"id": "in1", "node": "id1"},
+                {"id": "in2", "node": "id2", "sub_node": "start"}
+            ],
+            "output_nodes": [
+                {"id": "out1", "node": "id3"},
+                {"id": "out2", "node": "id2", "sub_node": "end"}
             ]
         }
+        "nodes": [
+            {"id": "id1", "task_type": "class", "task_identifier": "..."},
+            {"id": "id2", "task_type": "graph", "task_identifier": "..."},
+            {"id": "id3", "task_type": "class", "task_identifier": "..."},
+        ]
     }
 
-
-In case the referenced nodes are graphs, the node inside that graph needs to be references with the `"sub_node"` key.
-For example
+The `"in*"` and `"out*"` id's can be used by a super-graph when making connections. For example
 
 .. code-block:: json
 
     {
         "graph": {
-            "input_nodes": [
-                {"id": "alias1", "node": "name1", "sub_node": "name3"},
-                {"id": "alias2", "node": "name2", "sub_node": "name4"},
-            ]
+            "label": "supergraph"
         }
+        "nodes": [
+            {"id": "id1", "task_type": "class", "task_identifier": "..."},
+            {"id": "id2", "task_type": "graph", "task_identifier": "subgraph.json"},
+            {"id": "id3", "task_type": "class", "task_identifier": "..."}
+        ]
+        "links": [
+            {"source": "id1", "target": "id2", "sub_target":"in1"},
+            {"source": "id2", "sub_source":"out2", "target": "id3"},
+        ]
     }
-
-Note that `"alias1"`, `"name1"`, `"name3"`, ... are all node id's. The `"sub_node"` *id* could be an *id* in the
-node attributes of the sub-graph or it could be an *id* in the graph attributes *input_nodes* or *output_nodes*
-of the sub-graph.
 
 Node attributes
 ^^^^^^^^^^^^^^^
@@ -119,16 +144,21 @@ Node attributes
   * *ppfmethod*: *task_identifier* is the full qualifier name of a *pypushflow* function (special input/output convention)
   * *ppfport*: special *ppfmethod* which is the *identify mapping*. *task_identifier* should not be specified.
   * *script*: *task_identifier* is the absolute path of a python or shell script
+  * *notebook*: *task_identifier* is the absolute path of a jupyter notebook
 * *task_generator* (optional): the full qualifier name of a method that generates a task at runtime
   based on *task_identifier*. Only used when *task_type* is *generated*.
-* *default_inputs* (optional): default input arguments (used not provided by the output of other tasks). For example:
+* *default_inputs* (optional): default input arguments (used when not provided by the output of other tasks). For example:
     .. code-block:: json
 
         {
             "default_inputs": [{"name":"a", "value":1}]
         }
-* *inputs_complete* (optional): set to `True` when the default input covers all required input
-  (used for method and script as the required inputs are unknown)
+* *force_start_node* (optional): when set to `True`, the node will be forcefully defined as a start node i.e. a node that should be executed before all others 
+(to be used as an escape hatch when the graph analysis fails to correctly assert the start nodes).
+* *conditions_else_value* (optional): value used in conditional links to indicate the *else* value (Default: `None`)
+* *default_error_node* (optional): when set to `True` all nodes without error handler will be linked to this node.
+* *default_error_attributes* (optional): when `default_error_node=True` this dictionary is used as attributes for the
+  error handler links. The default is `{"map_all_data": True}`. The link attribute `"on_error"` is forced to be `True`.
 
 Link attributes
 ^^^^^^^^^^^^^^^
@@ -156,7 +186,10 @@ Link attributes
         {
             "conditions": [{"source_output": "result", "value": 10}]
         }
-* *on_error* (optional): a special condition: task raises an exception. Cannot be used in combination with *conditions*.
+* *on_error* (optional): a special condition "the source task raises an exception". Cannot be used in combination with *conditions*.
+* *required* (optional): setting this to `True` marks the link as *required*. When a target receives multiple links, it will be executed
+  (perhaps multiple times) when all the sources connected to the target with *required* links have been executed. A link is required when
+  it is either "marked as required" (link attribute `required=True`) or “unconditional and all ancestors of the source node are required”.
 
 Task implementation
 -------------------
@@ -186,7 +219,7 @@ For example
                 result += self.inputs.b
             self.outputs.result = result
 
-When a task is defined as a method or a script, a class wrapper will be generated automatically:
+When a task is defined as a method, script or notebook, a class wrapper will be generated automatically:
 
 * *method*: defined by a `Task` class with one required input argument ("_method": full qualifier name of the method)
   and one output argument ("return_value")
@@ -196,3 +229,5 @@ When a task is defined as a method or a script, a class wrapper will be generate
 * *ppfport*: *ppfmethod* which is the identity mapping
 * *script*: defined by a `Task` class with one required input argument ("_script": path to the script)
   and one output argument ("return_code")
+* *notebook*: defined by a `Task` class with one required input argument ("_notebook": path to the notebook)
+  and two output arguments ("results" and "output_notebook")
