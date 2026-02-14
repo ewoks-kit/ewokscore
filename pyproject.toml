@@ -29,11 +29,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://gitlab.esrf.fr/workflow/ewoks/ewokscore"
+Homepage = "https://github.com/ewoks-kit/ewokscore"
 Documentation = "https://ewokscore.readthedocs.io/"
-Repository = "https://gitlab.esrf.fr/workflow/ewoks/ewokscore"
-Issues = "https://gitlab.esrf.fr/workflow/ewoks/ewokscore/issues/"
-Changelog = "https://gitlab.esrf.fr/workflow/ewoks/ewokscore/-/blob/main/CHANGELOG.md"
+Repository = "https://github.com/ewoks-kit/ewokscore"
+Issues = "https://github.com/ewoks-kit/ewokscore/issues/"
+Changelog = "https://github.com/ewoks-kit/ewokscore/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 notebooks = ["papermill"]

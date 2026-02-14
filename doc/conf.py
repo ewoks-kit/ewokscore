@@ -56,9 +56,9 @@ html_css_files = ["custom.css"]
 html_theme_options = {
     "icon_links": [
         {
-            "name": "gitlab",
-            "url": "https://gitlab.esrf.fr/workflow/ewoks/ewokscore",
-            "icon": "fa-brands fa-gitlab",
+            "name": "github",
+            "url": "https://github.com/ewoks-kit/ewokscore",
+            "icon": "fa-brands fa-github",
         },
         {
             "name": "pypi",
