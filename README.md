@@ -1,5 +1,12 @@
 # ewokscore
 
+[![Pipeline](https://github.com/ewoks-kit/ewokscore/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ewoks-kit/ewokscore/actions/workflows/test.yml)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License](https://img.shields.io/github/license/ewoks-kit/ewokscore)](https://github.com/ewoks-kit/ewokscore/blob/main/LICENSE.md)
+[![Coverage](https://codecov.io/gh/ewoks-kit/ewokscore/branch/main/graph/badge.svg)](https://codecov.io/gh/ewoks-kit/ewokscore)
+[![Docs](https://readthedocs.org/projects/ewokscore/badge/?version=latest)](https://ewokscore.readthedocs.io/en/latest/?badge=latest)
+[![PyPI](https://img.shields.io/pypi/v/ewokscore)](https://pypi.org/project/ewokscore/)
+
 *ewokscore* provides an API to define workflows and implement tasks in [ewoks](https://ewoks.readthedocs.io/).
 
 ## Install
