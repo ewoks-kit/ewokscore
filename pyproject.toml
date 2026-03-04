@@ -40,10 +40,7 @@ notebooks = ["papermill"]
 test = ["ewokscore[notebooks]", "pytest >=7", "matplotlib >=3", "ipykernel"]
 dev = [
     "ewokscore[test]",
-    "black[jupyter] >=25",
-    "flake8 >=4",
-    "flake8_nb >= 0.3.1",
-    "isort",
+    "ruff",
 ]
 doc = [
     "ewokscore[test]",
@@ -87,6 +84,13 @@ omit = ["*/tests/*"]
 "yaml" = "ewokscore.engine:CoreWorkflowEngine"
 "test_core" = "ewokscore.engine:CoreWorkflowEngine"
 
-[tool.isort]
-profile = "black"
-force_single_line = "True"
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore `S101` (assert used violations) in all test files
+"src/ewokscore/tests/*.py" = ["S101"]
+
+[tool.ruff.lint.isort]
+force-single-line = true
