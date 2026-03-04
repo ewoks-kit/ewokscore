@@ -59,7 +59,6 @@ def discover_tasks_from_modules(
                 reload=reload,
                 raise_import_failure=raise_import_failure,
             ):
-
                 result.extend(
                     _iter_discover_tasks_from_modules(
                         module_name,

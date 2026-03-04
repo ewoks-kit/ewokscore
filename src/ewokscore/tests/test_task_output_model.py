@@ -144,7 +144,6 @@ class UserWithTypeCoercion(User):
 
 
 class TaskWithTypeCoercion(PassThroughTask, output_model=UserWithTypeCoercion):
-
     def run(self):
         super().run()
         if not self.missing_inputs.age:

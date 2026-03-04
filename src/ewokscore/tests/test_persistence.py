@@ -24,20 +24,20 @@ def test_json_proxy_uri(tmp_path):
         prefix = "json://"
 
     proxy = JsonProxy(uhash_source=hashable, root_uri=str(tmp_path))
-    assert str(proxy.uri) == f"{prefix}{tmp_path/identifier}.json"
+    assert str(proxy.uri) == f"{prefix}{tmp_path / identifier}.json"
     tmpfile = tmp_path / "file"
     proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json")
-    assert str(proxy.uri) == f"{prefix}{tmpfile/identifier}.json"
+    assert str(proxy.uri) == f"{prefix}{tmpfile / identifier}.json"
     proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json?path=/a")
-    assert str(proxy.uri) == f"{prefix}{tmpfile/'a'/identifier}.json"
+    assert str(proxy.uri) == f"{prefix}{tmpfile / 'a' / identifier}.json"
     proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json?path=/a/b")
-    assert str(proxy.uri) == f"{prefix}{tmpfile/'a'/'b'/identifier}.json"
+    assert str(proxy.uri) == f"{prefix}{tmpfile / 'a' / 'b' / identifier}.json"
     proxy = JsonProxy(uhash_source=hashable, root_uri=f"{tmpfile}.json?path=/a/b/c")
-    assert str(proxy.uri) == f"{prefix}{tmpfile/'a'/'b'/'c'/identifier}.json"
+    assert str(proxy.uri) == f"{prefix}{tmpfile / 'a' / 'b' / 'c' / identifier}.json"
 
     proxy2 = JsonProxy(proxy.uri)
     assert proxy.uri == proxy2.uri
-    assert str(proxy2.uri) == f"{prefix}{tmpfile/'a'/'b'/'c'/identifier}.json"
+    assert str(proxy2.uri) == f"{prefix}{tmpfile / 'a' / 'b' / 'c' / identifier}.json"
 
 
 def test_nexus_proxy_uri(tmp_path):
@@ -54,7 +54,7 @@ def test_nexus_proxy_uri(tmp_path):
         prefix = "nexus://"
 
     proxy = NexusProxy(uhash_source=hashable, root_uri=str(tmp_path))
-    assert str(proxy.uri) == f"{prefix}{tmp_path/identifier}.nx?path={identifier}"
+    assert str(proxy.uri) == f"{prefix}{tmp_path / identifier}.nx?path={identifier}"
     tmpfile = tmp_path / "file"
     proxy = NexusProxy(uhash_source=hashable, root_uri=f"{tmpfile}.nx")
     assert str(proxy.uri) == f"{prefix}{tmpfile}.nx?path={identifier}"

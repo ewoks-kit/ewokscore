@@ -15,7 +15,6 @@ from .task import Task
 
 
 class CoreWorkflowEngine(WorkflowEngineWithSerialization):
-
     def execute_graph(
         self,
         graph: Any,
