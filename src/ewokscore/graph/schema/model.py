@@ -1,3 +1,4 @@
+from typing import Annotated
 from typing import Any
 from typing import Hashable
 from typing import Literal
@@ -6,6 +7,9 @@ from typing import Sequence
 from typing import Union
 
 from pydantic import BaseModel
+from pydantic import Field
+
+from . import LATEST_VERSION
 
 NodeId = Hashable  # Could be recursive: Union[Tuple[str, "Id"], str]
 
@@ -49,21 +53,35 @@ class EwoksLink(EwoksLinkAttributes):
     sub_target_attributes: Optional[EwoksNodeAttributes] = None
 
 
-class EwoksNode(EwoksNodeAttributes):
+class _EwoksBaseNode(EwoksNodeAttributes):
     id: NodeId
     label: Optional[str] = None
-    task_identifier: Optional[str] = None  # Only optional for ppfport (TODO)
+
+
+class EwoksTaskNode(_EwoksBaseNode):
     task_type: Literal[
         "class",
-        "generated",
         "method",
         "graph",
         "ppfmethod",
-        "ppfport",
         "script",
         "notebook",
     ]
-    task_generator: Optional[str] = None
+    task_identifier: str
+
+
+class GeneratedNode(_EwoksBaseNode):
+    task_type: Literal["generated"]
+    task_generator: str
+
+
+class PpfPortNode(_EwoksBaseNode):
+    task_type: Literal["ppfport"]
+
+
+EwoksNode = Annotated[
+    Union[EwoksTaskNode, GeneratedNode, PpfPortNode], Field(discriminator="task_type")
+]
 
 
 class EwoksNodeAlias(EwoksNodeAttributes):
@@ -76,7 +94,7 @@ class EwoksNodeAlias(EwoksNodeAttributes):
 class EwoksGraphAttributes(BaseModel):
     id: str
     label: Optional[str] = None
-    schema_version: str = "1.1"  # SHOULD BE LATEST
+    schema_version: str = str(LATEST_VERSION)
     requirements: Sequence[str] = []
     input_nodes: Sequence[EwoksNodeAlias] = []
     output_nodes: Sequence[EwoksNodeAlias] = []
