@@ -1,11 +1,15 @@
 import sys
-from typing import Annotated
 from typing import Any
 from typing import Hashable
 from typing import Literal
 from typing import Optional
 from typing import Sequence
 from typing import Union
+
+if sys.version_info < (3, 9):
+    from typing_extensions import Annotated
+else:
+    from typing import Annotated
 
 if sys.version_info < (3, 11):
     from typing_extensions import Self

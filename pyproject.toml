@@ -26,6 +26,7 @@ dependencies = [
     "ewoksutils >=1.9.1",
     "importlib_metadata;python_version < '3.9'",
     "pydantic >= 2",
+    "typing_extensions;python_version < '3.9'",
 ]
 
 [project.urls]
@@ -38,10 +39,7 @@ Changelog = "https://github.com/ewoks-kit/ewokscore/blob/main/CHANGELOG.md"
 [project.optional-dependencies]
 notebooks = ["papermill"]
 test = ["ewokscore[notebooks]", "pytest >=7", "matplotlib >=3", "ipykernel"]
-dev = [
-    "ewokscore[test]",
-    "ruff",
-]
+dev = ["ewokscore[test]", "ruff"]
 doc = [
     "ewokscore[test]",
     "sphinx >=4.5",
