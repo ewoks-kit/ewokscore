@@ -208,7 +208,9 @@ class Variable(hashing.UniversalHashable):
 
 
 class VariableContainer(Variable, Mapping):
-    """An immutable mapping of variable identifiers to variables."""
+    """An immutable mapping of variable identifiers (str or int) to
+    variables (Variable).
+    """
 
     def __init__(
         self,
@@ -258,8 +260,8 @@ class VariableContainer(Variable, Mapping):
         )
 
     def copy_without_references(self):
-        """Fix the copy uhash and remove references to other uhashable
-        objects.
+        """The uhash of the copy is fixed thereby remove references to
+        other uhashable objects.
         """
         return type(self)(
             value={name: var.copy_without_references() for name, var in self.items()},
@@ -586,7 +588,9 @@ def value_from_transfer(data, varinfo=None):
 
 
 class MutableVariableContainer(VariableContainer, MutableMapping):
-    """A mutable mapping of variable identifiers to variables."""
+    """An mutable mapping of variable identifiers (str or int) to
+    variables (Variable).
+    """
 
     def __setitem__(self, key, value):
         self._set_item(key, value)

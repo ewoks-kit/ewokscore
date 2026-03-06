@@ -316,8 +316,9 @@ class Task(Registered, UniversalHashable, register=False):
         subclass_has_output_names = bool(subclass._OUTPUT_NAMES)
         if subclass_has_output_names and subclass._OUTPUT_MODEL is None:
             raise TypeError(
-                f"Cannot use output_model since the original task {subclass} "
-                "uses output_names. Specify outputs via output_names."
+                f"Cannot use output_model since the original task "
+                f"{subclass} uses output_names. Specify outputs via a "
+                "output_names."
             )
 
         if subclass._OUTPUT_MODEL is not None and not issubclass(

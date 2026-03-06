@@ -114,7 +114,9 @@ def _get_subnode_ids(
 def _get_subnode_attributes(
     node_id: NodeIdType, subgraphs: dict, graph_node_attrs: dict
 ) -> Iterator[Tuple[NodeIdType, dict]]:
-    """Update subgraph input-node attributes from the parent graph node."""
+    """Update all input node attributes of the subgraph with the graph
+    node attributes from the super graph.
+    """
     transfer_attributes = {
         "default_inputs",
         "force_start_node",

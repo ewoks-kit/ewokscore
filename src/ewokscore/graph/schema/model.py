@@ -60,7 +60,8 @@ class EwoksLinkAttributes(BaseModel):
     def check_mapping_collision(self) -> Self:
         if self.map_all_data and self.data_mapping:
             raise ValueError(
-                "map_all_data cannot be used in conjunction with data_mapping. Use one or the other."
+                "map_all_data cannot be used in conjunction with "
+                "data_mapping. Use one or the other."
             )
         return self
 
