@@ -1,3 +1,4 @@
+import sys
 from typing import Annotated
 from typing import Any
 from typing import Hashable
@@ -6,8 +7,15 @@ from typing import Optional
 from typing import Sequence
 from typing import Union
 
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
+
+
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import model_validator
 
 from . import LATEST_VERSION
 
@@ -43,6 +51,14 @@ class EwoksLinkAttributes(BaseModel):
     conditions: Sequence[EwoksCondition] = []
     on_error: bool = False
     required: bool = False
+
+    @model_validator(mode="after")
+    def check_mapping_collision(self) -> Self:
+        if self.map_all_data and self.data_mapping:
+            raise ValueError(
+                "map_all_data cannot be used in conjunction with data_mapping. Use one or the other."
+            )
+        return self
 
 
 class EwoksLink(EwoksLinkAttributes):

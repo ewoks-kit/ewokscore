@@ -90,3 +90,40 @@ def test_generated_node_without_generator():
         match="1 validation error for EwoksGraph\nnodes.0.generated.task_generator\n",
     ):
         EwoksGraph(**graph_dict)
+
+
+def test_link_with_datamapping_and_map_all_data():
+    graph_dict = {
+        "graph": {"id": "required"},
+        "nodes": [
+            {
+                "id": "node1",
+                "task_type": "class",
+                "task_identifier": "task1",
+            },
+            {
+                "id": "node2",
+                "task_type": "class",
+                "task_identifier": "task2",
+            },
+        ],
+        "links": [
+            {
+                "source": "task1",
+                "target": "task2",
+                "data_mapping": [
+                    {
+                        "source_output": "a",
+                        "target_input": "b",
+                    }
+                ],
+                "map_all_data": True,
+            }
+        ],
+    }
+
+    with pytest.raises(
+        pydantic.ValidationError,
+        match="1 validation error for EwoksGraph\nlinks.0\n",
+    ):
+        EwoksGraph(**graph_dict)
