@@ -142,8 +142,9 @@ def _iter_method_tasks(
     reload: bool = False,
     raise_import_failure: bool = False,
 ) -> Generator[TaskDict, None, None]:
-    """Yields all task methods from the provided module_names. The module_names will be will
-    imported for discovery.
+    """Yield all task methods from the provided module names.
+
+    The modules are imported for discovery.
     """
     for module_name in module_names:
         mod = _safe_import_module(
@@ -166,10 +167,12 @@ def _iter_ppfmethod_tasks(
     reload: bool = False,
     raise_import_failure: bool = False,
 ) -> Generator[TaskDict, None, None]:
-    """Yields all task ppfmethods from the provided module_names. The module_names will be will
-    imported for discovery.
+    """Yield all task ppfmethods from the provided module names.
 
-    The difference with regular methods is that ppfmethods are expected to be called `run`. Other method names will be ignored.
+    The modules are imported for discovery.
+
+    The difference with regular methods is that ppfmethods are expected
+    to be called `run`. Other method names are ignored.
     """
     for module_name in module_names:
         mod = _safe_import_module(

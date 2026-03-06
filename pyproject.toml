@@ -84,7 +84,6 @@ omit = ["*/tests/*"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
-ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore `S101` (assert used violations) in all test files

@@ -47,7 +47,9 @@ def test_all_tasks_discovery():
             "optional_input_names": ["a", "b", "raise_error"],
             "output_names": ["result"],
             "required_input_names": [],
-            "task_identifier": "ewokscore.tests.examples.tasks.errorsumtask.ErrorSumTask",
+            "task_identifier": (
+                "ewokscore.tests.examples.tasks.errorsumtask.ErrorSumTask"
+            ),
             "task_type": "class",
             "description": "Add two number with intentional exception",
             "input_model": None,
@@ -59,7 +61,9 @@ def test_all_tasks_discovery():
             "optional_input_names": [],
             "output_names": [],
             "required_input_names": [],
-            "task_identifier": "ewokscore.tests.examples.tasks.nooutputtask.NoOutputTask",
+            "task_identifier": (
+                "ewokscore.tests.examples.tasks.nooutputtask.NoOutputTask"
+            ),
             "task_type": "class",
             "description": "A task without outputs",
             "input_model": None,

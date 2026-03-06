@@ -21,7 +21,8 @@ class ScriptExecutorTask(
 ):
     """Task wrapper for a shell command or script.
 
-    When the :code:`SCRIPT_ARGUMENT` input variable is not an existing file, it is assumed to be a command.
+    When the :code:`SCRIPT_ARGUMENT` input variable is not an existing
+    file, it is assumed to be a command.
 
     When it is a file, it is assumed to be executable when
 

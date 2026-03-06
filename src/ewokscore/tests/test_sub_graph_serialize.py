@@ -131,7 +131,9 @@ def graph(_subgraph):
             {
                 "id": "append",
                 "task_type": "method",
-                "task_identifier": "ewokscore.tests.examples.tasks.simplemethods.append",
+                "task_identifier": (
+                    "ewokscore.tests.examples.tasks.simplemethods.append"
+                ),
             },
         ],
         "links": [

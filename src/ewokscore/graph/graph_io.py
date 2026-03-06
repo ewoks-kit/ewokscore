@@ -25,7 +25,8 @@ def update_default_inputs(
     - id (optional): node id
     - label (optional): used when `id` is missing
     - task_identifier (optional): used when `id` is missing
-    - all (optional): used when `id`, `label` and `task_identifier` are missing (`True`: all nodes, `False`: start nodes)
+    - all (optional): used when `id`, `label` and `task_identifier`
+      are missing (`True`: all nodes, `False`: start nodes)
     """
     inputs = parse_inputs(graph, inputs)
     keys_to_update = "name", "value"
@@ -57,7 +58,8 @@ def parse_inputs(
     - id (optional): node id
     - label (optional): used when `id` is missing
     - task_identifier (optional): used when `id` is missing
-    - all (optional): used when `id`, `label` and `task_identifier` are missing (`True`: all nodes, `False`: start nodes)
+    - all (optional): used when `id`, `label` and `task_identifier`
+      are missing (`True`: all nodes, `False`: start nodes)
     """
     if not inputs:
         return list()
@@ -101,7 +103,8 @@ def parse_outputs(
     - id (optional): node id
     - label (optional): used when `id` is missing
     - task_identifier (optional): used when `id` is missing
-    - all (optional): used when `id`, `label` and `task_identifier` are missing (`True`: all nodes, `False`: end nodes)
+    - all (optional): used when `id`, `label` and `task_identifier`
+      are missing (`True`: all nodes, `False`: end nodes)
     """
     if outputs is None:
         outputs = [{"all": False}]

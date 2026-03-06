@@ -145,7 +145,8 @@ def assert_variable_uri(var, **references):
 
 
 def assert_variable_value(var, **references):
-    # Side effect: variable will have runtime values (lazy loading in the `value` property)
+    # Side effect: variable will have runtime values (lazy loading in the
+    # `value` property)
     for name, var_ref in references.items():
         if name in ("same_instance", "same_value", "ref_same_variables"):
             assert var.value == var_ref.value, name

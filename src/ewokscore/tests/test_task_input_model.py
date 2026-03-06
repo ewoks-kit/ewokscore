@@ -117,7 +117,10 @@ def test_error_on_subclass_with_wrong_submodel():
 
     with pytest.raises(
         TypeError,
-        match="Input model (.*) from task subclass must be a subclass of the original task input model",
+        match=(
+            "Input model (.*) from task subclass must be a subclass of the "
+            "original task input model"
+        ),
     ):
 
         class PassThroughCarTask(PassThroughTask, input_model=Car):

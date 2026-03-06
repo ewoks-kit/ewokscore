@@ -12,7 +12,10 @@ LATEST_VERSION = str(LATEST_VERSION)
 def test_update_method_with_exception():
     with pytest.raises(
         ValueError,
-        match='Graph schema version "0.0" requires another library version: python3 -m pip install "ewokscore>=0.0,<0.0.1"',
+        match=(
+            'Graph schema version "0.0" requires another library version: '
+            'python3 -m pip install "ewokscore>=0.0,<0.0.1"'
+        ),
     ):
         load_graph({"graph": {"id": "test", "schema_version": "0.0"}})
 
@@ -49,7 +52,11 @@ def test_error_on_improper_update_methods(use_test_schema_versions):
 def test_non_existing_version():
     with pytest.raises(
         ValueError,
-        match='Graph schema version "99999.0" is either invalid or requires a newer library version: python3 -m pip install --upgrade ewokscore',
+        match=(
+            'Graph schema version "99999.0" is either invalid or requires '
+            "a newer library version: python3 -m pip install --upgrade "
+            "ewokscore"
+        ),
     ):
         load_graph({"graph": {"id": "test", "schema_version": "99999.0"}})
 

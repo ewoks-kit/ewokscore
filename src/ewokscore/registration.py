@@ -59,7 +59,8 @@ class Registered:
             if _second_attempt:
                 lst = cls.get_subclass_names()
                 raise RuntimeError(
-                    f"Class {repr(registry_name)} is not imported. Imported classes are {repr(lst)}"
+                    f"Class {registry_name!r} is not imported. Imported "
+                    f"classes are {lst!r}"
                 )
             else:
                 import_utils.import_qualname(registry_name)

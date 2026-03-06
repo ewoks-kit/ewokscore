@@ -208,9 +208,7 @@ def _get_node_inputs(graph: networkx.DiGraph) -> List[NodeInput]:
 def _get_connected_input_names(
     graph: networkx.DiGraph, node_id: NodeIdType
 ) -> Set[str]:
-    """
-    Return all input parameter names that are connected to an output from a previous task.
-    """
+    """Return input parameter names connected to a previous task output."""
     connected_input_names = set()
     for predecessor_id in graph.predecessors(node_id):
         link_attrs = graph.get_edge_data(predecessor_id, node_id)
@@ -291,7 +289,9 @@ def _get_all_node_inputs(
             )
     else:
         _logger.warning(
-            f"Task type {task_type!r} is not supported ({task_identifier!r}). Only using default values from the workflow."
+            f"Task type {task_type!r} is not supported "
+            f"({task_identifier!r}). Only using default values from the "
+            "workflow."
         )
         import_error = TypeError(f"Cannot get inputs from task type {task_type!r}")
         node_input_iterator = _node_inputs_from_defaults(

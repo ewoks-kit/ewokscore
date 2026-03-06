@@ -118,7 +118,8 @@ def assert_convert_graph(
     test the basic representations (e.g. json and yaml) in addition to the provided
     `representations`.
 
-    The tuple-items in `representations` are: load options, save options, file extension.
+    The tuple-items in `representations` are: load options, save options,
+    file extension.
     """
     if path_format is None:
         path_format = str

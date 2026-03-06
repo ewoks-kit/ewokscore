@@ -30,7 +30,8 @@ def get_versions() -> Dict[Version, SchemaMetadata]:
 # Minor version: increment when adding features or deprecating the existing schema
 LATEST_VERSION = list(get_versions().keys())[-1]
 
-# The default version may be set to something else if we don't want the latest version to be the default
+# The default version may be set to something else if we do not want the
+# latest version to be the default.
 DEFAULT_VERSION = LATEST_VERSION
 
 
@@ -51,8 +52,9 @@ def normalize_schema_version(graph: Union[dict, networkx.Graph]):
         )
         pversion = DEFAULT_VERSION
     if pversion != LATEST_VERSION:
-        # This warning is given because an exception may occur before `update_graph_schema`
-        # is called due to the different schema version.
+        # This warning is given because an exception may occur before
+        # `update_graph_schema` is called due to the different schema
+        # version.
         logger.warning(
             'Graph schema version "%s" is not equal to the latest version "%s"',
             pversion,
@@ -95,15 +97,21 @@ class GraphSchemaError(ValueError):
 
         if not version_metadata:
             return super().__init__(
-                f'Graph schema version "{schema_version}" is either invalid or requires a newer library version: python3 -m pip install --upgrade ewokscore'
+                f'Graph schema version "{schema_version}" is either invalid '
+                "or requires a newer library version: python3 -m pip "
+                "install --upgrade ewokscore"
             )
         lbound, ubound = version_metadata.ewokscore_bounds
 
         if not ubound:
             return super().__init__(
-                f'Graph schema version "{schema_version}" requires another library version: python3 -m pip install "ewokscore>={lbound}"'
+                f'Graph schema version "{schema_version}" requires another '
+                "library version: python3 -m pip install "
+                f'"ewokscore>={lbound}"'
             )
 
         return super().__init__(
-            f'Graph schema version "{schema_version}" requires another library version: python3 -m pip install "ewokscore>={lbound},<{ubound}"`'
+            f'Graph schema version "{schema_version}" requires another '
+            "library version: python3 -m pip install "
+            f'"ewokscore>={lbound},<{ubound}"`'
         )

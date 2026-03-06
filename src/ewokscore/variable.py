@@ -208,7 +208,7 @@ class Variable(hashing.UniversalHashable):
 
 
 class VariableContainer(Variable, Mapping):
-    """An immutable mapping of variable identifiers (str or int) to variables (Variable)."""
+    """An immutable mapping of variable identifiers to variables."""
 
     def __init__(
         self,
@@ -258,7 +258,9 @@ class VariableContainer(Variable, Mapping):
         )
 
     def copy_without_references(self):
-        """The uhash of the copy is fixed thereby remove references to other uhashable objects."""
+        """Fix the copy uhash and remove references to other uhashable
+        objects.
+        """
         return type(self)(
             value={name: var.copy_without_references() for name, var in self.items()},
             **self.__varparams,
@@ -275,11 +277,13 @@ class VariableContainer(Variable, Mapping):
         for i, tpl in enumerate(value):
             if not isinstance(tpl, Sequence):
                 raise TypeError(
-                    f"cannot convert dictionary update sequence element #{i} to a sequence"
+                    "cannot convert dictionary update sequence element "
+                    f"#{i} to a sequence"
                 )
             if len(tpl) != 2:
                 raise ValueError(
-                    f"dictionary update sequence element #{i} has length {len(tpl)}; 2 is required"
+                    "dictionary update sequence element "
+                    f"#{i} has length {len(tpl)}; 2 is required"
                 )
             self._set_item(*tpl)
 
@@ -437,7 +441,8 @@ class VariableContainer(Variable, Mapping):
 
     @property
     @deprecated(
-        "the property 'variable_uhashes' is deprecated in favor of the function 'get_variable_uhashes'"
+        "the property 'variable_uhashes' is deprecated in favor of the "
+        "function 'get_variable_uhashes'"
     )
     def variable_uhashes(self):
         """DEPRECATED"""
@@ -448,7 +453,8 @@ class VariableContainer(Variable, Mapping):
 
     @property
     @deprecated(
-        "the property 'variable_values' is deprecated in favor of the function 'get_variable_values'"
+        "the property 'variable_values' is deprecated in favor of the "
+        "function 'get_variable_values'"
     )
     def variable_values(self):
         """DEPRECATED"""
@@ -459,7 +465,8 @@ class VariableContainer(Variable, Mapping):
 
     @property
     @deprecated(
-        "the property 'variable_data_proxies' is deprecated in favor of the function 'get_variable_data_proxies'"
+        "the property 'variable_data_proxies' is deprecated in favor of "
+        "the function 'get_variable_data_proxies'"
     )
     def variable_data_proxies(self):
         """DEPRECATED"""
@@ -470,7 +477,8 @@ class VariableContainer(Variable, Mapping):
 
     @property
     @deprecated(
-        "the property 'variable_uris' is deprecated in favor of the function 'get_variable_uris'",
+        "the property 'variable_uris' is deprecated in favor of the "
+        "function 'get_variable_uris'",
     )
     def variable_uris(self):
         """DEPRECATED"""
@@ -486,7 +494,8 @@ class VariableContainer(Variable, Mapping):
 
     @property
     @deprecated(
-        "the property 'variable_transfer_data' is deprecated in favor of the function 'get_variable_transfer_data'",
+        "the property 'variable_transfer_data' is deprecated in favor of "
+        "the function 'get_variable_transfer_data'",
     )
     def variable_transfer_data(self):
         """DEPRECATED"""
@@ -507,7 +516,8 @@ class VariableContainer(Variable, Mapping):
 
     @property
     @deprecated(
-        "the property 'named_variable_values' is deprecated in favor of the function 'get_named_variable_values'",
+        "the property 'named_variable_values' is deprecated in favor of "
+        "the function 'get_named_variable_values'",
     )
     def named_variable_values(self):
         """DEPRECATED"""
@@ -522,7 +532,8 @@ class VariableContainer(Variable, Mapping):
 
     @property
     @deprecated(
-        "the property 'positional_variable_values' is deprecated in favor of the function 'get_positional_variable_values'",
+        "the property 'positional_variable_values' is deprecated in favor "
+        "of the function 'get_positional_variable_values'",
     )
     def positional_variable_values(self):
         """DEPRECATED"""
@@ -537,7 +548,10 @@ class VariableContainer(Variable, Mapping):
 
 
 def variable_from_transfer(data, varinfo=None) -> Variable:
-    """Meant for task schedulers that pass data (see `VariableContainer.variable_transfer_data`)"""
+    """Meant for task schedulers that pass data.
+
+    See `VariableContainer.variable_transfer_data`.
+    """
     if isinstance(data, Variable):
         return data
     kw = {"varinfo": varinfo}
@@ -553,7 +567,10 @@ def variable_from_transfer(data, varinfo=None) -> Variable:
 
 
 def value_from_transfer(data, varinfo=None):
-    """Meant for task schedulers that pass data (see VariableContainer.variable_transfer_*)"""
+    """Meant for task schedulers that pass data.
+
+    See `VariableContainer.variable_transfer_*`.
+    """
     if isinstance(data, Variable):
         return data.value
     kw = {"varinfo": varinfo}
@@ -569,7 +586,7 @@ def value_from_transfer(data, varinfo=None):
 
 
 class MutableVariableContainer(VariableContainer, MutableMapping):
-    """An mutable mapping of variable identifiers (str or int) to variables (Variable)."""
+    """A mutable mapping of variable identifiers to variables."""
 
     def __setitem__(self, key, value):
         self._set_item(key, value)

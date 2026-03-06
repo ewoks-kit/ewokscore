@@ -235,8 +235,10 @@ class Task(Registered, UniversalHashable, register=False):
             )
             if has_input_names and subclass._INPUT_MODEL is not None:
                 raise TypeError(
-                    f"""Cannot use input_names or optional_input_names since the original task {subclass} uses a input model.
-                    Specify inputs via a subclass of the original task input model."""
+                    "Cannot use input_names or optional_input_names since "
+                    f"the original task {subclass} uses an input model. "
+                    "Specify inputs via a subclass of the original task "
+                    "input model."
                 )
 
             return input_names_set, optional_input_names_set
@@ -248,7 +250,9 @@ class Task(Registered, UniversalHashable, register=False):
 
         if input_names or optional_input_names or n_required_positional_inputs:
             raise TypeError(
-                "input_model cannot be used with input_names, optional_input_names or n_required_positional_inputs. Please use one or the other"
+                "input_model cannot be used with input_names, "
+                "optional_input_names or n_required_positional_inputs. "
+                "Please use one or the other"
             )
 
         subclass_has_input_names = bool(
@@ -258,15 +262,19 @@ class Task(Registered, UniversalHashable, register=False):
         )
         if subclass_has_input_names and subclass._INPUT_MODEL is None:
             raise TypeError(
-                f"""Cannot use input_model since the original task {subclass} uses input_names and/or n_required_positional_inputs.
-                Specify inputs via a input_names or optional_input_names."""
+                f"Cannot use input_model since the original task {subclass} "
+                "uses input_names and/or "
+                "n_required_positional_inputs. Specify inputs via "
+                "input_names or optional_input_names."
             )
 
         if subclass._INPUT_MODEL is not None and not issubclass(
             input_model, subclass._INPUT_MODEL
         ):
             raise TypeError(
-                f"Input model {input_model} from task subclass must be a subclass of the original task input model {subclass._INPUT_MODEL}"
+                f"Input model {input_model} from task subclass must be a "
+                "subclass of the original task input model "
+                f"{subclass._INPUT_MODEL}"
             )
 
         fields = input_model.model_fields
@@ -287,8 +295,9 @@ class Task(Registered, UniversalHashable, register=False):
             has_output_names = bool(output_names_set)
             if has_output_names and subclass._OUTPUT_MODEL is not None:
                 raise TypeError(
-                    f"""Cannot use output_names since the original task {subclass} uses a output model.
-                    Specify outputs via a subclass of the original task output model."""
+                    "Cannot use output_names since the original task "
+                    f"{subclass} uses an output model. Specify outputs via "
+                    "a subclass of the original task output model."
                 )
 
             return output_names_set
@@ -300,21 +309,24 @@ class Task(Registered, UniversalHashable, register=False):
 
         if output_names:
             raise TypeError(
-                "output_model cannot be used with output_names. Please use one or the other"
+                "output_model cannot be used with output_names. Please use "
+                "one or the other"
             )
 
         subclass_has_output_names = bool(subclass._OUTPUT_NAMES)
         if subclass_has_output_names and subclass._OUTPUT_MODEL is None:
             raise TypeError(
-                f"""Cannot use output_model since the original task {subclass} uses output_names.
-                Specify outputs via a output_names."""
+                f"Cannot use output_model since the original task {subclass} "
+                "uses output_names. Specify outputs via output_names."
             )
 
         if subclass._OUTPUT_MODEL is not None and not issubclass(
             output_model, subclass._OUTPUT_MODEL
         ):
             raise TypeError(
-                f"Output model {output_model} from task subclass must be a subclass of the original task output model {subclass._OUTPUT_MODEL}"
+                f"Output model {output_model} from task subclass must be a "
+                "subclass of the original task output model "
+                f"{subclass._OUTPUT_MODEL}"
             )
 
         fields = output_model.model_fields
@@ -412,7 +424,8 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     @deprecated(
-        "the property 'input_values' is deprecated in favor of the function 'get_input_values'"
+        "the property 'input_values' is deprecated in favor of the "
+        "function 'get_input_values'"
     )
     def input_values(self):
         """DEPRECATED"""
@@ -423,7 +436,8 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     @deprecated(
-        "the property 'named_input_values' is deprecated in favor of the function 'get_named_input_values'"
+        "the property 'named_input_values' is deprecated in favor of the "
+        "function 'get_named_input_values'"
     )
     def named_input_values(self):
         """DEPRECATED"""
@@ -434,7 +448,8 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     @deprecated(
-        "the property 'positional_input_values' is deprecated in favor of the function 'get_positional_input_values'"
+        "the property 'positional_input_values' is deprecated in favor of "
+        "the function 'get_positional_input_values'"
     )
     def positional_input_values(self):
         """DEPRECATED"""
@@ -445,7 +460,8 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     @deprecated(
-        "the property 'npositional_inputs' is deprecated in favor of the property 'n_positional_inputs'"
+        "the property 'npositional_inputs' is deprecated in favor of the "
+        "property 'n_positional_inputs'"
     )
     def npositional_inputs(self):
         """DEPRECATED"""
@@ -474,7 +490,8 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     @deprecated(
-        "the property 'output_uhashes' is deprecated in favor of the function 'get_output_uhashes'"
+        "the property 'output_uhashes' is deprecated in favor of the "
+        "function 'get_output_uhashes'"
     )
     def output_uhashes(self):
         """DEPRECATED"""
@@ -485,7 +502,8 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     @deprecated(
-        "the property 'output_values' is deprecated in favor of the function 'get_output_values'"
+        "the property 'output_values' is deprecated in favor of the "
+        "function 'get_output_values'"
     )
     def output_values(self):
         """DEPRECATED"""
@@ -496,7 +514,8 @@ class Task(Registered, UniversalHashable, register=False):
 
     @property
     @deprecated(
-        "the property 'output_transfer_data' is deprecated in favor of the function 'get_output_transfer_data'"
+        "the property 'output_transfer_data' is deprecated in favor of "
+        "the function 'get_output_transfer_data'"
     )
     def output_transfer_data(self):
         """DEPRECATED"""
@@ -645,9 +664,15 @@ class Task(Registered, UniversalHashable, register=False):
         node_id = self.__node_id
         task_identifier = self.task_identifier
         if self.__node_label:
-            err_msg = f"{prefix} for ewoks task {self.__node_label!r} (id: {node_id!r}, task: {task_identifier!r}): {message}"
+            err_msg = (
+                f"{prefix} for ewoks task {self.__node_label!r} "
+                f"(id: {node_id!r}, task: {task_identifier!r}): {message}"
+            )
         else:
-            err_msg = f"{prefix} for ewoks task (id: {node_id!r}, task: {task_identifier!r}): {message}"
+            err_msg = (
+                f"{prefix} for ewoks task (id: {node_id!r}, "
+                f"task: {task_identifier!r}): {message}"
+            )
         raise exc_class(err_msg) from cause
 
     def reset_state(self):

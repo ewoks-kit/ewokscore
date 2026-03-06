@@ -70,7 +70,10 @@ def test_error_on_subclass_with_wrong_submodel():
 
     with pytest.raises(
         TypeError,
-        match="Output model (.*) from task subclass must be a subclass of the original task output model",
+        match=(
+            "Output model (.*) from task subclass must be a subclass of the "
+            "original task output model"
+        ),
     ):
 
         class PassThroughCarTask(PassThroughTask, output_model=Car):

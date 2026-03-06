@@ -11,8 +11,9 @@ from .graph import TaskGraph
 
 
 class WorkflowEngine(ABC):
-    """Python projects that provide Ewoks engines for deserializing, serializing and executing
-    computational Ewoks graphs can implement this interface.
+    """Python projects that provide Ewoks engines for deserializing,
+    serializing and executing computational Ewoks graphs can implement
+    this interface.
 
     To make it discoverable it can be added as an entry-point the the project. For
     example in a `pyproject.toml` file:
@@ -57,7 +58,9 @@ class WorkflowEngineWithSerialization(WorkflowEngine):
         # Serializer specific:
         **deserialize_options,
     ) -> TaskGraph:
-        """Convert a computational graph representation to the canonical in-memory representation `TaskGraph`."""
+        """Convert a graph representation to the canonical in-memory
+        representation `TaskGraph`.
+        """
         pass
 
     @abstractmethod
@@ -70,7 +73,9 @@ class WorkflowEngineWithSerialization(WorkflowEngine):
         # Serializer specific:
         **serialize_options,
     ) -> Any:
-        """Convert the canonical computational graph representation `TaskGraph` to another representation."""
+        """Convert the canonical graph representation `TaskGraph` to
+        another representation.
+        """
         pass
 
     @abstractmethod

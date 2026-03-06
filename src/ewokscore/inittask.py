@@ -91,14 +91,16 @@ def task_executable_info(
             raise ValueError("node attribute 'task_generator' is missing")
     elif has_task_generator:
         raise ValueError(
-            "node attribute 'task_generator' should only be specified when 'task_type' is 'generated'"
+            "node attribute 'task_generator' should only be specified "
+            "when 'task_type' is 'generated'"
         )
 
     has_task_identifier = bool(node_attrs.get("task_identifier"))
     if task_type == "ppfport":
         if has_task_identifier:
             raise ValueError(
-                "node attribute 'task_identifier' should not be used when 'task_type' is 'ppfport'"
+                "node attribute 'task_identifier' should not be used "
+                "when 'task_type' is 'ppfport'"
             )
     elif not has_task_identifier:
         raise ValueError("node attribute 'task_identifier' is missing")
@@ -221,7 +223,8 @@ def add_dynamic_inputs(
                 dynamic_inputs[input_arg] = source_results[output_arg]
             except KeyError:
                 raise KeyError(
-                    f"'{output_arg}' is not an output variable of the source node{err_suffix}"
+                    f"'{output_arg}' is not an output variable of the "
+                    f"source node{err_suffix}"
                 ) from None
         else:
             dynamic_inputs[input_arg] = source_results

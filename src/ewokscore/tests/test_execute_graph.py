@@ -62,7 +62,9 @@ def create_graph():
         {
             "id": "task7",
             "task_type": "class",
-            "task_identifier": "ewokscore.tests.examples.tasks.nooutputtask.NoOutputTask",
+            "task_identifier": (
+                "ewokscore.tests.examples.tasks.nooutputtask.NoOutputTask"
+            ),
         },
     ]
 

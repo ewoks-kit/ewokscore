@@ -86,7 +86,9 @@ class DataProxy(Registered, HasUhash, register=False):
         relative_uri: Optional[str] = None,
         uhash_source: Optional[Union[UniversalHash, HasUhash]] = None,
     ):
-        """Either the URI is provided or the root + relative URI with a uhash source (the URI can be derived from those)"""
+        """Either the URI is provided or the root plus relative URI with
+        a uhash source, from which the URI can be derived.
+        """
         self.__parsed_root_uri = None
         self.__fixed_uri = uri
         self.__uhash_source = uri

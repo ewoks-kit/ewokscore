@@ -15,6 +15,9 @@ class EwoksEventHandlerMixIn:
 
 
 class EwoksEventHandler(EwoksEventHandlerMixIn, logging.Handler):
-    """Base class for handling ewoks events on the publishing side (implement the `emit` method)."""
+    """Base class for handling ewoks events on the publishing side.
+
+    Implement the `emit` method.
+    """
 
     pass

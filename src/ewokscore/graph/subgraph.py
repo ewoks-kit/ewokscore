@@ -101,7 +101,8 @@ def _get_subnode_ids(
             sub_node_id = link_attrs_subgraph_keys[key]
         except KeyError:
             raise ValueError(
-                f"the '{key}' attribute to specify a node in subgraph '{node_id}' is missing"
+                f"the '{key}' attribute to specify a node in subgraph "
+                f"'{node_id}' is missing"
             ) from None
         for sub_node_id, link_attributes in _resolve_node_aliases(
             sub_node_id, subgraph.graph.graph, input_nodes=not source
@@ -113,7 +114,7 @@ def _get_subnode_ids(
 def _get_subnode_attributes(
     node_id: NodeIdType, subgraphs: dict, graph_node_attrs: dict
 ) -> Iterator[Tuple[NodeIdType, dict]]:
-    """Update all input node attributes of the subgraph with the graph node attributes from the super graph"""
+    """Update subgraph input-node attributes from the parent graph node."""
     transfer_attributes = {
         "default_inputs",
         "force_start_node",
@@ -268,7 +269,9 @@ def extract_graph_nodes(graph: networkx.DiGraph, subgraphs) -> Tuple[list, dict]
                     if sub_target_attributes:
                         if not target_is_graph:
                             raise ValueError(
-                                f"'{target_id}' is not a graph so 'sub_target_attributes' should not be specified"
+                                f"'{target_id}' is not a graph so "
+                                "'sub_target_attributes' should not be "
+                                "specified"
                             )
                         if target in update_attrs:
                             update_attrs[target].update(sub_target_attributes)
@@ -287,11 +290,13 @@ def add_subgraph_links(graph: networkx.DiGraph, edges: list, update_attrs: dict)
     for source, target, _ in edges:
         if source not in graph.nodes:
             raise ValueError(
-                f"Source node {repr(source)} of link |{repr(source)} -> {repr(target)}| does not exist"
+                f"Source node {source!r} of link |{source!r} -> "
+                f"{target!r}| does not exist"
             )
         if target not in graph.nodes:
             raise ValueError(
-                f"Target node {repr(target)} of link |{repr(source)} -> {repr(target)}| does not exist"
+                f"Target node {target!r} of link |{source!r} -> "
+                f"{target!r}| does not exist"
             )
     graph.add_edges_from(edges)  # This adds missing nodes
     for node, attrs in update_attrs.items():

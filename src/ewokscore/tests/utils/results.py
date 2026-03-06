@@ -66,8 +66,10 @@ def _assert_execute_graph_tasks(
     varinfo: Optional[dict] = None,
     execute_graph_result: Optional[Dict[NodeIdType, Task]] = None,
 ):
-    """Check the output of `execute_graph` for each node. When a task is not in `execute_graph_result`,
-    it will be instantiated.
+    """Check the output of `execute_graph` for each node.
+
+    When a task is not in `execute_graph_result`, it will be
+    instantiated.
 
     An expected value can be:
         * `None`: task is not executed and therefore does not appear in the results
@@ -97,7 +99,9 @@ def assert_execute_graph_values(
     expected: Dict[str, Any],
     varinfo: Optional[dict] = None,
 ):
-    """Check the output of `execute_graph` for the selected outputs of the selected nodes."""
+    """Check `execute_graph` output for selected outputs of selected
+    nodes.
+    """
     for output_name, expected_value in expected.items():
         value = execute_graph_result[output_name]
         assert_result(value, expected_value, varinfo=varinfo)

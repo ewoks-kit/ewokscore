@@ -163,7 +163,7 @@ def _iter_loggers(logger: logging.Logger) -> Iterator[logging.Logger]:
 def _iter_handler_owners(
     logger: logging.Logger, instance: logging.Handler
 ) -> Iterator[Tuple[logging.Logger, logging.Handler]]:
-    """Yield all loggers which have a specific handler (or a handler that wraps the specific event handler)."""
+    """Yield loggers that own a handler or its async wrapper."""
     for _logger in _iter_loggers(logger):
         for handler in _logger.handlers:
             if handler is instance:

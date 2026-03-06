@@ -234,7 +234,10 @@ def run_failed_workfow(
 
 
 def assert_failed_workfow_events(events):
-    err_msg = "Execution failed for ewoks task 'node2' (id: 'node2', task: 'ewokscore.tests.test_workflow_events.MyTask'): abc"
+    err_msg = (
+        "Execution failed for ewoks task 'node2' (id: 'node2', task: "
+        "'ewokscore.tests.test_workflow_events.MyTask'): abc"
+    )
 
     expected = [
         {
@@ -318,7 +321,9 @@ def _assert_events(expected, captured):
             missing.append(event)
     if missing or unexpected:
         raise AssertionError(
-            f"ewoks events not as expected\nmissing:\n{pformat(missing)}\nunexpected:\n{unexpected}"
+            "ewoks events not as expected\n"
+            f"missing:\n{pformat(missing)}\n"
+            f"unexpected:\n{unexpected}"
         )
 
 
