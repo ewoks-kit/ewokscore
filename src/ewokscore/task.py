@@ -236,7 +236,7 @@ class Task(Registered, UniversalHashable, register=False):
             if has_input_names and subclass._INPUT_MODEL is not None:
                 raise TypeError(
                     "Cannot use input_names or optional_input_names since "
-                    f"the original task {subclass} uses an input model. "
+                    f"the original task {subclass} uses a input model. "
                     "Specify inputs via a subclass of the original task "
                     "input model."
                 )
@@ -296,7 +296,7 @@ class Task(Registered, UniversalHashable, register=False):
             if has_output_names and subclass._OUTPUT_MODEL is not None:
                 raise TypeError(
                     "Cannot use output_names since the original task "
-                    f"{subclass} uses an output model. Specify outputs via "
+                    f"{subclass} uses a output model. Specify outputs via "
                     "a subclass of the original task output model."
                 )
 

@@ -7,7 +7,8 @@ from .analysis import node_pure_descendants
 
 
 def connect_default_error_handlers(graph: networkx.DiGraph) -> networkx.DiGraph:
-    """Connect nodes without an error handler to all default handlers.
+    """All nodes without an error handler will be connected to all
+    default error handlers.
 
     Default error handlers without predecessors will be removed.
     """

@@ -208,7 +208,9 @@ def _get_node_inputs(graph: networkx.DiGraph) -> List[NodeInput]:
 def _get_connected_input_names(
     graph: networkx.DiGraph, node_id: NodeIdType
 ) -> Set[str]:
-    """Return input parameter names connected to a previous task output."""
+    """Return all input parameter names that are connected to an output
+    from a previous task.
+    """
     connected_input_names = set()
     for predecessor_id in graph.predecessors(node_id):
         link_attrs = graph.get_edge_data(predecessor_id, node_id)

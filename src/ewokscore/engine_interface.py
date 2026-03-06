@@ -58,8 +58,8 @@ class WorkflowEngineWithSerialization(WorkflowEngine):
         # Serializer specific:
         **deserialize_options,
     ) -> TaskGraph:
-        """Convert a graph representation to the canonical in-memory
-        representation `TaskGraph`.
+        """Convert a computational graph representation to the canonical
+        in-memory representation `TaskGraph`.
         """
         pass
 
@@ -73,8 +73,8 @@ class WorkflowEngineWithSerialization(WorkflowEngine):
         # Serializer specific:
         **serialize_options,
     ) -> Any:
-        """Convert the canonical graph representation `TaskGraph` to
-        another representation.
+        """Convert the canonical computational graph representation
+        `TaskGraph` to another representation.
         """
         pass
 
