@@ -89,6 +89,94 @@ def test_graph_link_is_required_conditions2():
     )  # TODO: this should be True because branches merge again
 
 
+def test_graph_link_is_required_conditions3():
+    graph = {"id": "test", "schema_version": "1.1"}
+    nodes = [
+        {"id": "required", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "metric1", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "metric2", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "metric3", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "metric4", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "timeout", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "decider", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "good", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "bad", "task_type": "method", "task_identifier": "dummy"},
+    ]
+    links = [
+        {
+            "source": "required",
+            "target": "decider",
+            "map_all_data": True,
+        },
+        {
+            "source": "metric1",
+            "target": "decider",
+            "conditional": True,
+            "cache_non_required": True,
+            "data_mapping": [{"source_output": "metric", "target_input": "metric1"}],
+        },
+        {
+            "source": "metric2",
+            "target": "decider",
+            "conditional": True,
+            "cache_non_required": True,
+            "data_mapping": [{"source_output": "metric", "target_input": "metric2"}],
+        },
+        {
+            "source": "metric3",
+            "target": "decider",
+            "conditional": True,
+            "cache_non_required": True,
+            "data_mapping": [{"source_output": "metric", "target_input": "metric3"}],
+        },
+        {
+            "source": "metric4",
+            "target": "decider",
+            "conditional": True,
+            "cache_non_required": True,
+            "data_mapping": [{"source_output": "metric", "target_input": "metric4"}],
+        },
+        {
+            "source": "timeout",
+            "target": "decider",
+            "conditional": True,
+            "cache_non_required": True,
+            "data_mapping": [{"source_output": "timeout", "target_input": "timeout"}],
+        },
+        {
+            "source": "decider",
+            "target": "decider",
+            "cache_non_required": True,
+            "data_mapping": [
+                {"source_output": "set_disable", "target_input": "disable"}
+            ],
+            "conditions": [{"source_output": "set_disable", "value": True}],
+        },
+        {
+            "source": "decider",
+            "target": "good",
+            "data_mapping": [{"source_output": "reason", "target_input": "reason"}],
+            "conditions": [{"source_output": "good_enough", "value": True}],
+        },
+        {
+            "source": "decider",
+            "target": "bad",
+            "data_mapping": [{"source_output": "reason", "target_input": "reason"}],
+            "conditions": [{"source_output": "good_enough", "value": False}],
+        },
+    ]
+
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
+
+    assert link_is_required(taskgraph.graph, "required", "decider")
+    assert not link_is_required(taskgraph.graph, "metric1", "decider")
+    assert not link_is_required(taskgraph.graph, "metric2", "decider")
+    assert not link_is_required(taskgraph.graph, "metric3", "decider")
+    assert not link_is_required(taskgraph.graph, "timeout", "decider")
+    assert not link_is_required(taskgraph.graph, "decider", "good")
+    assert not link_is_required(taskgraph.graph, "decider", "bad")
+
+
 def test_graph_link_is_required_errors():
     graph = {"id": "test", "schema_version": "1.1"}
     nodes = [

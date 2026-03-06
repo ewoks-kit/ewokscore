@@ -220,7 +220,9 @@ def link_is_conditional(
 ) -> bool:
     link_attrs = graph[source_id][target_id]
     return bool(
-        link_attrs.get("on_error", False) or link_attrs.get("conditions", False)
+        link_attrs.get("on_error", False)
+        or link_attrs.get("conditions", False)
+        or link_attrs.get("conditional", False)
     )
 
 
