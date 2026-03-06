@@ -127,7 +127,7 @@ def acyclic1():
                 "params": {
                     "geometry": [369.0, 10.0, 499.0, 68.0],
                     "text": (
-                        'Double-click any node to see the\n'
+                        "Double-click any node to see the\n"
                         ' - "Execute" button: execute only the task\n'
                         ' - "Trigger" button: execute the task and all '
                         "downstream tasks"
