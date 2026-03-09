@@ -187,14 +187,13 @@ Link attributes
         {
             "conditions": [{"source_output": "result", "value": 10}]
         }
-* *on_error* (optional): a special condition "the source task raises an exception". Cannot be used in combination with *conditions* or *optional*.
+* *on_error* (optional): a special condition "the source task raises an exception". Cannot be used in combination with *conditions* or *conditional*.
 * *conditional* (optional): a special condition which explicitly `True` or `False`. Cannot be used in combination with *conditions* or *on_error*.
 * *required* (optional): setting this to `True` marks the link as *required*. When a target receives multiple links, it will be executed
   (perhaps multiple times) when all the sources connected to the target with *required* links have been executed. A link is required when
   it is either "marked as required" (link attribute `required=True`) or “unconditional and all ancestors of the source node are required”.
-* *cache_non_required* (optional): a target is executed with a merger of all inputs from *required* links. Inputs from non-required
-  links are merged with the inputs of the required links only for a single call and are forgotten for the next calls. Except when
-  ``cache_non_required=True`` in which case the inputs from a non-required link are remembered just link the inputs from required links.
+* *cache_non_required* (optional): cache inputs from this link for subsequent calls. Normally, a target is executed with a merger of all inputs from *required* links and Inputs from non-required
+  links are merged with the inputs of the required links only for a single call and are forgotten for the next calls. Setting this to `True` allows to bypass this behaviour in which case the inputs from a non-required link are remembered just like the inputs from required links.
 
 Task implementation
 -------------------
