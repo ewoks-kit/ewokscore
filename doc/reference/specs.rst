@@ -192,7 +192,7 @@ Link attributes
 * *required* (optional): setting this to `True` marks the link as *required*. When a target receives multiple links, it will be executed
   (perhaps multiple times) when all the sources connected to the target with *required* links have been executed. A link is required when
   it is either "marked as required" (link attribute `required=True`) or “unconditional and all ancestors of the source node are required”.
-* *cache_non_required* (optional): cache inputs from this link for subsequent calls. Normally, a target is executed with a merger of all inputs
+* *cache_if_not_required* (optional): cache inputs from this link for subsequent calls. Normally, a target is executed with a merger of all inputs
   from *required* links and inputs from non-required links are merged with the inputs of the required links only for a single call and are
   forgotten for the next calls. Setting this to `True` allows to bypass this behaviour in which case the inputs from a non-required link are
   remembered just like the inputs from required links.

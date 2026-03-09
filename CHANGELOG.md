@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Link attribute `conditional`: to make a link conditional when it has no conditional and is not an error handler.
-- Link attribute `cache_non_required`: cache inputs from non-required links just like required links.
+- Link attribute `cache_if_not_required`: cache inputs from non-required links just like required links.
 
 ## [4.0.2] - 2026-03-03
 

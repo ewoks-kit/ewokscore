@@ -40,7 +40,7 @@ class EwoksLinkAttributes(BaseModel):
     on_error: bool = False
     conditional: bool = False
     required: bool = False
-    cache_non_required: bool = False
+    cache_if_not_required: bool = False
 
 
 class EwoksLink(EwoksLinkAttributes):
