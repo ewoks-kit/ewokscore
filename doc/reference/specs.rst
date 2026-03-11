@@ -10,10 +10,10 @@ A **task** is an opaque unit of execution with input arguments defined by links 
 in the graph representation. (OOP analogy: a task is a node instance).
 
 A **link** connects a source node to a target node. A link can have the following properties:
-  * **conditional**: has a set of statements that combined are either True or False
-  * **required**: either "marked as required” in the graph representation" or “unconditional
-    and all ancestors of the source node are required”
-  * **data_mapping**: describes data transfer from source to target.
+  * **conditional**: Has a set of statements that combined are either True or False.
+  * **required**: Marked explicitely as True or False in the graph representation.
+    Otherwise True when unconditional and all link upstream from the source node are required.
+  * **data_mapping**: Describes data transfer from source to target.
 
 Task scheduling
 ---------------
@@ -163,13 +163,13 @@ Node attributes
 
 Link attributes
 ^^^^^^^^^^^^^^^
-* *source*: the *id* of the source node
-* *sub_source*: when *source* is a *graph*, specify the *id* or `output_nodes` alias of the node in *source*
-* *target*: the *id* of the target node
-* *sub_target*: when *target* is a *graph*, specify the *id* of `input_nodes` alias of the node in *target*
-* *sub_target_attributes* (optional): can be used when *target* is a *graph*. It allows changing the node
+* *source*: The *id* of the source node.
+* *sub_source*: When *source* is a *graph*, specify the *id* or `output_nodes` alias of the node in *source*.
+* *target*: The *id* of the target node.
+* *sub_target*: When *target* is a *graph*, specify the *id* of `input_nodes` alias of the node in *target*.
+* *sub_target_attributes* (optional): Can be used when *target* is a *graph*. It allows changing the node
   attributes of *sub_target* in the sub-graph.
-* *data_mapping* (optional): describe data transfer from source outputs to target input arguments. For example
+* *data_mapping* (optional): Describe data transfer from source outputs to target input arguments. For example
     .. code-block:: json
 
         {
@@ -179,20 +179,22 @@ Link attributes
 
     If `"source_output"` is `None` or missing, the complete output of the source will be passed to the corresponding
     `"target_input"` or the target.
-* *map_all_data* (optional): setting this to `True` is equivalent to *data_mapping* being the identity mapping for
+* *map_all_data* (optional): Setting this to `True` is equivalent to *data_mapping* being the identity mapping for
   all input names. Cannot be used in combination with *data_mapping*.
-* *conditions* (optional): provides a list of expected values for source outputs
+* *conditions* (optional): Provides a list of expected values for source outputs
     .. code-block:: json
 
         {
             "conditions": [{"source_output": "result", "value": 10}]
         }
-* *on_error* (optional): a special condition "the source task raises an exception". Cannot be used in combination with *conditions* or *conditional*.
-* *conditional* (optional): a special condition which explicitly `True` or `False`. Cannot be used in combination with *conditions* or *on_error*.
-* *required* (optional): setting this to `True` marks the link as *required*. When a target receives multiple links, it will be executed
-  (perhaps multiple times) when all the sources connected to the target with *required* links have been executed. A link is required when
-  it is either "marked as required" (link attribute `required=True`) or “unconditional and all ancestors of the source node are required”.
-* *cache_if_not_required* (optional): cache inputs from this link for subsequent calls. Normally, a target is executed with a merger of all inputs
+* *on_error* (optional): A special condition "the source task raises an exception". Cannot be used in combination with *conditions*.
+* *required* (optional): Marks the link as required when set to `True`. A target task can only be executed after all its required
+  predecessors have executed successfully. If a target has multiple required incoming links, it will be scheduled once all corresponding
+  source tasks have completed (and may be scheduled multiple times as additional non-required inputs arrive).
+
+  If the attribute is not explicitly specified, the link is considered required when it is unconditional (i.e. has no conditions) and
+  all ancestors of the source node are connected through required links. Otherwise, the link is treated as non-required.
+* *cache_if_not_required* (optional): Cache inputs from this link for subsequent calls. Normally, a target is executed with a merger of all inputs
   from *required* links and inputs from non-required links are merged with the inputs of the required links only for a single call and are
   forgotten for the next calls. Setting this to `True` allows to bypass this behaviour in which case the inputs from a non-required link are
   remembered just like the inputs from required links.

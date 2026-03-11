@@ -111,35 +111,35 @@ def test_graph_link_is_required_conditions3():
         {
             "source": "metric1",
             "target": "decider",
-            "conditional": True,
+            "required": False,
             "cache_if_not_required": True,
             "data_mapping": [{"source_output": "metric", "target_input": "metric1"}],
         },
         {
             "source": "metric2",
             "target": "decider",
-            "conditional": True,
+            "required": False,
             "cache_if_not_required": True,
             "data_mapping": [{"source_output": "metric", "target_input": "metric2"}],
         },
         {
             "source": "metric3",
             "target": "decider",
-            "conditional": True,
+            "required": False,
             "cache_if_not_required": True,
             "data_mapping": [{"source_output": "metric", "target_input": "metric3"}],
         },
         {
             "source": "metric4",
             "target": "decider",
-            "conditional": True,
+            "required": False,
             "cache_if_not_required": True,
             "data_mapping": [{"source_output": "metric", "target_input": "metric4"}],
         },
         {
             "source": "timeout",
             "target": "decider",
-            "conditional": True,
+            "required": False,
             "cache_if_not_required": True,
             "data_mapping": [{"source_output": "timeout", "target_input": "timeout"}],
         },
@@ -222,10 +222,10 @@ def test_graph_link_is_required_errors():
     assert link_is_required(taskgraph.graph, "fan", "always1")
     assert not link_is_required(taskgraph.graph, "fan", "on_true1")
     assert not link_is_required(taskgraph.graph, "fan", "on_error1")
-    assert not link_is_required(taskgraph.graph, "always1", "always2")
+    assert link_is_required(taskgraph.graph, "always1", "always2")
     assert not link_is_required(taskgraph.graph, "on_true1", "on_true2")
     assert not link_is_required(taskgraph.graph, "on_error1", "on_error2")
-    assert not link_is_required(taskgraph.graph, "always2", "merge")
+    assert link_is_required(taskgraph.graph, "always2", "merge")
     assert not link_is_required(taskgraph.graph, "on_true2", "merge")
     assert not link_is_required(taskgraph.graph, "on_error2", "merge")
     assert not link_is_required(

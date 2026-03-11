@@ -172,7 +172,7 @@ def _filter_link(
     _link_has_on_error=None,
     _link_has_conditions=None,
     _link_is_conditional=None,
-    _link_has_required=None,
+    _link_is_required=None,
     **_,
 ) -> bool:
     """Filters are combined with the logical AND"""
@@ -188,8 +188,8 @@ def _filter_link(
     if _link_is_conditional is not None:
         if link_is_conditional(graph, source_id, target_id) != _link_is_conditional:
             return False
-    if _link_has_required is not None:
-        if link_has_required(graph, source_id, target_id) != _link_has_required:
+    if _link_is_required is not None:
+        if link_is_required(graph, source_id, target_id) != _link_is_required:
             return False
     return True
 
@@ -208,40 +208,45 @@ def link_has_on_error(
     return bool(link_attrs.get("on_error", False))
 
 
-def link_has_required(
+def link_is_force_required(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
 ) -> bool:
     link_attrs = graph[source_id][target_id]
-    return bool(link_attrs.get("required", False))
+    return link_attrs.get("required", None) is True
+
+
+def link_is_force_non_required(
+    graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
+) -> bool:
+    link_attrs = graph[source_id][target_id]
+    return link_attrs.get("required", None) is False
 
 
 def link_is_conditional(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
 ) -> bool:
     link_attrs = graph[source_id][target_id]
-    return bool(
-        link_attrs.get("on_error", False)
-        or link_attrs.get("conditions", False)
-        or link_attrs.get("conditional", False)
-    )
+    return bool(link_attrs.get("on_error", None) or link_attrs.get("conditions", None))
 
 
 def link_is_required(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
 ) -> bool:
-    if link_has_required(graph, source_id, target_id):
+    # Explicitly required or not required
+    if link_is_force_required(graph, source_id, target_id):
         return True
+    if link_is_force_non_required(graph, source_id, target_id):
+        return False
+
+    # By default, conditional links are not required
     if link_is_conditional(graph, source_id, target_id):
         return False
-    return node_is_required(graph, source_id)
 
-
-def node_is_required(graph: networkx.DiGraph, node_id: NodeIdType) -> bool:
-    not_required = node_has_ancestors(
-        graph, node_id, link_has_required=False, link_is_conditional=True
+    # By default, links with non-required links upstream become non-required
+    has_non_required_upstream = node_has_ancestors(
+        graph, source_id, link_is_required=False
     )
-    not_required |= node_has_ancestors(graph, node_id, node_has_error_handlers=True)
-    return not not_required
+    return not has_non_required_upstream
 
 
 def node_has_error_handlers(graph: networkx.DiGraph, node_id: NodeIdType):

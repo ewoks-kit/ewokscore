@@ -38,9 +38,12 @@ class EwoksLinkAttributes(BaseModel):
     map_all_data: bool = False
     conditions: Sequence[EwoksCondition] = []
     on_error: bool = False
-    conditional: bool = False
-    required: bool = False
+    required: Optional[bool] = None
     cache_if_not_required: bool = False
+
+    @property
+    def conditional(self) -> bool:
+        return self.on_error or bool(self.conditions)
 
 
 class EwoksLink(EwoksLinkAttributes):
