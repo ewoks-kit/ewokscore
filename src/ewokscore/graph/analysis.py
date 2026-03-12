@@ -208,14 +208,14 @@ def link_has_on_error(
     return bool(link_attrs.get("on_error", False))
 
 
-def link_is_force_required(
+def link_is_explicitly_required(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
 ) -> bool:
     link_attrs = graph[source_id][target_id]
     return link_attrs.get("required", None) is True
 
 
-def link_is_force_non_required(
+def link_is_explicitly_non_required(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
 ) -> bool:
     link_attrs = graph[source_id][target_id]
@@ -226,16 +226,18 @@ def link_is_conditional(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
 ) -> bool:
     link_attrs = graph[source_id][target_id]
-    return bool(link_attrs.get("on_error", None) or link_attrs.get("conditions", None))
+    return bool(link_attrs.get("on_error", None)) or bool(
+        link_attrs.get("conditions", None)
+    )
 
 
 def link_is_required(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
 ) -> bool:
     # Explicitly required or not required
-    if link_is_force_required(graph, source_id, target_id):
+    if link_is_explicitly_required(graph, source_id, target_id):
         return True
-    if link_is_force_non_required(graph, source_id, target_id):
+    if link_is_explicitly_non_required(graph, source_id, target_id):
         return False
 
     # By default, conditional links are not required

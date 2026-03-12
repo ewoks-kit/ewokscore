@@ -188,11 +188,12 @@ Link attributes
             "conditions": [{"source_output": "result", "value": 10}]
         }
 * *on_error* (optional): A special condition "the source task raises an exception". Cannot be used in combination with *conditions*.
-* *required* (optional): Marks the link as required when set to `True`. A target task can only be executed after all its required
-  predecessors have executed successfully. If a target has multiple required incoming links, it will be scheduled once all corresponding
-  source tasks have completed (and may be scheduled multiple times as additional non-required inputs arrive).
+* *required* (optional): Marks the link as required when set to `True`. Forces the link to be non-required if `False`.
+  A target task can only be executed after all its required predecessors have executed successfully. If a target has multiple required
+  incoming links, it will be scheduled once all corresponding source tasks have completed (and may be scheduled multiple times as
+  additional non-required inputs arrive).
 
-  If the attribute is not explicitly specified, the link is considered required when it is unconditional (i.e. has no conditions) and
+  If the attribute is not explicitly specified (default behaviour), the link is considered required when it is unconditional (i.e. has no conditions) and
   all ancestors of the source node are connected through required links. Otherwise, the link is treated as non-required.
 * *cache_if_not_required* (optional): Cache inputs from this link for subsequent calls. Normally, a target is executed with a merger of all inputs
   from *required* links and inputs from non-required links are merged with the inputs of the required links only for a single call and are
