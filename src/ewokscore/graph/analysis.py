@@ -244,11 +244,8 @@ def link_is_required(
     if link_is_conditional(graph, source_id, target_id):
         return False
 
-    # By default, links with non-required links upstream become non-required
-    has_non_required_upstream = node_has_ancestors(
-        graph, source_id, link_is_required=False
-    )
-    return not has_non_required_upstream
+    # By default, links with at least one non-required link upstream become non-required
+    return not node_has_ancestors(graph, source_id, link_is_required=False)
 
 
 def node_has_error_handlers(graph: networkx.DiGraph, node_id: NodeIdType):
