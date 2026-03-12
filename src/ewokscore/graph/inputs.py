@@ -34,7 +34,7 @@ class NodeInput:
     task_identifier: str
     name: str
     value: Any
-    required: bool
+    required: Optional[bool]
     description: Optional[str]
     examples: Optional[List[Any]]
     import_error: Optional[Exception]
