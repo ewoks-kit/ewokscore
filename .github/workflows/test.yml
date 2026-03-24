@@ -96,3 +96,19 @@ jobs:
   docs:
     needs: build
     uses: ewoks-kit/.github/.github/workflows/python-docs.yml@main
+
+  # Run scripts
+  scripts:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: ewoks-kit/.github/.github/actions/setup-python-package@main
+
+      - name: Run all scripts
+        shell: bash
+        run: |
+          for filename in doc/examples/*; do
+            echo "Running $filename"
+            python "$filename"
+          done
