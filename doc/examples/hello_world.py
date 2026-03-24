@@ -1,5 +1,5 @@
-from ewokscore import Task
 from ewokscore import execute_graph
+from ewokscore.task import Task
 
 
 # Implement a workflow task

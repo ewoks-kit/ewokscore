@@ -1,40 +1,46 @@
-# ewokscore
+from typing import Optional
+from typing import Union
 
-[![Pipeline](https://github.com/ewoks-kit/ewokscore/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ewoks-kit/ewokscore/actions/workflows/test.yml)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![License](https://img.shields.io/github/license/ewoks-kit/ewokscore)](https://github.com/ewoks-kit/ewokscore/blob/main/LICENSE.md)
-[![Coverage](https://codecov.io/gh/ewoks-kit/ewokscore/branch/main/graph/badge.svg)](https://codecov.io/gh/ewoks-kit/ewokscore)
-[![Docs](https://readthedocs.org/projects/ewokscore/badge/?version=latest)](https://ewokscore.readthedocs.io/en/latest/?badge=latest)
-[![PyPI](https://img.shields.io/pypi/v/ewokscore)](https://pypi.org/project/ewokscore/)
+from pydantic import Field
+from pydantic import model_validator
 
-*ewokscore* provides an API to define workflows and implement tasks in [ewoks](https://ewoks.readthedocs.io/).
-
-## Install
-
-```bash
-pip install ewokscore[test]
-```
-
-## Test
-
-```bash
-pytest --pyargs ewokscore.tests
-```
-
-## Getting started
-
-```python
-from ewokscore.task import Task
 from ewokscore import execute_graph
+from ewokscore.task import BaseInputModel
+from ewokscore.task import BaseOutputModel
+from ewokscore.task import Task
+
+NumberOrStr = Union[int, float, str]
+
+
+# Define task signature
+class InputModel(BaseInputModel):
+    a: NumberOrStr = Field(
+        ..., description="First argument to sum.", examples=[10.5, "hello"]
+    )
+    b: Optional[NumberOrStr] = Field(
+        None, description="Second argument to sum.", examples=[20.1, " world"]
+    )
+
+    @model_validator(mode="after")
+    def check_compatible_types(self):
+        if self.b is not None and (isinstance(self.a, str) ^ isinstance(self.b, str)):
+            raise ValueError(
+                "a and b must be of compatible types (both numbers or both strings)"
+            )
+        return self
+
+
+class OutputModel(BaseOutputModel):
+    result: NumberOrStr = Field(
+        ..., description="Result of the sum.", examples=[30.6, "hello world"]
+    )
 
 
 # Implement a workflow task
-class SumTask(
-    Task, input_names=["a"], optional_input_names=["b"], output_names=["result"]
-):
+class SumTask(Task, input_model=InputModel, output_model=OutputModel):
     def run(self):
         result = self.inputs.a
-        if self.inputs.b:
+        if self.inputs.b is not None:
             result += self.inputs.b
         self.outputs.result = result
 
@@ -82,8 +88,3 @@ inputs = [{"id": "task1", "name": "a", "value": 10}]
 varinfo = {"root_uri": "/tmp/myresults"}  # optionally save all task outputs
 result = execute_graph(workflow, varinfo=varinfo, inputs=inputs)
 print(result)
-```
-
-## Documentation
-
-https://ewokscore.readthedocs.io/
