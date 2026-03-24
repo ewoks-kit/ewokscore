@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Handle link attribute value `required=False`: for the link to be explicitly non-required.
+- Define in the Ewoks workflow specification that non-required and non-cached inputs are never lost
+  when all required inputs are provided at any point in time.
 
 ## [4.0.2] - 2026-03-03
 
