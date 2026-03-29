@@ -257,7 +257,7 @@ def _find_graph_path(
     path: Union[str, Path],
     root_dir: Optional[Union[str, Path]] = None,
     root_module: Optional[str] = None,
-    possible_extensions: Tuple[str] = tuple(),
+    possible_extensions: Tuple[str, ...] = tuple(),
 ) -> str:
     """When the :code:`path` is relative, the parent directory is assumed to be
     (in order of priority):
