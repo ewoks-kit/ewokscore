@@ -39,7 +39,7 @@ class EwoksLinkAttributes(BaseModel):
     conditions: Sequence[EwoksCondition] = []
     on_error: bool = False
     required: Optional[bool] = None
-    cache_if_not_required: bool = False
+    cache_if_optional: bool = False
 
     @property
     def conditional(self) -> bool:

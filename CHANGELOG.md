@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added link attribute `cache_if_not_required`: cache inputs from non-required links just like required links.
+- Added link attribute `cache_if_optional`: cache inputs from non-required links just like required links.
 
 ### Changed
 

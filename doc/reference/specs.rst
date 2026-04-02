@@ -170,7 +170,7 @@ Link attributes
   If the attribute is not explicitly specified (default behaviour), the link is considered required when
   it is unconditional (i.e. has no *conditions* nor ``on_error=True``) and all ancestors of the source
   node are connected through required links. Otherwise, the link is treated as non-required.
-* *cache_if_not_required* (optional): Cache inputs from this link for subsequent calls. The inputs from required
+* *cache_if_optional* (optional): Cache inputs from this link for subsequent calls. The inputs from required
   links are always cached. Only one non-required non-cached input is cached. Non-required cached imputs are cached
   like required inputs.
 
@@ -188,8 +188,8 @@ Before the first execution
 Before all required inputs are available:
 
 - required inputs are *cached*
-- non-required inputs with ``cache_if_not_required=True`` are *cached*
-- non-required inputs with ``cache_if_not_required=False`` are *buffered* in arrival order (FIFO)
+- non-required inputs with ``cache_if_optional=True`` are *cached*
+- non-required inputs with ``cache_if_optional=False`` are *buffered* in arrival order (FIFO)
 
 No execution occurs until all required inputs are available.
 
@@ -202,8 +202,8 @@ When all required inputs become available:
 - after all buffered inputs are processed:
   
   - required inputs remain *cached*
-  - non-required inputs with ``cache_if_not_required=True`` remain *cached*
-  - the last processed non-required input with ``cache_if_not_required=False`` becomes *retained*
+  - non-required inputs with ``cache_if_optional=True`` remain *cached*
+  - the last processed non-required input with ``cache_if_optional=False`` becomes *retained*
   - all other buffered non-required inputs are discarded
 
 After the first execution
@@ -216,11 +216,11 @@ Required inputs:
 - are always *cached*
 - may trigger a new execution context when updated
 
-Non-required inputs with ``cache_if_not_required=True``:
+Non-required inputs with ``cache_if_optional=True``:
 - are *cached*
 - participate in all subsequent executions
 
-Non-required inputs with ``cache_if_not_required=False``:
+Non-required inputs with ``cache_if_optional=False``:
 - are *retained*
 - only one such input is retained at any time
 - each new input replaces the previously retained one
@@ -240,8 +240,8 @@ As an example we consider a target node with four predecessors with the followin
 
 - A: ``required=True``
 - B: ``required=True``
-- C: ``required=False`` and ``cache_if_not_required=False``
-- D: ``required=False`` and ``cache_if_not_required=False``
+- C: ``required=False`` and ``cache_if_optional=False``
+- D: ``required=False`` and ``cache_if_optional=False``
 
 In general these links can be triggered in any order and several times.
 
@@ -265,8 +265,8 @@ As an example we consider a target node with four predecessors with the followin
 
 - A: ``required=True``
 - B: ``required=True``
-- C: ``required=False`` and ``cache_if_not_required=True``
-- D: ``required=False`` and ``cache_if_not_required=False``
+- C: ``required=False`` and ``cache_if_optional=True``
+- D: ``required=False`` and ``cache_if_optional=False``
 
 In general these links can be triggered in any order and several times.
 
