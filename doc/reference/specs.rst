@@ -191,7 +191,7 @@ Node execution
 --------------
 
 A node executes whenever all its inputs from required links are available. Inputs from required links are
-*cached* and reused for all subsequent executions.
+*cached* per link and reused for all subsequent executions.
 
 Inputs from optional links influence execution depending on when they arrive and their
 configuration.
@@ -200,8 +200,8 @@ Before the first execution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Before all inputs from required links are available:
 
-- inputs from required links are *cached*
-- inputs from optional links with ``cache_if_optional=True`` are *cached*
+- inputs from required links are *cached* per link
+- inputs from optional links with ``cache_if_optional=True`` are *cached* per link
 - inputs from optional links with ``cache_if_optional=False`` are *buffered* in arrival order (FIFO)
 
 No execution occurs until all inputs from required links are available.
@@ -214,8 +214,8 @@ When all inputs from required links become available:
 - repeat this for the other buffered inputs from optional links: one execution per buffered input in arrival order
 - after all buffered inputs are processed:
   
-  - inputs from required links remain *cached*
-  - inputs from optional links with ``cache_if_optional=True`` remain *cached*
+  - inputs from required links remain *cached* per link
+  - inputs from optional links with ``cache_if_optional=True`` remain *cached* per link
   - the last processed optional input with ``cache_if_optional=False`` becomes *retained*
   - all other buffered inputs from optional links are discarded
 
@@ -223,27 +223,25 @@ After the first execution
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 After the node has executed at least once:
 
-- every new input (required or optional) triggers execution
+- every new input (required or optional) triggers one execution with:
+  - all cached inputs, and
+  - the last or newly arrived retained inputs
 
 Inputs from required links:
-- are always *cached*
-- may trigger a new execution context when updated
+- are always *cached* (i.e. participate in all subsequent executions)
+- overwrite the previously cached inputs for the same link
 
 Inputs from optional links with ``cache_if_optional=True``:
-- are *cached*
-- participate in all subsequent executions
+- are *cached* (i.e. participate in all subsequent executions)
+- overwrite the previously cached inputs for the same link
 
 Inputs from optional links with ``cache_if_optional=False``:
 - are *retained*
-- only one such input is retained at any time
-- each new input replaces the previously retained one
-- each arrival triggers exactly one execution with:
-  - all cached inputs, and
-  - the newly arrived optional input
+- overwrite the previously retained inputs, so only one such input is retained at any time
 
 Summary
 ^^^^^^^
-- *cached*: stored permanently and reused in all executions
+- *cached*: stored permanently per link and reused in all executions
 - *buffered*: queued before the first execution (FIFO)
 - *retained*: single optional input remembered after execution and replaced by the next one
 
