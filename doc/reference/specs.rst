@@ -84,7 +84,7 @@ which in turn has an input node ``"start"`` and output node ``"end"``:
         ]
     }
 
-The ``"in?"`` and ``"out?"`` id's can be used by a super-graph when making connections. For example
+The id's ``"in1"``, ``"in2"``, ``"out1"`` and ``"out2"`` can be used by a super-graph when making connections. For example
 
 .. code-block:: json
 
