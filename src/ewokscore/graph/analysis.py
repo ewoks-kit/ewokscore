@@ -215,7 +215,7 @@ def link_is_explicitly_required(
     return link_attrs.get("required", None) is True
 
 
-def link_is_explicitly_non_required(
+def link_is_explicitly_not_required(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
 ) -> bool:
     link_attrs = graph[source_id][target_id]
@@ -237,7 +237,7 @@ def link_is_required(
     # Explicitly required or not required
     if link_is_explicitly_required(graph, source_id, target_id):
         return True
-    if link_is_explicitly_non_required(graph, source_id, target_id):
+    if link_is_explicitly_not_required(graph, source_id, target_id):
         return False
 
     # By default, conditional links are not required
