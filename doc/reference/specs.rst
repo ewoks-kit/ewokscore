@@ -170,20 +170,25 @@ Link attributes
             "conditions": [{"source_output": "result", "value": 10}]
         }
 * *on_error* (optional): A special condition "the source task raises an exception". Cannot be used in combination with *conditions*.
-* *required* (optional): Marks the link as required when set to ``True``. Forces the link to be optional if ``False``.
+* *required* (optional): The link is *required* when set to ``True``. The link is *optional* if ``False``.
   A target node can only be executed after all its required predecessors have executed successfully.
   If a target has multiple required incoming links, it will be scheduled once all corresponding source
   tasks have completed (and may be scheduled multiple times as additional inputs from optional links arrive).
+  See :ref:`Node execution section <node-execution>` for more details.
 
   If the attribute is not explicitly specified (default behaviour), the link is considered required when
   it is unconditional (i.e. has no *conditions* nor ``on_error=True``) and all ancestors of the source
   node are connected through required links. Otherwise, the link is treated as optional.
-* *cache_if_optional* (optional): Cache inputs from this link for subsequent calls. The inputs from required
-  links are always cached. Only one optional non-cached input is cached. Optional cached inputs are cached
-  like inputs from required links.
+* *cache_if_optional* (optional): Cache the inputs from this link for subsequent calls when it is optional.
+  The inputs from required links are always cached. By default inputs from optional links are not *cached*
+  but they are *buffered* until the target node can be executed. From then on only the last item is *retained*
+  for subsequent calls and *overwritten* by new inputs from optional links for which caching is not enabled
+  (the default behavior). See :ref:`Node execution section <node-execution>` for more details.
 
-Node execution semantics
-------------------------
+.. _node-execution:
+
+Node execution
+--------------
 
 A node executes whenever all its inputs from required links are available. Inputs from required links are
 *cached* and reused for all subsequent executions.
@@ -205,7 +210,7 @@ First execution
 ^^^^^^^^^^^^^^^
 When all inputs from required links become available:
 
-- the node executes once with all *cached* inputs from required links and the first buffered inputs from optional links (if any)
+- the node executes once with all *cached* inputs and the first buffered inputs from optional links (if any)
 - repeat this for the other buffered inputs from optional links: one execution per buffered input in arrival order
 - after all buffered inputs are processed:
   
@@ -233,7 +238,7 @@ Inputs from optional links with ``cache_if_optional=False``:
 - only one such input is retained at any time
 - each new input replaces the previously retained one
 - each arrival triggers exactly one execution with:
-  - all cached inputs from required links, and
+  - all cached inputs, and
   - the newly arrived optional input
 
 Summary
