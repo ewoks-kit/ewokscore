@@ -234,13 +234,13 @@ def link_is_conditional(
 def link_is_required(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
 ) -> bool:
-    # Explicitly required or not required
+    # Explicitly required or optional
     if link_is_explicitly_required(graph, source_id, target_id):
         return True
     if link_is_explicitly_not_required(graph, source_id, target_id):
         return False
 
-    # By default, conditional links are not required
+    # By default, conditional links are optional
     if link_is_conditional(graph, source_id, target_id):
         return False
 

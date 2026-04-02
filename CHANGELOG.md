@@ -9,13 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added link attribute `cache_if_optional`: cache inputs from non-required links just like required links.
+- Added link attribute `cache_if_optional`: cache inputs from optional links just like required links.
 
 ### Changed
 
-- `required=False` now forces the link to be explicitly non-required. This may change execution order of
+- `required=False` now forces the link to be explicitly optional. This may change execution order of
   tasks in a workflow (see the updated spec for more info).
-- Define in the Ewoks workflow specification that non-required and non-cached inputs are never lost
+- Define in the Ewoks workflow specification that optional and non-cached inputs are never lost
   when all required inputs are provided at any point in time.
 
 ## [4.0.2] - 2026-03-03
