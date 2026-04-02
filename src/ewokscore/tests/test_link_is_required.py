@@ -89,6 +89,94 @@ def test_graph_link_is_required_conditions2():
     )  # TODO: this should be True because branches merge again
 
 
+def test_graph_link_is_required_conditions3():
+    graph = {"id": "test", "schema_version": "1.1"}
+    nodes = [
+        {"id": "required", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "metric1", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "metric2", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "metric3", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "metric4", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "timeout", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "decider", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "good", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "bad", "task_type": "method", "task_identifier": "dummy"},
+    ]
+    links = [
+        {
+            "source": "required",
+            "target": "decider",
+            "map_all_data": True,
+        },
+        {
+            "source": "metric1",
+            "target": "decider",
+            "required": False,
+            "cache_if_optional": True,
+            "data_mapping": [{"source_output": "metric", "target_input": "metric1"}],
+        },
+        {
+            "source": "metric2",
+            "target": "decider",
+            "required": False,
+            "cache_if_optional": True,
+            "data_mapping": [{"source_output": "metric", "target_input": "metric2"}],
+        },
+        {
+            "source": "metric3",
+            "target": "decider",
+            "required": False,
+            "cache_if_optional": True,
+            "data_mapping": [{"source_output": "metric", "target_input": "metric3"}],
+        },
+        {
+            "source": "metric4",
+            "target": "decider",
+            "required": False,
+            "cache_if_optional": True,
+            "data_mapping": [{"source_output": "metric", "target_input": "metric4"}],
+        },
+        {
+            "source": "timeout",
+            "target": "decider",
+            "required": False,
+            "cache_if_optional": True,
+            "data_mapping": [{"source_output": "timeout", "target_input": "timeout"}],
+        },
+        {
+            "source": "decider",
+            "target": "decider",
+            "cache_if_optional": True,
+            "data_mapping": [
+                {"source_output": "set_disable", "target_input": "disable"}
+            ],
+            "conditions": [{"source_output": "set_disable", "value": True}],
+        },
+        {
+            "source": "decider",
+            "target": "good",
+            "data_mapping": [{"source_output": "reason", "target_input": "reason"}],
+            "conditions": [{"source_output": "good_enough", "value": True}],
+        },
+        {
+            "source": "decider",
+            "target": "bad",
+            "data_mapping": [{"source_output": "reason", "target_input": "reason"}],
+            "conditions": [{"source_output": "good_enough", "value": False}],
+        },
+    ]
+
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
+
+    assert link_is_required(taskgraph.graph, "required", "decider")
+    assert not link_is_required(taskgraph.graph, "metric1", "decider")
+    assert not link_is_required(taskgraph.graph, "metric2", "decider")
+    assert not link_is_required(taskgraph.graph, "metric3", "decider")
+    assert not link_is_required(taskgraph.graph, "timeout", "decider")
+    assert not link_is_required(taskgraph.graph, "decider", "good")
+    assert not link_is_required(taskgraph.graph, "decider", "bad")
+
+
 def test_graph_link_is_required_errors():
     graph = {"id": "test", "schema_version": "1.1"}
     nodes = [
@@ -134,10 +222,10 @@ def test_graph_link_is_required_errors():
     assert link_is_required(taskgraph.graph, "fan", "always1")
     assert not link_is_required(taskgraph.graph, "fan", "on_true1")
     assert not link_is_required(taskgraph.graph, "fan", "on_error1")
-    assert not link_is_required(taskgraph.graph, "always1", "always2")
+    assert link_is_required(taskgraph.graph, "always1", "always2")
     assert not link_is_required(taskgraph.graph, "on_true1", "on_true2")
     assert not link_is_required(taskgraph.graph, "on_error1", "on_error2")
-    assert not link_is_required(taskgraph.graph, "always2", "merge")
+    assert link_is_required(taskgraph.graph, "always2", "merge")
     assert not link_is_required(taskgraph.graph, "on_true2", "merge")
     assert not link_is_required(taskgraph.graph, "on_error2", "merge")
     assert not link_is_required(

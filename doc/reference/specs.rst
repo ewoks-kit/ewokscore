@@ -1,44 +1,26 @@
 Ewoks workflow specification
 ============================
+A **workflow** is a directed graph of nodes connected by links.
 
-A **workflow** is a directed graph of tasks. A directed graph consists of nodes and links.
+A **node** is an opaque unit of execution implemented by a task.
 
-A **node** describes an opaque unit of execution with a signature. It can have positional and named
-arguments which can be required or optional. It can have zero, one or more named outputs.
-
-A **task** is an opaque unit of execution with input arguments defined by links and default values
-in the graph representation. (OOP analogy: a task is a node instance).
+A **task** is the implementation an opaque unit of execution with a signature.
+This can be a function written in Python for example. A task can have positional and
+named arguments which can be *required* or *optional*. A task is expected to fail when
+executed without all *required* arguments. A task can have zero, one or more named outputs.
 
 A **link** connects a source node to a target node. A link can have the following properties:
-  * **conditional**: has a set of statements that combined are either True or False
-  * **required**: either "marked as required” in the graph representation" or “unconditional
-    and all ancestors of the source node are required”
-  * **data_mapping**: describes data transfer from source to target.
+  * **required**: The target node *cannot be executed* without this link being triggered first.
+  * **optional**: The target node *can be executed* without this link being triggered first.
+  * **conditional**: Has a set of statements that combined are either *True* or *False*.
+  * **data_mapping**: Describes data transfer from source to target.
 
-Task scheduling
----------------
+.. hint::
 
-A task can only be executed when all required predecessors have been executed successfully.
-
-Task scheduling starts by executing all **start tasks**. When a graph has nodes without predecessors,
-those are the start tasks. Otherwise all nodes without required predecessors and with all required
-arguments statically defined are start nodes.
-
-The input arguments of a task are defined in the following order of priority:
- * Input from non-required predecessors (we allow maximum one of those)
- * Input from all unconditional links (argument collisions raise an exception)
- * Input from the graph representation (default input)
-
-*ewokscore* has a native, sequential task scheduler which can be used like this
-
-.. code-block:: python
-
-  from ewokscore import execute_graph
-
-  result = execute_graph("/path/to/graph.json")
-
-
-The `execute_graph` method can be imported from the *ewoks* binding projects for more complex task scheduling.
+  *Task arguments* (also called *task inputs*) can be *optional* or *required*.
+  *Links* can also be *optional* or *required*.
+  A link being optional or required is **independent** of whether the task arguments
+  of the target node of the link are optional or required.
 
 Graph definition
 ----------------
@@ -86,8 +68,8 @@ The *input_nodes* and *output_nodes* have these attributes
 * *link_attributes* (optional): default link attributes used in links with a super graph. The
   link attributes specified in the super graph have priority over these defaults.
 
-For example for a graph with normal nodes `"id1"` and `"id3"` and a sub-graph node `"id2"`
-which in turn has an input node `"start"` and output node `"end"`:
+For example for a graph with normal nodes ``"id1"`` and ``"id3"`` and a sub-graph node ``"id2"``
+which in turn has an input node ``"start"`` and output node ``"end"``:
 
 .. code-block:: json
 
@@ -110,7 +92,7 @@ which in turn has an input node `"start"` and output node `"end"`:
         ]
     }
 
-The `"in*"` and `"out*"` id's can be used by a super-graph when making connections. For example
+The id's ``"in1"``, ``"in2"``, ``"out1"`` and ``"out2"`` can be used by a super-graph when making connections. For example
 
 .. code-block:: json
 
@@ -153,23 +135,23 @@ Node attributes
         {
             "default_inputs": [{"name":"a", "value":1}]
         }
-* *force_start_node* (optional): when set to `True`, the node will be forcefully defined as a start node i.e. a node that
+* *force_start_node* (optional): when set to ``True``, the node will be forcefully defined as a start node i.e. a node that
   should be executed before all others  (to be used as an escape hatch when the graph analysis fails to correctly assert
   the start nodes).
-* *conditions_else_value* (optional): value used in conditional links to indicate the *else* value (Default: `None`)
-* *default_error_node* (optional): when set to `True` all nodes without error handler will be linked to this node.
-* *default_error_attributes* (optional): when `default_error_node=True` this dictionary is used as attributes for the
-  error handler links. The default is `{"map_all_data": True}`. The link attribute `"on_error"` is forced to be `True`.
+* *conditions_else_value* (optional): value used in conditional links to indicate the *else* value (Default: ``None``)
+* *default_error_node* (optional): when set to ``True`` all nodes without error handler will be linked to this node.
+* *default_error_attributes* (optional): when ``default_error_node=True`` this dictionary is used as attributes for the
+  error handler links. The default is ``{"map_all_data": True}``. The link attribute ``"on_error"`` is forced to be ``True``.
 
 Link attributes
 ^^^^^^^^^^^^^^^
-* *source*: the *id* of the source node
-* *sub_source*: when *source* is a *graph*, specify the *id* or `output_nodes` alias of the node in *source*
-* *target*: the *id* of the target node
-* *sub_target*: when *target* is a *graph*, specify the *id* of `input_nodes` alias of the node in *target*
-* *sub_target_attributes* (optional): can be used when *target* is a *graph*. It allows changing the node
+* *source*: The *id* of the source node.
+* *sub_source*: When *source* is a *graph*, specify the *id* or *output_nodes* alias of the node in *source*.
+* *target*: The *id* of the target node.
+* *sub_target*: When *target* is a *graph*, specify the *id* of *input_nodes* alias of the node in *target*.
+* *sub_target_attributes* (optional): Can be used when *target* is a *graph*. It allows changing the node
   attributes of *sub_target* in the sub-graph.
-* *data_mapping* (optional): describe data transfer from source outputs to target input arguments. For example
+* *data_mapping* (optional): Describe data transfer from source outputs to target input arguments. For example
     .. code-block:: json
 
         {
@@ -177,28 +159,169 @@ Link attributes
                               "target_input": "a"}]
         }
 
-    If `"source_output"` is `None` or missing, the complete output of the source will be passed to the corresponding
-    `"target_input"` or the target.
-* *map_all_data* (optional): setting this to `True` is equivalent to *data_mapping* being the identity mapping for
+    If ``"source_output"`` is ``None`` or missing, the complete output of the source will be passed to the corresponding
+    ``"target_input"`` or the target.
+* *map_all_data* (optional): Setting this to ``True`` is equivalent to *data_mapping* being the identity mapping for
   all input names. Cannot be used in combination with *data_mapping*.
-* *conditions* (optional): provides a list of expected values for source outputs
+* *conditions* (optional): Provides a list of expected values for source outputs
     .. code-block:: json
 
         {
             "conditions": [{"source_output": "result", "value": 10}]
         }
-* *on_error* (optional): a special condition "the source task raises an exception". Cannot be used in combination with *conditions*.
-* *required* (optional): setting this to `True` marks the link as *required*. When a target receives multiple links, it will be executed
-  (perhaps multiple times) when all the sources connected to the target with *required* links have been executed. A link is required when
-  it is either "marked as required" (link attribute `required=True`) or “unconditional and all ancestors of the source node are required”.
+* *on_error* (optional): A special condition "the source task raises an exception". Cannot be used in combination with *conditions*.
+* *required* (optional): The link is *required* when set to ``True``. The link is *optional* if ``False``.
+  A target node can only be executed after all its required predecessors have executed successfully.
+  If a target has multiple required incoming links, it will be scheduled once all corresponding source
+  tasks have completed (and may be scheduled multiple times as additional inputs from optional links arrive).
+  See :ref:`Node execution section <node-execution>` for more details.
+
+  If the attribute is not explicitly specified (default behaviour), the link is considered required when
+  it is unconditional (i.e. has no *conditions* nor ``on_error=True``) and all ancestors of the source
+  node are connected through required links. Otherwise, the link is treated as optional.
+* *cache_if_optional* (optional): Cache the inputs from this link for subsequent calls when it is optional.
+  The inputs from required links are always cached. By default inputs from optional links are not *cached*
+  but they are *buffered* until the target node can be executed. From then on only the last item is *retained*
+  for subsequent calls and *overwritten* by new inputs from optional links for which caching is not enabled
+  (the default behavior). See :ref:`Node execution section <node-execution>` for more details.
+
+.. _node-execution:
+
+Node execution
+--------------
+
+A node executes whenever all its inputs from required links are available. Inputs from required links are
+*cached* per link and reused for all subsequent executions.
+
+Inputs from optional links influence execution depending on when they arrive and their
+configuration.
+
+Before the first execution
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Before all inputs from required links are available:
+
+- inputs from required links are *cached* per link
+- inputs from optional links with ``cache_if_optional=True`` are *cached* per link
+- inputs from optional links with ``cache_if_optional=False`` are *buffered* in arrival order (FIFO)
+
+No execution occurs until all inputs from required links are available.
+
+First execution
+^^^^^^^^^^^^^^^
+When all inputs from required links become available:
+
+- the node executes once with all *cached* inputs and the first buffered inputs from optional links (if any)
+- repeat this for the other buffered inputs from optional links: one execution per buffered input in arrival order
+- after all buffered inputs are processed:
+  
+  - inputs from required links remain *cached* per link
+  - inputs from optional links with ``cache_if_optional=True`` remain *cached* per link
+  - the last processed optional input with ``cache_if_optional=False`` becomes *retained*
+  - all other buffered inputs from optional links are discarded
+
+After the first execution
+^^^^^^^^^^^^^^^^^^^^^^^^^
+After the node has executed at least once:
+
+- every new input (required or optional) triggers one execution with:
+  - all cached inputs, and
+  - the last or newly arrived retained inputs
+
+Inputs from required links:
+- are always *cached* (i.e. participate in all subsequent executions)
+- overwrite the previously cached inputs for the same link
+
+Inputs from optional links with ``cache_if_optional=True``:
+- are *cached* (i.e. participate in all subsequent executions)
+- overwrite the previously cached inputs for the same link
+
+Inputs from optional links with ``cache_if_optional=False``:
+- are *retained*
+- overwrite the previously retained inputs, so only one such input is retained at any time
+
+Summary
+^^^^^^^
+- *cached*: stored permanently per link and reused in all executions
+- *buffered*: queued before the first execution (FIFO)
+- *retained*: single optional input remembered after execution and replaced by the next one
+
+Example 1
+^^^^^^^^^
+As an example we consider a target node with four predecessors with the following link properties:
+
+- A: ``required=True``
+- B: ``required=True``
+- C: ``required=False`` and ``cache_if_optional=False``
+- D: ``required=False`` and ``cache_if_optional=False``
+
+In general these links can be triggered in any order and several times.
+
+Here are several possible trigger orders and their resulting executions:
+
++--------------------------------------+--------------------------------------------------+
+| Trigger order                        | Execution order                                  |
++======================================+==================================================+
+| A,   B,   C,   D,   A2,  C2          | (A+B),  (A+B+C),  (A+B+D),  (A2+B+D),  (A2+B+C2) |
++--------------------------------------+--------------------------------------------------+
+| C,   D,   A,   B,   A2,  C2          |         (A+B+C),  (A+B+D),  (A2+B+D),  (A2+B+C2) |
++--------------------------------------+--------------------------------------------------+
+| A,   C,   B,   D,   A2,  C2          |         (A+B+C),  (A+B+D),  (A2+B+D),  (A2+B+C2) |
++--------------------------------------+--------------------------------------------------+
+| C,   A,   D,   B,   A2,  C2          |         (A+B+C),  (A+B+D),  (A2+B+D),  (A2+B+C2) |
++--------------------------------------+--------------------------------------------------+
+
+Example 2
+^^^^^^^^^
+As an example we consider a target node with four predecessors with the following link properties:
+
+- A: ``required=True``
+- B: ``required=True``
+- C: ``required=False`` and ``cache_if_optional=True``
+- D: ``required=False`` and ``cache_if_optional=False``
+
+In general these links can be triggered in any order and several times.
+
+Here are several possible trigger orders and their resulting executions:
+
++--------------------------------------+-----------------------------------------------------------------------+
+| Trigger order                        | Execution order                                                       |
++======================================+=======================================================================+
+| A,   B,   C,   D,   A2,  C2,  D2     | (A+B),  (A+B+C),  (A+B+C+D),  (A2+B+C+D),  (A2+B+C2+D),  (A2+B+C2+D2) |
++--------------------------------------+-----------------------------------------------------------------------+
+| C,   D,   A,   B,   A2,  C2,  D2     |         (A+B+C),  (A+B+C+D),  (A2+B+C+D),  (A2+B+C2+D),  (A2+B+C2+D2) |
++--------------------------------------+-----------------------------------------------------------------------+
+| A,   C,   B,   D,   A2,  C2,  D2     |         (A+B+C),  (A+B+C+D),  (A2+B+C+D),  (A2+B+C2+D),  (A2+B+C2+D2) |
++--------------------------------------+-----------------------------------------------------------------------+
+| C,   A,   D,   B,   A2,  C2,  D2     |         (A+B+C),  (A+B+C+D),  (A2+B+C+D),  (A2+B+C2+D),  (A2+B+C2+D2) |
++--------------------------------------+-----------------------------------------------------------------------+
+
+Task scheduling
+---------------
+
+A *workflow execution engine* orchestrates the order in which nodes are executed and the transfer
+and caching of node inputs. This is referred to as *task scheduling*.
+
+The execution of a workflow starts by executing all **start nodes**. When a graph has nodes without predecessors,
+those are the start tasks. Otherwise all nodes without required predecessors and with all required
+arguments statically defined are start nodes.
+
+*ewokscore* has a native, sequential execution engine which can be used like this
+
+.. code-block:: python
+
+  from ewokscore import execute_graph
+
+  result = execute_graph("/path/to/graph.json")
+
+The `execute_graph` method can be imported from the *ewoks* binding projects for more complex task scheduling.
 
 Task implementation
 -------------------
-All tasks can be described by deriving a class from the `Task` class.
+All tasks are defined at runtime in Python by a class derived from the ``Task`` class.
 
 * required input names: an exception is raised when these inputs are not provided in the graph definition
   (output from previous tasks or default input values)
-* optional input names: no default values provided (need to be done in the `process` method)
+* optional input names: no default values provided (need to be handled in the ``run`` method)
 * output names: can be connected to downstream input names
 * required positional inputs: a positive number
 
@@ -206,7 +329,7 @@ For example
 
 .. code-block:: python
 
-    from ewokscore import Task
+    from ewokscore.task import Task
 
     class SumTask(
         Task,
@@ -220,7 +343,7 @@ For example
                 result += self.inputs.b
             self.outputs.result = result
 
-When a task is defined as a method, script or notebook, a class wrapper will be generated automatically:
+When a task is defined as a *method*, *script* or *notebook*, a class wrapper will be generated automatically:
 
 * *method*: defined by a `Task` class with one required input argument ("_method": full qualifier name of the method)
   and one output argument ("return_value")
