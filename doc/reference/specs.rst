@@ -6,13 +6,21 @@ A **node** is an opaque unit of execution implemented by a task.
 
 A **task** is the implementation an opaque unit of execution with a signature.
 This can be a function written in Python for example. A task can have positional and
-named arguments which can be *required* or *optional*. It can have zero, one or more named outputs.
+named arguments which can be *required* or *optional*. A task is expected to fail when
+executed without all *required* arguments. A task can have zero, one or more named outputs.
 
 A **link** connects a source node to a target node. A link can have the following properties:
+  * **required**: The target node *cannot be executed* without this link being triggered first.
+  * **optional**: The target node *can be executed* without this link being triggered first.
   * **conditional**: Has a set of statements that combined are either *True* or *False*.
-  * **required**: Specifies whether the target node can be executed without this link
-    being triggered first (*False*) or whether it needs to wait (*True*).
   * **data_mapping**: Describes data transfer from source to target.
+
+.. hint::
+
+  *Task arguments* (also called *task inputs*) can be *optional* or *required*.
+  *Links* can also be *optional* or *required*.
+  A link being optional or required is **independent** of whether the task arguments
+  of the target node of the link are optional or required.
 
 Graph definition
 ----------------
