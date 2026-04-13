@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0rc1] - 2026-04-13
+
 ### Added
 
 - Added link attribute `cache_if_optional`: cache inputs from optional links just like required links.
@@ -384,7 +386,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `execute_graph` for naive task scheduling in a single thread.
 - Execution events based on python's logging facility.
 
-[unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.0...HEAD
+[unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0rc1...HEAD
+[5.0.0rc1]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.2...v5.0.0rc1
+[4.0.2]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.1...v4.0.2
+[4.0.1]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/ewoks-kit/ewokscore/compare/v3.1.0...v4.0.0
 [3.1.0]: https://github.com/ewoks-kit/ewokscore/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/ewoks-kit/ewokscore/compare/v2.0.1...v3.0.0
