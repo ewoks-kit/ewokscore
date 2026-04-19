@@ -176,7 +176,7 @@ Link attributes
   tasks have completed (and may be scheduled multiple times as additional inputs from optional links arrive).
   See :ref:`Node execution section <node-execution>` for more details.
 
-  If the attribute is not explicitly specified (default behaviour), the link is considered required when
+  If the attribute is not explicitly specified (default behavior), the link is considered required when
   it is unconditional (i.e. has no *conditions* nor ``on_error=True``) and all ancestors of the source
   node are connected through required links. Otherwise, the link is treated as optional.
 * *cache_if_optional* (optional): Cache the inputs from this link for subsequent calls when it is optional.
