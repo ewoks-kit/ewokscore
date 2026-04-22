@@ -29,9 +29,11 @@ GraphRepresentation = enum.Enum(
 
 network_x_version = Version(networkx.__version__)
 
+
 # --- YAML Type Registration ---
 def _numpy_ndarray_representer(dumper, data):
     return dumper.represent_list(data.tolist())
+
 
 def _numpy_scalar_representer(dumper, data):
     # Converts numpy scalars to standard Python floats/ints that YAML knows
@@ -39,9 +41,11 @@ def _numpy_scalar_representer(dumper, data):
         return dumper.represent_float(float(data))
     return dumper.represent_int(int(data))
 
+
 yaml.add_representer(numpy.ndarray, _numpy_ndarray_representer)
 yaml.add_representer(numpy.float64, _numpy_scalar_representer)
 yaml.add_representer(numpy.int64, _numpy_scalar_representer)
+
 
 def dump(
     graph: networkx.DiGraph,
