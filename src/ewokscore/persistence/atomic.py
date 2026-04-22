@@ -46,8 +46,9 @@ def atomic_create_path(path: Path) -> Iterator[Path]:
 
 @contextmanager
 def atomic_write(path: Path, **kw):
+    mode = kw.pop("mode", "w")
     with atomic_create_path(path) as tmpname:
-        with open(tmpname, mode="w", **kw) as f:
+        with open(tmpname, mode=mode, **kw) as f:
             yield f
 
 

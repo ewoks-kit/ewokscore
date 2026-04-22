@@ -180,7 +180,6 @@ class Variable(hashing.UniversalHashable):
         if isinstance(value, numpy.ndarray):
             # Tag a numpy nd array as an input input by __ewoks_data_type__ to the data
             data["__ewoks_data_type__"] = "numpy.ndarray"
-            value = value.tolist()
             data["value"] = value.tolist()
         else:
             data["value"] = value
