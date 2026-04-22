@@ -8,6 +8,7 @@ from typing import Dict
 from typing import Optional
 from typing import Union
 
+import numpy
 from ewoksutils.deprecation_utils import deprecated
 
 from . import hashing
@@ -175,13 +176,24 @@ class Variable(hashing.UniversalHashable):
     def serialize(self) -> dict:
         """Serialize data before persistent storage"""
         data = dict(self.metadata)
-        data["value"] = self.value
+        value = self.value
+        if isinstance(value, numpy.ndarray):
+            # Tag a numpy nd array as an input input by __ewoks_data_type__ to the data
+            data["__ewoks_data_type__"] = "numpy.ndarray"
+            value = value.tolist()
+            data["value"] = value.tolist()
+        else:
+            data["value"] = value
         return data
 
     def deserialize(self, data: dict):
         """Deserialize data after loading from persistent storage"""
         # When the value is `None`, the backup may not store it (e.g. HDF5)
-        self._runtime_value = data.pop("value", None)
+        ewoks_data_type = data.pop("__ewoks_data_type__", None)
+        value = data.pop("value", None)
+        if ewoks_data_type == "numpy.ndarray":
+            value = numpy.array(value)
+        self._runtime_value = value
         self._runtime_metadata = data
 
     @property
