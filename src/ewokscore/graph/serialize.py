@@ -10,12 +10,14 @@ from typing import Tuple
 from typing import Union
 
 import networkx
+import numpy
 import yaml
 from ewoksutils.deprecation_utils import deprecated
 from ewoksutils.path_utils import makedirs_from_filename
 from packaging.version import Version
 
 from ..node import node_id_from_json
+from ..persistence.json import EwoksDataTypeJsonEncoder
 from .models import GraphSource
 from .schema import normalize_schema_version
 
@@ -27,6 +29,19 @@ GraphRepresentation = enum.Enum(
 
 network_x_version = Version(networkx.__version__)
 
+# --- YAML Type Registration ---
+def _numpy_ndarray_representer(dumper, data):
+    return dumper.represent_list(data.tolist())
+
+def _numpy_scalar_representer(dumper, data):
+    # Converts numpy scalars to standard Python floats/ints that YAML knows
+    if isinstance(data, numpy.floating):
+        return dumper.represent_float(float(data))
+    return dumper.represent_int(int(data))
+
+yaml.add_representer(numpy.ndarray, _numpy_ndarray_representer)
+yaml.add_representer(numpy.float64, _numpy_scalar_representer)
+yaml.add_representer(numpy.int64, _numpy_scalar_representer)
 
 def dump(
     graph: networkx.DiGraph,
@@ -56,12 +71,14 @@ def dump(
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
         save_options.setdefault("indent", 2)
+        save_options.setdefault("cls", EwoksDataTypeJsonEncoder)
         with open(destination, mode="w") as f:
             json.dump(dictrepr, f, **save_options)
         return destination
 
     if representation == GraphRepresentation.json_string:
         dictrepr = dump(graph)
+        save_options.setdefault("cls", EwoksDataTypeJsonEncoder)
         return json.dumps(dictrepr, **save_options)
 
     if representation == GraphRepresentation.yaml:
