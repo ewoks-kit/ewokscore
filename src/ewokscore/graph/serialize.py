@@ -15,7 +15,6 @@ from typing import Tuple
 from typing import Union
 
 import networkx
-import numpy
 import yaml
 from ewoksutils.path_utils import makedirs_from_filename
 from packaging.version import Version
@@ -40,16 +39,6 @@ class _EwoksYamlDumper(yaml.SafeDumper):
 
 class _EwoksYamlLoader(yaml.SafeLoader):
     pass
-
-
-def _yaml_python_tuple_constructor(loader, node):
-    """Allows YAML to reconstruct Python tuples"""
-    return tuple(loader.construct_sequence(node))
-
-
-_EwoksYamlLoader.add_constructor(
-    "tag:yaml.org,2002:python/tuple", _yaml_python_tuple_constructor
-)
 
 
 def _yaml_pickle_representer(dumper, data):
@@ -78,13 +67,7 @@ _EwoksYamlLoader.add_constructor(
     _yaml_pickle_constructor,
 )
 
-_EwoksYamlDumper.add_multi_representer(numpy.ndarray, _yaml_pickle_representer)
-_EwoksYamlDumper.add_multi_representer(numpy.generic, _yaml_pickle_representer)
-_EwoksYamlLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _yaml_pickle_constructor
-)
-
-NODE_ID_KEYS = {
+__NODE_ID_KEYS = {
     "source",
     "target",
     "sub_source",
@@ -115,7 +98,7 @@ def _normalize_types(obj: Any) -> Any:
     if isinstance(obj, dict):
         new_dict = {}
         for k, v in obj.items():
-            if k in NODE_ID_KEYS:
+            if k in __NODE_ID_KEYS:
                 val = _list_to_tuple(v)
                 val = node_id_from_json(val)
             else:
@@ -230,6 +213,7 @@ def load(
     elif hasattr(source, "graph") and isinstance(source.graph, networkx.Graph):
         graph = source.graph
     elif representation == GraphRepresentation.json_dict:
+        graph_dict = _normalize_types(source)
         graph = _dict_to_networkx(source)
     elif representation == GraphRepresentation.json:
         graph_dict = _read_json_file(source, root_dir=root_dir, root_module=root_module)
@@ -382,9 +366,6 @@ def _package_path(package: str) -> str:
 
 
 def _dict_to_networkx(graph: dict) -> networkx.DiGraph:
-    """Pre-process the dictionary to ensure all NetworkX IDs are hashable."""
-    graph = _normalize_types(graph)
-
     graph.setdefault("directed", True)
     graph.setdefault("nodes", list())
     graph.setdefault("links", list())
@@ -393,7 +374,6 @@ def _dict_to_networkx(graph: dict) -> networkx.DiGraph:
     if "id" not in graph["graph"]:
         logger.warning('Graph has no "id": use "notspecified"')
         graph["graph"]["id"] = "notspecified"
-
     normalize_schema_version(graph)
 
     if network_x_version < Version("3.4rc"):
