@@ -6,11 +6,14 @@ import logging
 import os
 import pickle
 from collections.abc import Mapping
+from io import IOBase
 from pathlib import Path
 from typing import Any
+from typing import BinaryIO
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import TextIO
 from typing import Tuple
 from typing import Union
 
@@ -62,9 +65,19 @@ def _yaml_pickle_constructor(loader, node):
 
 
 _EwoksYamlDumper.add_multi_representer(object, _yaml_pickle_representer)
+_EwoksYamlDumper.add_representer(tuple, yaml.SafeDumper.represent_list)
 _EwoksYamlLoader.add_constructor(
     yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     _yaml_pickle_constructor,
+)
+
+
+def _yaml_python_tuple_constructor(loader, node):
+    return tuple(loader.construct_sequence(node))
+
+
+_EwoksYamlLoader.add_constructor(
+    "tag:yaml.org,2002:python/tuple", _yaml_python_tuple_constructor
 )
 
 __NODE_ID_KEYS = {
@@ -302,11 +315,15 @@ def _read_any_file(
     raise ValueError(f"File format of '{filename}' not supported")
 
 
-def json_load(content) -> dict:
+def json_load(content: Union[str, bytes, TextIO, BinaryIO]) -> dict:
     # JSON Entry point or file-like objects
-    if hasattr(content, "read"):
+    if isinstance(content, (str, bytes)):
+        return json.loads(content, object_pairs_hook=_ewoks_decode_hook)
+    if isinstance(content, IOBase) or hasattr(content, "read"):
         return json.load(content, object_pairs_hook=_ewoks_decode_hook)
-    return json.loads(content, object_pairs_hook=_ewoks_decode_hook)
+    raise TypeError(
+        f"Expected str, bytes, or file-like object, got {type(content).__name__}"
+    )
 
 
 def _yaml_load(content) -> dict:
