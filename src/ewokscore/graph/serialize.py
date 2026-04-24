@@ -37,10 +37,22 @@ network_x_version = Version(networkx.__version__)
 
 
 class _EwoksYamlDumper(yaml.SafeDumper):
+    """
+    Custom Dumper to ensure language-agnostic YAML.
+    - Maps Python tuples to standard YAML lists [] to keep files 'clean'.
+    - Pickles unknown objects (like NumPy arrays) to allow full serialization.
+    """
+
     pass
 
 
 class _EwoksYamlLoader(yaml.SafeLoader):
+    """
+    Custom Loader for Ewoks graphs.
+    - Reconstructs pickled objects.
+    - Supports legacy !!python/tuple tags for backward compatibility.
+    """
+
     pass
 
 
@@ -80,7 +92,7 @@ _EwoksYamlLoader.add_constructor(
     "tag:yaml.org,2002:python/tuple", _yaml_python_tuple_constructor
 )
 
-__NODE_ID_KEYS = {
+_NODE_ID_KEYS = {
     "source",
     "target",
     "sub_source",
@@ -92,7 +104,7 @@ __NODE_ID_KEYS = {
 
 
 def _list_to_tuple(obj: Any) -> Any:
-    """Helper to deeply freeze ONLY node identifiers."""
+    """Helper to deeply freeze ONLY node identifiers for NetworkX hashability."""
     if isinstance(obj, list):
         return tuple(_list_to_tuple(i) for i in obj)
     if isinstance(obj, dict):
@@ -111,7 +123,7 @@ def _normalize_types(obj: Any) -> Any:
     if isinstance(obj, dict):
         new_dict = {}
         for k, v in obj.items():
-            if k in __NODE_ID_KEYS:
+            if k in _NODE_ID_KEYS:
                 val = _list_to_tuple(v)
                 val = node_id_from_json(val)
             else:
@@ -227,7 +239,7 @@ def load(
         graph = source.graph
     elif representation == GraphRepresentation.json_dict:
         graph_dict = _normalize_types(source)
-        graph = _dict_to_networkx(source)
+        graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.json:
         graph_dict = _read_json_file(source, root_dir=root_dir, root_module=root_module)
         graph = _dict_to_networkx(graph_dict)
