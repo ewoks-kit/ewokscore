@@ -6,14 +6,11 @@ import logging
 import os
 import pickle
 from collections.abc import Mapping
-from io import IOBase
 from pathlib import Path
 from typing import Any
-from typing import BinaryIO
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import TextIO
 from typing import Tuple
 from typing import Union
 
@@ -22,7 +19,7 @@ import yaml
 from ewoksutils.path_utils import makedirs_from_filename
 from packaging.version import Version
 
-from ..node import node_id_from_json
+from ..node import as_node_id_type
 from ..persistence.json import _EwoksJsonEncoder
 from .models import GraphSource
 from .schema import normalize_schema_version
@@ -36,39 +33,6 @@ GraphRepresentation = enum.Enum(
 network_x_version = Version(networkx.__version__)
 
 
-class _EwoksYamlDumper(yaml.SafeDumper):
-    """
-    Custom Dumper to ensure language-agnostic YAML.
-    - Maps Python tuples to standard YAML lists [] to keep files 'clean'.
-    - Pickles unknown objects (like NumPy arrays) to allow full serialization.
-    """
-
-    pass
-
-
-class _EwoksYamlLoader(yaml.SafeLoader):
-    """
-    Custom Loader for Ewoks graphs.
-    - Reconstructs pickled objects.
-    - Supports legacy !!python/tuple tags for backward compatibility.
-    """
-
-    pass
-
-
-def _yaml_pickle_representer(dumper, data):
-    try:
-        return dumper.represent_undefined(data)
-    except yaml.representer.RepresenterError:
-        return dumper.represent_mapping(
-            "tag:yaml.org,2002:map",
-            {
-                "__pickled__": True,
-                "data": base64.b64encode(pickle.dumps(data)).decode("ascii"),
-            },
-        )
-
-
 def _yaml_pickle_constructor(loader, node):
     value = loader.construct_mapping(node)
     if isinstance(value, dict) and value.get("__pickled__") is True:
@@ -76,21 +40,11 @@ def _yaml_pickle_constructor(loader, node):
     return value
 
 
-_EwoksYamlDumper.add_multi_representer(object, _yaml_pickle_representer)
-_EwoksYamlDumper.add_representer(tuple, yaml.SafeDumper.represent_list)
-_EwoksYamlLoader.add_constructor(
+yaml.SafeLoader.add_constructor(
     yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     _yaml_pickle_constructor,
 )
 
-
-def _yaml_python_tuple_constructor(loader, node):
-    return tuple(loader.construct_sequence(node))
-
-
-_EwoksYamlLoader.add_constructor(
-    "tag:yaml.org,2002:python/tuple", _yaml_python_tuple_constructor
-)
 
 _NODE_ID_KEYS = {
     "source",
@@ -103,41 +57,39 @@ _NODE_ID_KEYS = {
 }
 
 
-def _list_to_tuple(obj: Any) -> Any:
-    """Helper to deeply freeze ONLY node identifiers for NetworkX hashability."""
+def _hashable_id(obj):
+    # recursively convert lists to tuples
+    # required for networkX to use sequences as hashable node identifiers
     if isinstance(obj, list):
-        return tuple(_list_to_tuple(i) for i in obj)
-    if isinstance(obj, dict):
-        return {k: _list_to_tuple(v) for k, v in obj.items()}
+        return tuple(_hashable_id(i) for i in obj)
     return obj
 
 
-def _normalize_types(obj: Any) -> Any:
+def _deserialize_ewoks_types(obj: Any) -> Any:
     """
     - Converts lists to tuples recursively if they are part of a Node ID.
     - Unpacks pickled objects (Base64).
     """
-    if isinstance(obj, dict) and obj.get("__pickled__") is True:
-        return pickle.loads(base64.b64decode(obj["data"].encode("ascii")))
-
     if isinstance(obj, dict):
+        if obj.get("__pickled__") is True:
+            return pickle.loads(base64.b64decode(obj["data"].encode("ascii")))
+
         new_dict = {}
         for k, v in obj.items():
             if k in _NODE_ID_KEYS:
-                val = _list_to_tuple(v)
-                val = node_id_from_json(val)
+                val = as_node_id_type(_hashable_id(v))
             else:
-                val = _normalize_types(v)
+                val = _deserialize_ewoks_types(v)
             new_dict[k] = val
         return new_dict
 
     if isinstance(obj, list):
-        return [_normalize_types(i) for i in obj]
+        return [_deserialize_ewoks_types(i) for i in obj]
     return obj
 
 
 def _ewoks_decode_hook(items: List[Tuple[str, Any]]) -> Dict[str, Any]:
-    return _normalize_types(dict(items))
+    return _deserialize_ewoks_types(dict(items))
 
 
 def dump(
@@ -182,7 +134,6 @@ def dump(
             raise TypeError("Destination should be specified when dumping to yaml")
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
-        save_options.setdefault("Dumper", _EwoksYamlDumper)
         with open(destination, mode="w") as f:
             yaml.dump(dictrepr, f, **save_options)
         return destination
@@ -238,7 +189,7 @@ def load(
     elif hasattr(source, "graph") and isinstance(source.graph, networkx.Graph):
         graph = source.graph
     elif representation == GraphRepresentation.json_dict:
-        graph_dict = _normalize_types(source)
+        graph_dict = _deserialize_ewoks_types(source)
         graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.json:
         graph_dict = _read_json_file(source, root_dir=root_dir, root_module=root_module)
@@ -327,24 +278,21 @@ def _read_any_file(
     raise ValueError(f"File format of '{filename}' not supported")
 
 
-def json_load(content: Union[str, bytes, TextIO, BinaryIO]) -> dict:
-    # JSON Entry point or file-like objects
-    if isinstance(content, (str, bytes)):
-        return json.loads(content, object_pairs_hook=_ewoks_decode_hook)
-    if isinstance(content, IOBase) or hasattr(content, "read"):
-        return json.load(content, object_pairs_hook=_ewoks_decode_hook)
-    raise TypeError(
-        f"Expected str, bytes, or file-like object, got {type(content).__name__}"
-    )
+def json_load(content) -> dict:
+    if isinstance(content, str):
+        result = json.loads(content, object_pairs_hook=_ewoks_decode_hook)
+    else:
+        result = json.load(content, object_pairs_hook=_ewoks_decode_hook)
+    if not isinstance(result, Mapping):
+        raise TypeError("graph must be a dictionary")
+    return result
 
 
 def _yaml_load(content) -> dict:
-    # YAML Entry Point
-    result = yaml.load(content, Loader=_EwoksYamlLoader)
+    result = yaml.load(content, yaml.Loader)
     if not isinstance(result, Mapping):
         raise TypeError("graph must be a dictionary")
-    # YAML requires a post-processing pass
-    return _normalize_types(result)
+    return result
 
 
 def _find_graph_path(
