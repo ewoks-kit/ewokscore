@@ -1,21 +1,26 @@
+import base64
 import enum
 import importlib
 import json
 import logging
 import os
+import pickle
 from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
+from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
 
 import networkx
 import yaml
-from ewoksutils.deprecation_utils import deprecated
 from ewoksutils.path_utils import makedirs_from_filename
 from packaging.version import Version
 
-from ..node import node_id_from_json
+from ..node import as_node_id_type
+from ..persistence.json import _EwoksJsonEncoder
 from .models import GraphSource
 from .schema import normalize_schema_version
 
@@ -26,6 +31,65 @@ GraphRepresentation = enum.Enum(
 )
 
 network_x_version = Version(networkx.__version__)
+
+
+def _yaml_pickle_constructor(loader, node):
+    value = loader.construct_mapping(node)
+    if isinstance(value, dict) and value.get("__pickled__") is True:
+        return pickle.loads(base64.b64decode(value["data"].encode("ascii")))
+    return value
+
+
+yaml.SafeLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    _yaml_pickle_constructor,
+)
+
+
+_NODE_ID_KEYS = {
+    "source",
+    "target",
+    "sub_source",
+    "sub_target",
+    "id",
+    "node",
+    "sub_node",
+}
+
+
+def _hashable_id(obj):
+    # recursively convert lists to tuples
+    # required for networkX to use sequences as hashable node identifiers
+    if isinstance(obj, list):
+        return tuple(_hashable_id(i) for i in obj)
+    return obj
+
+
+def _deserialize_ewoks_types(obj: Any) -> Any:
+    """
+    - Converts lists to tuples recursively if they are part of a Node ID.
+    - Unpacks pickled objects (Base64).
+    """
+    if isinstance(obj, dict):
+        if obj.get("__pickled__") is True:
+            return pickle.loads(base64.b64decode(obj["data"].encode("ascii")))
+
+        new_dict = {}
+        for k, v in obj.items():
+            if k in _NODE_ID_KEYS:
+                val = as_node_id_type(_hashable_id(v))
+            else:
+                val = _deserialize_ewoks_types(v)
+            new_dict[k] = val
+        return new_dict
+
+    if isinstance(obj, list):
+        return [_deserialize_ewoks_types(i) for i in obj]
+    return obj
+
+
+def _ewoks_decode_hook(items: List[Tuple[str, Any]]) -> Dict[str, Any]:
+    return _deserialize_ewoks_types(dict(items))
 
 
 def dump(
@@ -56,6 +120,7 @@ def dump(
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
         save_options.setdefault("indent", 2)
+        save_options.setdefault("cls", _EwoksJsonEncoder)
         with open(destination, mode="w") as f:
             json.dump(dictrepr, f, **save_options)
         return destination
@@ -124,7 +189,8 @@ def load(
     elif hasattr(source, "graph") and isinstance(source.graph, networkx.Graph):
         graph = source.graph
     elif representation == GraphRepresentation.json_dict:
-        graph = _dict_to_networkx(source)
+        graph_dict = _deserialize_ewoks_types(source)
+        graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.json:
         graph_dict = _read_json_file(source, root_dir=root_dir, root_module=root_module)
         graph = _dict_to_networkx(graph_dict)
@@ -214,9 +280,9 @@ def _read_any_file(
 
 def json_load(content) -> dict:
     if isinstance(content, str):
-        result = json.loads(content, object_pairs_hook=_ewoks_jsonload_hook)
+        result = json.loads(content, object_pairs_hook=_ewoks_decode_hook)
     else:
-        result = json.load(content, object_pairs_hook=_ewoks_jsonload_hook)
+        result = json.load(content, object_pairs_hook=_ewoks_decode_hook)
     if not isinstance(result, Mapping):
         raise TypeError("graph must be a dictionary")
     return result
@@ -227,30 +293,6 @@ def _yaml_load(content) -> dict:
     if not isinstance(result, Mapping):
         raise TypeError("graph must be a dictionary")
     return result
-
-
-def _ewoks_jsonload_hook_pair(item):
-    key, value = item
-    if key in (
-        "source",
-        "target",
-        "sub_source",
-        "sub_target",
-        "id",
-        "node",
-        "sub_node",
-    ):
-        value = node_id_from_json(value)
-    return key, value
-
-
-@deprecated("Use 'json_load' instead")
-def ewoks_jsonload_hook(items):
-    return _ewoks_jsonload_hook(items)
-
-
-def _ewoks_jsonload_hook(items):
-    return dict(map(_ewoks_jsonload_hook_pair, items))
 
 
 def _find_graph_path(

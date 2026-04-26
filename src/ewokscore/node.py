@@ -23,9 +23,9 @@ def node_id_as_string(node_id: NodeIdType, sep: Optional[str] = None) -> str:
     return sep.join(flatten_node_id(node_id))
 
 
-def node_id_from_json(node_id: Union[list, NodeIdType]) -> NodeIdType:
+def as_node_id_type(node_id: Union[list, NodeIdType]) -> NodeIdType:
     if isinstance(node_id, list):
-        return tuple(map(node_id_from_json, node_id))
+        return tuple(map(as_node_id_type, node_id))
     return node_id
 
 

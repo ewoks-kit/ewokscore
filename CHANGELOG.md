@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for Graph serialization and transparent handling of `Numpy arrays` in both JSON and 
+YAML via pickling.
+
 ## [5.0.0rc1] - 2026-04-13
 
 ### Added
