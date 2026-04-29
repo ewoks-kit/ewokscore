@@ -1,26 +1,24 @@
-import base64
 import enum
 import importlib
-import json
 import logging
 import os
-import pickle
 from collections.abc import Mapping
+from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Callable
 from typing import Dict
-from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
 
 import networkx
-import yaml
 from ewoksutils.path_utils import makedirs_from_filename
 from packaging.version import Version
 
-from ..node import as_node_id_type
-from ..persistence.json import _EwoksJsonEncoder
+from .. import node
+from .._serialization import ewoks_json
+from .._serialization import json
+from .._serialization import yaml
 from .models import GraphSource
 from .schema import normalize_schema_version
 
@@ -31,65 +29,6 @@ GraphRepresentation = enum.Enum(
 )
 
 network_x_version = Version(networkx.__version__)
-
-
-def _yaml_pickle_constructor(loader, node):
-    value = loader.construct_mapping(node)
-    if isinstance(value, dict) and value.get("__pickled__") is True:
-        return pickle.loads(base64.b64decode(value["data"].encode("ascii")))
-    return value
-
-
-yaml.SafeLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-    _yaml_pickle_constructor,
-)
-
-
-_NODE_ID_KEYS = {
-    "source",
-    "target",
-    "sub_source",
-    "sub_target",
-    "id",
-    "node",
-    "sub_node",
-}
-
-
-def _hashable_id(obj):
-    # recursively convert lists to tuples
-    # required for networkX to use sequences as hashable node identifiers
-    if isinstance(obj, list):
-        return tuple(_hashable_id(i) for i in obj)
-    return obj
-
-
-def _deserialize_ewoks_types(obj: Any) -> Any:
-    """
-    - Converts lists to tuples recursively if they are part of a Node ID.
-    - Unpacks pickled objects (Base64).
-    """
-    if isinstance(obj, dict):
-        if obj.get("__pickled__") is True:
-            return pickle.loads(base64.b64decode(obj["data"].encode("ascii")))
-
-        new_dict = {}
-        for k, v in obj.items():
-            if k in _NODE_ID_KEYS:
-                val = as_node_id_type(_hashable_id(v))
-            else:
-                val = _deserialize_ewoks_types(v)
-            new_dict[k] = val
-        return new_dict
-
-    if isinstance(obj, list):
-        return [_deserialize_ewoks_types(i) for i in obj]
-    return obj
-
-
-def _ewoks_decode_hook(items: List[Tuple[str, Any]]) -> Dict[str, Any]:
-    return _deserialize_ewoks_types(dict(items))
 
 
 def dump(
@@ -120,14 +59,20 @@ def dump(
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
         save_options.setdefault("indent", 2)
-        save_options.setdefault("cls", _EwoksJsonEncoder)
         with open(destination, mode="w") as f:
-            json.dump(dictrepr, f, **save_options)
+            json.dump(
+                dictrepr,
+                f,
+                **save_options,
+                special_keys=_get_special_graph_key_serializers(),
+            )
         return destination
 
     if representation == GraphRepresentation.json_string:
         dictrepr = dump(graph)
-        return json.dumps(dictrepr, **save_options)
+        return json.dumps(
+            dictrepr, **save_options, special_keys=_get_special_graph_key_serializers()
+        )
 
     if representation == GraphRepresentation.yaml:
         if destination is None:
@@ -135,7 +80,12 @@ def dump(
         dictrepr = dump(graph)
         makedirs_from_filename(destination)
         with open(destination, mode="w") as f:
-            yaml.dump(dictrepr, f, **save_options)
+            yaml.dump(
+                dictrepr,
+                f,
+                **save_options,
+                special_keys=_get_special_graph_key_serializers(),
+            )
         return destination
 
     if representation == GraphRepresentation.json_module:
@@ -189,13 +139,15 @@ def load(
     elif hasattr(source, "graph") and isinstance(source.graph, networkx.Graph):
         graph = source.graph
     elif representation == GraphRepresentation.json_dict:
-        graph_dict = _deserialize_ewoks_types(source)
+        graph_dict = ewoks_json.post_deserialize(
+            source, special_keys=_get_special_graph_key_deserializers()
+        )
         graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.json:
         graph_dict = _read_json_file(source, root_dir=root_dir, root_module=root_module)
         graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.json_string:
-        graph_dict = json_load(source)
+        graph_dict = _json_load(source)
         graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.yaml:
         graph_dict = _read_yaml_file(source, root_dir=root_dir, root_module=root_module)
@@ -235,7 +187,7 @@ def _read_json_file(
         possible_extensions=(".json",),
     )
     with open(filename, mode="r") as f:
-        return json_load(f)
+        return _json_load(f)
 
 
 def _read_yaml_file(
@@ -266,30 +218,37 @@ def _read_any_file(
         content = f.read()
 
     try:
-        return json_load(content)
-    except (json.JSONDecodeError, TypeError):
+        return _json_load(content)
+    except ewoks_json.EwoksDecodeError:
         pass
 
     try:
         return _yaml_load(content)
-    except (yaml.YAMLError, TypeError):
+    except ewoks_json.EwoksDecodeError:
         pass
 
     raise ValueError(f"File format of '{filename}' not supported")
 
 
-def json_load(content) -> dict:
+def _json_load(content) -> dict:
     if isinstance(content, str):
-        result = json.loads(content, object_pairs_hook=_ewoks_decode_hook)
+        result = json.loads(
+            content, special_keys=_get_special_graph_key_deserializers()
+        )
     else:
-        result = json.load(content, object_pairs_hook=_ewoks_decode_hook)
+        result = json.load(content, special_keys=_get_special_graph_key_deserializers())
     if not isinstance(result, Mapping):
         raise TypeError("graph must be a dictionary")
     return result
 
 
 def _yaml_load(content) -> dict:
-    result = yaml.load(content, yaml.Loader)
+    if isinstance(content, str):
+        result = yaml.loads(
+            content, special_keys=_get_special_graph_key_deserializers()
+        )
+    else:
+        result = yaml.load(content, special_keys=_get_special_graph_key_deserializers())
     if not isinstance(result, Mapping):
         raise TypeError("graph must be a dictionary")
     return result
@@ -369,3 +328,28 @@ def _networkx_to_dict(graph: networkx.DiGraph) -> dict:
     graph_dict.pop("directed")
     graph_dict.pop("multigraph")
     return graph_dict
+
+
+_NODE_ID_KEYS = (
+    "source",
+    "target",
+    "sub_source",
+    "sub_target",
+    "id",
+    "node",
+    "sub_node",
+)
+
+
+@lru_cache
+def _get_special_graph_key_serializers() -> Dict[
+    str, Callable[[node.NodeIdType], node.JsonNodeIdType]
+]:
+    return {k: node.as_json_node_id_type for k in _NODE_ID_KEYS}
+
+
+@lru_cache
+def _get_special_graph_key_deserializers() -> Dict[
+    str, Callable[[node.JsonNodeIdType], node.NodeIdType]
+]:
+    return {k: node.as_node_id_type for k in _NODE_ID_KEYS}
