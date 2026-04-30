@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- `ewokscore.graph.serialize.json_load`
+
 ### Added
 
 - Support for Graph serialization and transparent handling of `Numpy arrays` in both JSON and 

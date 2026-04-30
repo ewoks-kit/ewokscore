@@ -2,6 +2,7 @@ from typing import Optional
 from typing import Union
 
 NodeIdType = Union[str, int, tuple]
+JsonNodeIdType = Union[int, str, list]
 
 SEPARATOR = ":"
 
@@ -23,7 +24,13 @@ def node_id_as_string(node_id: NodeIdType, sep: Optional[str] = None) -> str:
     return sep.join(flatten_node_id(node_id))
 
 
-def as_node_id_type(node_id: Union[list, NodeIdType]) -> NodeIdType:
+def as_json_node_id_type(node_id: Union[JsonNodeIdType, NodeIdType]) -> JsonNodeIdType:
+    if isinstance(node_id, tuple):
+        return list(map(as_json_node_id_type, node_id))
+    return node_id
+
+
+def as_node_id_type(node_id: Union[JsonNodeIdType, NodeIdType]) -> NodeIdType:
     if isinstance(node_id, list):
         return tuple(map(as_node_id_type, node_id))
     return node_id
