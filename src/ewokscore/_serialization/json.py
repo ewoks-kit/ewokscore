@@ -5,7 +5,7 @@ from typing import Dict
 from typing import Optional
 from typing import TextIO
 
-from . import ewoks_json
+from . import common
 
 
 def dumps(
@@ -14,9 +14,7 @@ def dumps(
     """
     Serialize Python object to JSON string.
     """
-    return json.dumps(
-        ewoks_json.pre_serialize(obj, special_keys=special_keys), **kwargs
-    )
+    return json.dumps(common.pre_serialize(obj, special_keys=special_keys), **kwargs)
 
 
 def loads(
@@ -26,11 +24,11 @@ def loads(
     Deserialize JSON string to Python object.
     """
     try:
-        return ewoks_json.post_deserialize(
+        return common.post_deserialize(
             json.loads(s, **kwargs), special_keys=special_keys
         )
     except (json.JSONDecodeError, TypeError) as e:
-        raise ewoks_json.EwoksDecodeError from e
+        raise common.EwoksDecodeError from e
 
 
 def dump(
@@ -42,7 +40,7 @@ def dump(
     """
     Write Python object to JSON file-like object.
     """
-    json.dump(ewoks_json.pre_serialize(obj, special_keys=special_keys), fp, **kwargs)
+    json.dump(common.pre_serialize(obj, special_keys=special_keys), fp, **kwargs)
 
 
 def load(
@@ -52,8 +50,8 @@ def load(
     Load Python object from JSON file-like object.
     """
     try:
-        return ewoks_json.post_deserialize(
+        return common.post_deserialize(
             json.load(fp, **kwargs), special_keys=special_keys
         )
     except (json.JSONDecodeError, TypeError) as e:
-        raise ewoks_json.EwoksDecodeError from e
+        raise common.EwoksDecodeError from e

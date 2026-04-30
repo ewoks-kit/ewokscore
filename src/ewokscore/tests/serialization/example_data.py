@@ -1,77 +1,10 @@
-import json
-import sys
 from typing import Any
 from typing import Dict
 
-import networkx as nx
 import numpy
-import yaml
-
-from ..graph import serialize
-from ..persistence.json import JsonProxy
-from ..persistence.proxy import DataUri
 
 
-def test_json_data_persistence(tmp_path):
-    path = tmp_path / "data.json"
-    if sys.platform == "win32":
-        prefix = "json:///"
-    else:
-        prefix = "json://"
-    uri = DataUri(f"{prefix}{path}", None)
-
-    original_data = _generate_data()
-
-    proxy = JsonProxy(uri=uri)
-    proxy.dump(original_data)
-    python_data = proxy.load()
-    _assert_python_data(python_data, original_data)
-
-    raw_data = json.loads(path.read_text(encoding="utf-8"))
-    _assert_raw_data(raw_data, original_data)
-
-
-def test_yaml_graph_serialization(tmp_path):
-    G = nx.DiGraph()
-    original_data = _generate_data()
-    G.add_node("node1", default_args=original_data)
-
-    dest = tmp_path / "workflow.yaml"
-    serialize.dump(G, destination=dest, representation="yaml")
-
-    python_data = serialize.load(dest).nodes["node1"]["default_args"]
-    _assert_python_data(python_data, original_data)
-
-    raw_data = yaml.safe_load(dest.read_text(encoding="utf-8"))
-    raw_data = raw_data["nodes"][0]["default_args"]
-    _assert_raw_data(raw_data, original_data)
-
-
-def test_json_graph_serialization(tmp_path):
-    G = nx.DiGraph()
-    original_data = _generate_data()
-    G.add_node("node1", default_args=original_data)
-
-    dest = tmp_path / "workflow.json"
-    serialize.dump(G, destination=dest, representation="json")
-
-    python_data = serialize.load(dest).nodes["node1"]["default_args"]
-    _assert_python_data(python_data, original_data)
-
-    raw_data = json.loads(dest.read_text(encoding="utf-8"))
-    raw_data = raw_data["nodes"][0]["default_args"]
-    _assert_raw_data(raw_data, original_data)
-
-
-class _CustomType:
-    def __init__(self, value):
-        self._value = value
-
-    def __eq__(self, value):
-        return isinstance(value, _CustomType) and value._value == self._value
-
-
-def _generate_data() -> Dict[str, Any]:
+def generate_example_data() -> Dict[str, Any]:
     value = {
         "string": "string",
         "bytes": b"bytes",
@@ -102,13 +35,21 @@ def _generate_data() -> Dict[str, Any]:
     }
 
 
-def _assert_python_data(python_data: Dict[str, Any], original_data: Dict[str, Any]):
+class _CustomType:
+    def __init__(self, value):
+        self._value = value
+
+    def __eq__(self, value):
+        return isinstance(value, _CustomType) and value._value == self._value
+
+
+def assert_python_data(python_data: Dict[str, Any], original_data: Dict[str, Any]):
     actual = _data_for_python_comparison(python_data)
     expected = _data_for_python_comparison(original_data)
     assert actual == expected
 
 
-def _assert_raw_data(raw_data: Dict[str, Any], original_data: Dict[str, Any]):
+def assert_raw_data(raw_data: Dict[str, Any], original_data: Dict[str, Any]):
     actual = _actual_data_for_raw_comparison(raw_data)
     expected = _expected_data_for_raw_comparison(original_data)
     assert actual == expected

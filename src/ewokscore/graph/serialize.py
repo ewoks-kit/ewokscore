@@ -16,7 +16,7 @@ from ewoksutils.path_utils import makedirs_from_filename
 from packaging.version import Version
 
 from .. import node
-from .._serialization import ewoks_json
+from .._serialization import common
 from .._serialization import json
 from .._serialization import yaml
 from .models import GraphSource
@@ -139,7 +139,7 @@ def load(
     elif hasattr(source, "graph") and isinstance(source.graph, networkx.Graph):
         graph = source.graph
     elif representation == GraphRepresentation.json_dict:
-        graph_dict = ewoks_json.post_deserialize(
+        graph_dict = common.post_deserialize(
             source, special_keys=_get_special_graph_key_deserializers()
         )
         graph = _dict_to_networkx(graph_dict)
@@ -219,12 +219,12 @@ def _read_any_file(
 
     try:
         return _json_load(content)
-    except ewoks_json.EwoksDecodeError:
+    except common.EwoksDecodeError:
         pass
 
     try:
         return _yaml_load(content)
-    except ewoks_json.EwoksDecodeError:
+    except common.EwoksDecodeError:
         pass
 
     raise ValueError(f"File format of '{filename}' not supported")

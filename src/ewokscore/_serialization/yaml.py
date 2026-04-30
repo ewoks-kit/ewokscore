@@ -6,7 +6,7 @@ from typing import TextIO
 
 import yaml
 
-from . import ewoks_json
+from . import common
 
 
 def dumps(
@@ -15,7 +15,7 @@ def dumps(
     """
     Serialize Python object to YAML string.
     """
-    return yaml.dump(ewoks_json.pre_serialize(obj, special_keys=special_keys), **kwargs)
+    return yaml.dump(common.pre_serialize(obj, special_keys=special_keys), **kwargs)
 
 
 def loads(
@@ -25,11 +25,11 @@ def loads(
     Deserialize YAML string to Python object.
     """
     try:
-        return ewoks_json.post_deserialize(
+        return common.post_deserialize(
             yaml.load(s, yaml.Loader, **kwargs), special_keys=special_keys
         )
     except (yaml.YAMLError, TypeError) as e:
-        raise ewoks_json.EwoksDecodeError from e
+        raise common.EwoksDecodeError from e
 
 
 def dump(
@@ -41,7 +41,7 @@ def dump(
     """
     Write Python object to YAML file-like object.
     """
-    yaml.dump(ewoks_json.pre_serialize(obj, special_keys=special_keys), fp, **kwargs)
+    yaml.dump(common.pre_serialize(obj, special_keys=special_keys), fp, **kwargs)
 
 
 def load(
@@ -51,8 +51,8 @@ def load(
     Load Python object from YAML file-like object.
     """
     try:
-        return ewoks_json.post_deserialize(
+        return common.post_deserialize(
             yaml.load(fp, yaml.Loader, **kwargs), special_keys=special_keys
         )
     except (yaml.YAMLError, TypeError) as e:
-        raise ewoks_json.EwoksDecodeError from e
+        raise common.EwoksDecodeError from e
