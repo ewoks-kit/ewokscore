@@ -15,21 +15,8 @@ def dumps(
     """
     Serialize Python object to YAML string.
     """
-    return yaml.dump(common.pre_serialize(obj, special_keys=special_keys), **kwargs)
-
-
-def loads(
-    s: str, special_keys: Optional[Dict[str, Callable[[Any], str]]] = None, **kwargs
-) -> Any:
-    """
-    Deserialize YAML string to Python object.
-    """
-    try:
-        return common.post_deserialize(
-            yaml.load(s, yaml.Loader, **kwargs), special_keys=special_keys
-        )
-    except (yaml.YAMLError, TypeError) as e:
-        raise common.EwoksDecodeError from e
+    pre = common.pre_serialize(obj, special_keys=special_keys)
+    return yaml.dump(pre, stream=None, Dumper=yaml.Dumper, **kwargs)
 
 
 def dump(
@@ -41,7 +28,22 @@ def dump(
     """
     Write Python object to YAML file-like object.
     """
-    yaml.dump(common.pre_serialize(obj, special_keys=special_keys), fp, **kwargs)
+    pre = common.pre_serialize(obj, special_keys=special_keys)
+    yaml.dump(pre, stream=fp, Dumper=yaml.Dumper, **kwargs)
+
+
+def loads(
+    s: str, special_keys: Optional[Dict[str, Callable[[Any], str]]] = None, **kwargs
+) -> Any:
+    """
+    Deserialize YAML string to Python object.
+    """
+    try:
+        raw = yaml.load(s, yaml.Loader, **kwargs)
+    except (yaml.YAMLError, TypeError) as e:
+        raise common.EwoksDecodeError from e
+
+    return common.post_deserialize(raw, special_keys=special_keys)
 
 
 def load(
@@ -51,8 +53,8 @@ def load(
     Load Python object from YAML file-like object.
     """
     try:
-        return common.post_deserialize(
-            yaml.load(fp, yaml.Loader, **kwargs), special_keys=special_keys
-        )
+        raw = yaml.load(fp, yaml.Loader, **kwargs)
     except (yaml.YAMLError, TypeError) as e:
         raise common.EwoksDecodeError from e
+
+    return common.post_deserialize(raw, special_keys=special_keys)

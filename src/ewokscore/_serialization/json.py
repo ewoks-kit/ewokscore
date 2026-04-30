@@ -14,21 +14,8 @@ def dumps(
     """
     Serialize Python object to JSON string.
     """
-    return json.dumps(common.pre_serialize(obj, special_keys=special_keys), **kwargs)
-
-
-def loads(
-    s: str, special_keys: Optional[Dict[str, Callable[[Any], str]]] = None, **kwargs
-) -> Any:
-    """
-    Deserialize JSON string to Python object.
-    """
-    try:
-        return common.post_deserialize(
-            json.loads(s, **kwargs), special_keys=special_keys
-        )
-    except (json.JSONDecodeError, TypeError) as e:
-        raise common.EwoksDecodeError from e
+    pre = common.pre_serialize(obj, special_keys=special_keys)
+    return json.dumps(pre, **kwargs)
 
 
 def dump(
@@ -40,7 +27,22 @@ def dump(
     """
     Write Python object to JSON file-like object.
     """
-    json.dump(common.pre_serialize(obj, special_keys=special_keys), fp, **kwargs)
+    pre = common.pre_serialize(obj, special_keys=special_keys)
+    json.dump(pre, fp, **kwargs)
+
+
+def loads(
+    s: str, special_keys: Optional[Dict[str, Callable[[Any], str]]] = None, **kwargs
+) -> Any:
+    """
+    Deserialize JSON string to Python object.
+    """
+    try:
+        raw = json.loads(s, **kwargs)
+    except (json.JSONDecodeError, TypeError) as e:
+        raise common.EwoksDecodeError from e
+
+    return common.post_deserialize(raw, special_keys=special_keys)
 
 
 def load(
@@ -50,8 +52,8 @@ def load(
     Load Python object from JSON file-like object.
     """
     try:
-        return common.post_deserialize(
-            json.load(fp, **kwargs), special_keys=special_keys
-        )
+        raw = json.load(fp, **kwargs)
     except (json.JSONDecodeError, TypeError) as e:
         raise common.EwoksDecodeError from e
+
+    return common.post_deserialize(raw, special_keys=special_keys)
