@@ -9,7 +9,6 @@ import base64
 import pickle
 from typing import Any
 from typing import Callable
-from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Sequence
@@ -28,10 +27,19 @@ class EwoksDecodeError(ValueError):
     pass
 
 
+_PathPattern = Tuple[Union[str, int], ...]
+RuleType = Tuple[_PathPattern, Callable[[Any], Any]]
+
+
 def pre_serialize(
-    obj: Any, special_keys: Optional[Dict[str, Callable[[Any], Any]]] = None
+    obj: Any,
+    custom_rules: Optional[List[RuleType]] = None,
 ) -> Any:
-    special_keys = special_keys or {}
+    """
+    :param obj: object to serialize
+    :param custom_rules: dictionary keys with associated custom value serialization
+    """
+    custom_rules = custom_rules or []
     t = _Traversal(obj)
 
     while t.next():
@@ -67,8 +75,9 @@ def pre_serialize(
             t.assign(new_dict)
 
             for k, v in reversed(list(current.items())):
-                if k in special_keys:
-                    new_dict[k] = special_keys[k](v)
+                matched, new_val = _apply_special_rules(t.path, k, v, custom_rules)
+                if matched:
+                    new_dict[k] = new_val
                 else:
                     t.append_dict_key(new_dict, k, v)
             continue
@@ -123,9 +132,14 @@ def pre_serialize(
 
 
 def post_deserialize(
-    obj: Any, special_keys: Optional[Dict[str, Callable[[Any], Any]]] = None
+    obj: Any,
+    custom_rules: Optional[List[RuleType]] = None,
 ) -> Any:
-    special_keys = special_keys or {}
+    """
+    :param obj: object to serialize
+    :param custom_rules: dictionary keys with associated custom value deserialization
+    """
+    custom_rules = custom_rules or []
     t = _Traversal(obj)
 
     while t.next():
@@ -138,8 +152,9 @@ def post_deserialize(
                 t.assign(new_dict)
 
                 for k, v in reversed(list(current.items())):
-                    if k in special_keys:
-                        new_dict[k] = special_keys[k](v)
+                    matched, new_val = _apply_special_rules(t.path, k, v, custom_rules)
+                    if matched:
+                        new_dict[k] = new_val
                     else:
                         t.append_dict_key(new_dict, k, v)
                 continue
@@ -198,6 +213,7 @@ _EWOKS_KEY = "__ewoks__"
 
 _ParentType = Union[None, list, dict]
 _KeyType = Union[None, int, str]
+_Path = Tuple[Union[str, int], ...]
 
 
 class _MutableContainer:
@@ -211,11 +227,14 @@ class _MutableContainer:
 
 class _Traversal:
     def __init__(self, root: Any):
-        self._stack: List[Tuple[_ParentType, _KeyType, Any]] = [(None, None, root)]
+        self._stack: List[Tuple[_ParentType, _KeyType, Any, _Path]] = [
+            (None, None, root, ())
+        ]
         self._result = None
         self._parent: _ParentType = None
         self._key: _KeyType = None
         self._current = None
+        self._path: _Path = ()
 
     @property
     def result(self) -> Any:
@@ -233,10 +252,14 @@ class _Traversal:
     def current(self) -> Any:
         return self._current
 
+    @property
+    def path(self) -> _Path:
+        return self._path
+
     def next(self) -> bool:
         if not self._stack:
             return False
-        self._parent, self._key, self._current = self._stack.pop()
+        self._parent, self._key, self._current, self._path = self._stack.pop()
         return True
 
     def assign(self, value: Any) -> None:
@@ -246,11 +269,11 @@ class _Traversal:
             self._parent[self._key] = value
 
     def append_dict_key(self, parent: _ParentType, key: _KeyType, value: Any) -> None:
-        self._stack.append((parent, key, value))
+        self._stack.append((parent, key, value, self._path + (key,)))
 
     def append_sequence_items(self, parent: Any, items: Sequence) -> None:
         for key in reversed(range(len(items))):
-            self._stack.append((parent, key, items[key]))
+            self._stack.append((parent, key, items[key], self._path + (key,)))
 
 
 def _convert_if_equal(value: Any, new_type: Type) -> Optional[Any]:
@@ -260,3 +283,27 @@ def _convert_if_equal(value: Any, new_type: Type) -> Optional[Any]:
             return new_value
     except Exception:
         pass
+
+
+def _match_path(path: _Path, pattern: _PathPattern) -> bool:
+    if len(path) != len(pattern):
+        return False
+    for p, pat in zip(path, pattern):
+        if pat == "*":
+            continue
+        if p != pat:
+            return False
+    return True
+
+
+def _apply_special_rules(
+    path: _Path,
+    key: Union[str, int],
+    value: Any,
+    rules: List[RuleType],
+) -> Tuple[bool, Any]:
+    full_path = path + (key,)
+    for pattern, func in rules:
+        if _match_path(full_path, pattern):
+            return True, func(value)
+    return False, None
