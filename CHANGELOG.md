@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Error was logged at INFO level in app logs and ewoks events. Now error is logged at the error level.
 
+### Changed
+
+- Graphs which are python package-data files are ensured to have the python full qualifier name as graph id.
+
 ## [5.0.0rc1] - 2026-04-13
 
 ### Added

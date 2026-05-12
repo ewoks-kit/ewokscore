@@ -179,27 +179,27 @@ def _read_json_file(
     root_dir: Optional[Union[str, Path]] = None,
     root_module: Optional[str] = None,
 ) -> dict:
-    filename = _find_graph_path(
+    filename, graph_id = _find_graph_path(
         filename,
         root_dir=root_dir,
         root_module=root_module,
         possible_extensions=(".json",),
     )
     with open(filename, mode="r") as f:
-        return _json_load(f)
+        return _overwrite_graph_id(_json_load(f), graph_id)
 
 
 def _read_yaml_file(
     filename: str, root_dir: Optional[str] = None, root_module: Optional[str] = None
 ) -> dict:
-    filename = _find_graph_path(
+    filename, graph_id = _find_graph_path(
         filename,
         root_dir=root_dir,
         root_module=root_module,
         possible_extensions=(".yml", ".yaml"),
     )
     with open(filename, mode="r") as f:
-        return _yaml_load(f)
+        return _overwrite_graph_id(_yaml_load(f), graph_id)
 
 
 def _read_any_file(
@@ -207,7 +207,7 @@ def _read_any_file(
     root_dir: Optional[Union[str, Path]] = None,
     root_module: Optional[str] = None,
 ) -> Optional[dict]:
-    filename = _find_graph_path(
+    filename, graph_id = _find_graph_path(
         filename,
         root_dir=root_dir,
         root_module=root_module,
@@ -217,12 +217,12 @@ def _read_any_file(
         content = f.read()
 
     try:
-        return _json_load(content)
+        return _overwrite_graph_id(_json_load(content), graph_id)
     except common.EwoksDecodeError:
         pass
 
     try:
-        return _yaml_load(content)
+        return _overwrite_graph_id(_yaml_load(content), graph_id)
     except common.EwoksDecodeError:
         pass
 
@@ -254,7 +254,7 @@ def _find_graph_path(
     root_dir: Optional[Union[str, Path]] = None,
     root_module: Optional[str] = None,
     possible_extensions: Tuple[str, ...] = tuple(),
-) -> str:
+) -> Tuple[str, Optional[str]]:
     """When the :code:`path` is relative, the parent directory is assumed to be
     (in order of priority):
 
@@ -269,26 +269,49 @@ def _find_graph_path(
     :param root_dir: in case :code:`path` is relative
     :param root_module: in case :code:`root_module` is not provided
     :param possible_extensions: in case :code:`path` is not found
+    :returns: file path and graph identifier
     :raises: FileNotFoundError
     """
-    # Absolute path
+    # From python module
     if not root_dir and root_module:
         root_dir = _package_path(root_module)
+    else:
+        root_module = None
+
+    # Absolute path
     if not os.path.isabs(path) and root_dir:
         path = os.path.join(root_dir, path)
     path = os.path.abspath(path)
 
     if os.path.exists(path):
-        return path
+        graph_id = _graph_id_from_package_data_path(root_module, path)
+        return path, graph_id
 
     # Try different extensions
     root, _ = os.path.splitext(path)
     for new_ext in possible_extensions:
         new_full_path = root + new_ext
         if os.path.exists(new_full_path):
-            return new_full_path
+            graph_id = _graph_id_from_package_data_path(root_module, new_full_path)
+            return new_full_path, graph_id
 
     raise FileNotFoundError(path)
+
+
+def _graph_id_from_package_data_path(
+    root_module: Optional[str], path: str
+) -> Optional[str]:
+    if root_module is None:
+        return None
+    stem = os.path.splitext(os.path.basename(path))[0]
+    return f"{root_module}.{stem}"
+
+
+def _overwrite_graph_id(graph_dict: dict, graph_id: Optional[str]) -> dict:
+    if graph_id is None:
+        return graph_dict
+    graph_dict.setdefault("graph", {})["id"] = graph_id
+    return graph_dict
 
 
 def _package_path(package: str) -> str:
