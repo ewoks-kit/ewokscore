@@ -26,18 +26,19 @@ To discover all tasks provided by all installed python packages
 For this to work the package that provides ewoks tasks should declare its task modules
 via the entry point mechanism.
 
-.. code-block:: ini
+.. code-block:: toml
 
-    # setup.cfg
+    # pyproject.toml
 
-    [options.entry_points]
-    ewoks.tasks.class =
-        myproject.module1.submoduleA=myproject1
-        myproject.*.tasks=myproject2
-    ewoks.tasks.method =
-        myproject.module3.submodule=myproject3
-    ewoks.tasks.ppfmethod =
-        myproject.actors.*=myproject4
+    [project.entry-points."ewoks.tasks.class"]
+    "myproject.module1.submoduleA" = "myproject1"
+    "myproject.*.tasks" = "myproject2"
+
+    [project.entry-points."ewoks.tasks.method"]
+    "myproject.module3.submodule" = "myproject3"
+
+    [project.entry-points."ewoks.tasks.ppfmethod"]
+    "myproject.actors.*" = "myproject4"
 
 The group names can be `"ewoks.tasks.class"`, `"ewoks.tasks.method"` or `"ewoks.tasks.ppfmethod"`.
 The key are the modules in which to discover tasks. The values are ignored but need to be globally
@@ -46,12 +47,10 @@ unique because of the way entry points work. Module names can contain wildcards 
 A project that provides ewoks tasks can also add the `"ewoks"` keyword to be discoverable in
 a package repository like PyPi:
 
-.. code-block:: ini
+.. code-block:: toml
 
-    # setup.cfg
+    # pyproject.toml
 
-    [metadata]
-    name = myproject
-    ...
-    keywords =
-        ewoks
+    [project]
+    name = "myproject"
+    keywords = ["ewoks"]

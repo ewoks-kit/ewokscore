@@ -192,7 +192,6 @@ def _iter_discover_all_tasks(
     task_type: Optional[str] = None,
     raise_import_failure: bool = False,
 ) -> Generator[TaskDict, None, None]:
-    visited = set()
     if task_type is None:
         task_types = ("class", "ppfmethod", "method")
     else:
@@ -200,9 +199,10 @@ def _iter_discover_all_tasks(
 
     for task_type in task_types:
         group = "ewoks.tasks." + task_type
+        visited = set()
         for entrypoint in entry_points(group):
             module_pattern = entrypoint.name
-            if module_pattern is visited:
+            if module_pattern in visited:
                 continue
             visited.add(module_pattern)
             yield from discover_tasks_from_modules(
@@ -228,11 +228,14 @@ def discover_all_tasks(
 
 
 def _iter_modules_from_pattern(
-    module_pattern: str, reload: bool = False, raise_import_failure: bool = False
+    module_name_or_pattern: str,
+    reload: bool = False,
+    raise_import_failure: bool = False,
 ) -> Generator[str, None, None]:
-    if "*" not in module_pattern:
-        yield module_pattern
+    if "*" not in module_name_or_pattern:
+        yield module_name_or_pattern
         return
+    module_pattern = module_name_or_pattern
     ndots = module_pattern.count(".")
     parts = module_pattern.split(".")
     pkg = _safe_import_module(
