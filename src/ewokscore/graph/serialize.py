@@ -267,7 +267,7 @@ def _find_graph_path(
 
     :param path: could be a relative path, might have no extension
     :param root_dir: in case :code:`path` is relative
-    :param root_module: in case :code:`root_module` is not provided
+    :param root_module: in case :code:`root_dir` is not provided
     :param possible_extensions: in case :code:`path` is not found
     :returns: file path and graph identifier
     :raises: FileNotFoundError
