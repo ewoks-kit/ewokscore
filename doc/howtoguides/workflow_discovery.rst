@@ -66,8 +66,8 @@ via the entry point mechanism.
 
 The group name must be `"ewoks.workflows"`.
 
-The keys are the module patterns in which to discover workflows. The values are ignored but need
-to be globally unique because of the way entry points work.
+The keys are the module patterns in which to discover workflows. The values are ignored but typically the project
+name is used so the entry point can be loaded like any python entry point even though it is not used this way.
 
 The workflow discovery mechanism searches for workflow resource files inside python packages.
 For example, the entry point

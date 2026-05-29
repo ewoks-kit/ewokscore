@@ -41,8 +41,24 @@ via the entry point mechanism.
     "myproject.actors.*" = "myproject4"
 
 The group names can be `"ewoks.tasks.class"`, `"ewoks.tasks.method"` or `"ewoks.tasks.ppfmethod"`.
-The key are the modules in which to discover tasks. The values are ignored but need to be globally
-unique because of the way entry points work. Module names can contain wildcards `"*"`.
+
+The keys are the module patterns in which to discover tasks. The values are ignored but typically the project
+name is used so the entry point can be loaded like any python entry point even though it is not used this way.
+
+The task discovery mechanism searches for tasks inside python packages and modules.
+For example, the entry point
+
+.. code-block:: toml
+
+    [project.entry-points."ewoks.tasks.class"]
+    "myproject.tasks.*" = "myproject1"
+
+can discover task classes such as
+
+.. code-block:: text
+
+    myproject/tasks/demo.py  # MyDemoTask1, MyDemoTask2
+    myproject/tasks/example.py  # MyTask1, MyTask2
 
 A project that provides ewoks tasks can also add the `"ewoks"` keyword to be discoverable in
 a package repository like PyPi:
