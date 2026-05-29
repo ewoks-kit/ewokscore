@@ -1,13 +1,20 @@
 Task discovery
 ==============
 
+How to discover tasks
+---------------------
+
 All ewoks tasks provided by one or more python modules can be discovered as follows
 
 .. code-block:: python
 
     from ewokscore.task_discovery import discover_tasks_from_modules
 
-    tasks = discover_tasks_from_modules("myproject.module1", "myproject.module2", task_type="class")
+    tasks = discover_tasks_from_modules(
+        "myproject.module1",
+        "myproject.module2",
+        task_type="class",
+    )
 
 The `task_type` can have one of these values
 
@@ -23,8 +30,33 @@ To discover all tasks provided by all installed python packages
 
     tasks = discover_all_tasks(task_type="class")
 
-For this to work the package that provides ewoks tasks should declare its task modules
-via the entry point mechanism.
+The task discovery mechanism searches for tasks inside python packages and
+modules.
+
+For example
+
+.. code-block:: python
+
+    tasks = discover_tasks_from_modules(
+        "myproject.tasks.*"
+    )
+
+could discover task classes such as
+
+.. code-block:: text
+
+    myproject/tasks/demo.py      # MyDemoTask1, MyDemoTask2
+    myproject/tasks/example.py   # MyTask1, MyTask2
+
+The wildcard `"*"` matches exactly one package or module name component.
+
+
+How to declare tasks to be discovered
+-------------------------------------
+
+For automatic discovery to work across installed packages, a package that
+provides ewoks tasks should declare its task modules via the entry point
+mechanism.
 
 .. code-block:: toml
 
@@ -40,12 +72,18 @@ via the entry point mechanism.
     [project.entry-points."ewoks.tasks.ppfmethod"]
     "myproject.actors.*" = "myproject4"
 
-The group names can be `"ewoks.tasks.class"`, `"ewoks.tasks.method"` or `"ewoks.tasks.ppfmethod"`.
+The group names can be
 
-The keys are the module patterns in which to discover tasks. The values are ignored but typically the project
-name is used so the entry point can be loaded like any python entry point even though it is not used this way.
+* `"ewoks.tasks.class"`
+* `"ewoks.tasks.method"`
+* `"ewoks.tasks.ppfmethod"`
 
-The task discovery mechanism searches for tasks inside python packages and modules.
+The keys are the module patterns in which to discover tasks.
+
+The values are ignored but typically the project name is used so the entry
+point can be loaded like any python entry point even though it is not used
+this way.
+
 For example, the entry point
 
 .. code-block:: toml
@@ -53,15 +91,15 @@ For example, the entry point
     [project.entry-points."ewoks.tasks.class"]
     "myproject.tasks.*" = "myproject1"
 
-can discover task classes such as
+can declare task classes such as
 
 .. code-block:: text
 
-    myproject/tasks/demo.py  # MyDemoTask1, MyDemoTask2
-    myproject/tasks/example.py  # MyTask1, MyTask2
+    myproject/tasks/demo.py      # MyDemoTask1, MyDemoTask2
+    myproject/tasks/example.py   # MyTask1, MyTask2
 
-A project that provides ewoks tasks can also add the `"ewoks"` keyword to be discoverable in
-a package repository like PyPi:
+A project that provides ewoks tasks can also add the `"ewoks"` keyword to be
+discoverable in a package repository like PyPI:
 
 .. code-block:: toml
 

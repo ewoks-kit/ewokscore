@@ -1,7 +1,11 @@
 Workflow discovery
 ==================
 
-All ewoks workflows provided by one or more python modules can be discovered as follows
+How to discover workflows
+-------------------------
+
+All ewoks workflows provided by one or more python modules can be discovered
+as follows
 
 .. code-block:: python
 
@@ -53,8 +57,16 @@ To discover all workflows provided by all installed python packages
 
     workflows = discover_all_workflows(workflow_extension="yaml")
 
-For this to work the package that provides ewoks workflows should declare its workflow modules
-via the entry point mechanism.
+The workflow discovery mechanism searches for workflow resource files inside
+python packages.
+
+
+How to declare workflows to be discovered
+-----------------------------------------
+
+For automatic discovery to work across installed packages, a package that
+provides ewoks workflows should declare its workflow modules via the entry
+point mechanism.
 
 .. code-block:: toml
 
@@ -66,10 +78,12 @@ via the entry point mechanism.
 
 The group name must be `"ewoks.workflows"`.
 
-The keys are the module patterns in which to discover workflows. The values are ignored but typically the project
-name is used so the entry point can be loaded like any python entry point even though it is not used this way.
+The keys are the module patterns in which to discover workflows.
 
-The workflow discovery mechanism searches for workflow resource files inside python packages.
+The values are ignored but typically the project name is used so the entry
+point can be loaded like any python entry point even though it is not used
+this way.
+
 For example, the entry point
 
 .. code-block:: toml
@@ -77,15 +91,15 @@ For example, the entry point
     [project.entry-points."ewoks.workflows"]
     "myproject.workflows.*" = "myproject1"
 
-can discover workflow resources such as
+can declare workflow resources such as
 
 .. code-block:: text
 
     myproject/workflows/example.json
     myproject/workflows/demo.yaml
 
-A project that provides ewoks workflows can also add the `"ewoks"` keyword to be discoverable in
-a package repository like PyPI:
+A project that provides ewoks workflows can also add the `"ewoks"` keyword to
+be discoverable in a package repository like PyPI:
 
 .. code-block:: toml
 
