@@ -1,6 +1,5 @@
 from typing import Any
-from typing import Callable
-from typing import Dict
+from typing import List
 from typing import Optional
 from typing import TextIO
 
@@ -10,30 +9,30 @@ from . import common
 
 
 def dumps(
-    obj: Any, special_keys: Optional[Dict[str, Callable[[Any], str]]] = None, **kwargs
+    obj: Any, custom_rules: Optional[List[common.RuleType]] = None, **kwargs
 ) -> str:
     """
     Serialize Python object to YAML string.
     """
-    pre = common.pre_serialize(obj, special_keys=special_keys)
+    pre = common.pre_serialize(obj, custom_rules=custom_rules)
     return yaml.dump(pre, stream=None, Dumper=yaml.Dumper, **kwargs)
 
 
 def dump(
     obj: Any,
     fp: TextIO,
-    special_keys: Optional[Dict[str, Callable[[Any], str]]] = None,
+    custom_rules: Optional[List[common.RuleType]] = None,
     **kwargs,
 ) -> None:
     """
     Write Python object to YAML file-like object.
     """
-    pre = common.pre_serialize(obj, special_keys=special_keys)
+    pre = common.pre_serialize(obj, custom_rules=custom_rules)
     yaml.dump(pre, stream=fp, Dumper=yaml.Dumper, **kwargs)
 
 
 def loads(
-    s: str, special_keys: Optional[Dict[str, Callable[[Any], str]]] = None, **kwargs
+    s: str, custom_rules: Optional[List[common.RuleType]] = None, **kwargs
 ) -> Any:
     """
     Deserialize YAML string to Python object.
@@ -43,11 +42,11 @@ def loads(
     except (yaml.YAMLError, TypeError) as e:
         raise common.EwoksDecodeError from e
 
-    return common.post_deserialize(raw, special_keys=special_keys)
+    return common.post_deserialize(raw, custom_rules=custom_rules)
 
 
 def load(
-    fp: TextIO, special_keys: Optional[Dict[str, Callable[[Any], str]]] = None, **kwargs
+    fp: TextIO, custom_rules: Optional[List[common.RuleType]] = None, **kwargs
 ) -> Any:
     """
     Load Python object from YAML file-like object.
@@ -57,4 +56,4 @@ def load(
     except (yaml.YAMLError, TypeError) as e:
         raise common.EwoksDecodeError from e
 
-    return common.post_deserialize(raw, special_keys=special_keys)
+    return common.post_deserialize(raw, custom_rules=custom_rules)

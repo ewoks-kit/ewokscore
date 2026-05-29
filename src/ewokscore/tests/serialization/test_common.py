@@ -1,4 +1,6 @@
-import numpy as numpy
+from copy import deepcopy
+
+import numpy
 import pytest
 
 from ..._serialization import common
@@ -65,7 +67,7 @@ def test_dict():
 
 def test_nested():
     obj = {"a": [1, {"b": (2, 3)}]}
-    assert _roundtrip(obj) == {"a": [1, {"b": (2, 3)}]}
+    assert _roundtrip(obj) == obj
 
 
 def test_tuple():
@@ -104,24 +106,29 @@ def test_pickle_fallback():
     assert result == obj
 
 
-def test_special_keys_encode():
-    obj = {"x": 1}
+def test_special_rules():
+    obj = {"links": [{"source": 1}, {"other": 2}]}
 
     def encode(v):
         return f"encoded:{v}"
 
-    result = common.pre_serialize(obj, special_keys={"x": encode})
-    assert result["x"] == "encoded:1"
-
-
-def test_special_keys_decode():
-    obj = {"x": "encoded:1"}
-
     def decode(v):
         return int(v.split(":")[1])
 
-    result = common.post_deserialize(obj, special_keys={"x": decode})
-    assert result["x"] == 1
+    encode_rules = [
+        (("links", "*", "source"), encode),
+    ]
+
+    decode_rules = [
+        (("links", "*", "source"), decode),
+    ]
+
+    result = common.pre_serialize(obj, custom_rules=encode_rules)
+    assert result["links"][0] == {"source": "encoded:1"}
+    assert result["links"][1] == {"other": 2}
+
+    obj2 = common.post_deserialize(result, custom_rules=decode_rules)
+    assert obj == obj2
 
 
 def test_reserved_key_error():
@@ -136,7 +143,7 @@ def test_unknown_tag():
         common.post_deserialize(obj)
 
 
-def test_deep_nesting():
+def test_no_max_recursion_exeception():
     depth = 10000
     obj = current = {}
     for _ in range(depth):
@@ -144,7 +151,7 @@ def test_deep_nesting():
         current["x"] = new
         current = new
 
-    result = _roundtrip(obj)
+    result = _unsaferoundtrip(obj)
     assert isinstance(result, dict)
 
 
@@ -155,14 +162,12 @@ def test_complex_structure():
         "c": b"bytes",
         "d": {"nested": numpy.int64(7)},
     }
-
-    result = _roundtrip(obj)
-
-    assert result["a"][2] == (3, 4)
-    assert result["b"] == {5, 6}
-    assert result["c"] == b"bytes"
-    assert result["d"]["nested"] == 7
+    assert _roundtrip(obj) == obj
 
 
 def _roundtrip(obj):
+    return common.post_deserialize(common.pre_serialize(deepcopy(obj)))
+
+
+def _unsaferoundtrip(obj):
     return common.post_deserialize(common.pre_serialize(obj))

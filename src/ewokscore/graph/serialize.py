@@ -5,8 +5,7 @@ import os
 from collections.abc import Mapping
 from functools import lru_cache
 from pathlib import Path
-from typing import Callable
-from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
@@ -64,14 +63,14 @@ def dump(
                 dictrepr,
                 f,
                 **save_options,
-                special_keys=_get_special_graph_key_serializers(),
+                custom_rules=_get_custom_serialization_rules(),
             )
         return destination
 
     if representation == GraphRepresentation.json_string:
         dictrepr = dump(graph)
         return json.dumps(
-            dictrepr, **save_options, special_keys=_get_special_graph_key_serializers()
+            dictrepr, **save_options, custom_rules=_get_custom_serialization_rules()
         )
 
     if representation == GraphRepresentation.yaml:
@@ -84,7 +83,7 @@ def dump(
                 dictrepr,
                 f,
                 **save_options,
-                special_keys=_get_special_graph_key_serializers(),
+                custom_rules=_get_custom_serialization_rules(),
             )
         return destination
 
@@ -140,7 +139,7 @@ def load(
         graph = source.graph
     elif representation == GraphRepresentation.json_dict:
         graph_dict = common.post_deserialize(
-            source, special_keys=_get_special_graph_key_deserializers()
+            source, custom_rules=_get_custom_deserialization_rules()
         )
         graph = _dict_to_networkx(graph_dict)
     elif representation == GraphRepresentation.json:
@@ -232,11 +231,9 @@ def _read_any_file(
 
 def _json_load(content) -> dict:
     if isinstance(content, str):
-        result = json.loads(
-            content, special_keys=_get_special_graph_key_deserializers()
-        )
+        result = json.loads(content, custom_rules=_get_custom_deserialization_rules())
     else:
-        result = json.load(content, special_keys=_get_special_graph_key_deserializers())
+        result = json.load(content, custom_rules=_get_custom_deserialization_rules())
     if not isinstance(result, Mapping):
         raise TypeError("graph must be a dictionary")
     return result
@@ -244,11 +241,9 @@ def _json_load(content) -> dict:
 
 def _yaml_load(content) -> dict:
     if isinstance(content, str):
-        result = yaml.loads(
-            content, special_keys=_get_special_graph_key_deserializers()
-        )
+        result = yaml.loads(content, custom_rules=_get_custom_deserialization_rules())
     else:
-        result = yaml.load(content, special_keys=_get_special_graph_key_deserializers())
+        result = yaml.load(content, custom_rules=_get_custom_deserialization_rules())
     if not isinstance(result, Mapping):
         raise TypeError("graph must be a dictionary")
     return result
@@ -330,26 +325,35 @@ def _networkx_to_dict(graph: networkx.DiGraph) -> dict:
     return graph_dict
 
 
-_NODE_ID_KEYS = (
-    "source",
-    "target",
-    "sub_source",
-    "sub_target",
-    "id",
-    "node",
-    "sub_node",
-)
+@lru_cache
+def _get_custom_serialization_rules() -> List[common.RuleType]:
+    return [
+        (("nodes", "*", "id"), node.as_json_node_id_type),
+        (("nodes", "*", "node"), node.as_json_node_id_type),
+        (("nodes", "*", "sub_node"), node.as_json_node_id_type),
+        (("links", "*", "source"), node.as_json_node_id_type),
+        (("links", "*", "target"), node.as_json_node_id_type),
+        (("links", "*", "sub_source"), node.as_json_node_id_type),
+        (("links", "*", "sub_target"), node.as_json_node_id_type),
+        (("subgraphs", "*", "id"), node.as_json_node_id_type),
+        (("subgraphs", "*", "nodes", "*", "id"), node.as_json_node_id_type),
+        (("subgraphs", "*", "links", "*", "source"), node.as_json_node_id_type),
+        (("subgraphs", "*", "links", "*", "target"), node.as_json_node_id_type),
+    ]
 
 
 @lru_cache
-def _get_special_graph_key_serializers() -> Dict[
-    str, Callable[[node.NodeIdType], node.JsonNodeIdType]
-]:
-    return {k: node.as_json_node_id_type for k in _NODE_ID_KEYS}
-
-
-@lru_cache
-def _get_special_graph_key_deserializers() -> Dict[
-    str, Callable[[node.JsonNodeIdType], node.NodeIdType]
-]:
-    return {k: node.as_node_id_type for k in _NODE_ID_KEYS}
+def _get_custom_deserialization_rules() -> List[common.RuleType]:
+    return [
+        (("nodes", "*", "id"), node.as_node_id_type),
+        (("nodes", "*", "node"), node.as_node_id_type),
+        (("nodes", "*", "sub_node"), node.as_node_id_type),
+        (("links", "*", "source"), node.as_node_id_type),
+        (("links", "*", "target"), node.as_node_id_type),
+        (("links", "*", "sub_source"), node.as_node_id_type),
+        (("links", "*", "sub_target"), node.as_node_id_type),
+        (("subgraphs", "*", "id"), node.as_node_id_type),
+        (("subgraphs", "*", "nodes", "*", "id"), node.as_node_id_type),
+        (("subgraphs", "*", "links", "*", "source"), node.as_node_id_type),
+        (("subgraphs", "*", "links", "*", "target"), node.as_node_id_type),
+    ]
