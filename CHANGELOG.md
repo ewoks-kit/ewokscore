@@ -14,7 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support for Graph serialization and transparent handling of `Numpy arrays` in both JSON and 
-YAML via pickling.
+  YAML via pickling.
+- Add workflow discovery from python package data files in analogy to task discovery.
+  Full qualifier names or patterns can be added to the entry point group `"ewoks.workflows"`
+  of any python project.
 
 ## [5.0.0rc1] - 2026-04-13
 

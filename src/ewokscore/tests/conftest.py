@@ -235,6 +235,18 @@ def expected_tasks(module=None, task_type=None):
     ]
 
 
+def expected_workflows(module=None, workflow_extension=None):
+    if module == "ewokscore.tests.examples.loadtest" and workflow_extension in (
+        "json",
+        None,
+    ):
+        return [
+            "ewokscore.tests.examples.loadtest.graph",
+            "ewokscore.tests.examples.loadtest.subgraph",
+        ]
+    return []
+
+
 @pytest.fixture()
 def engine():
     return CoreWorkflowEngine()
