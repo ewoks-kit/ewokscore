@@ -148,6 +148,27 @@ def test_task_required_positional_inputs():
         MyTask()
 
 
+def test_init_subclass_rejects_typos_with_suggestions():
+    with pytest.raises(TypeError) as exc_info:
+
+        class Bad(Task, input=["reason"], output_name=["result", "reason"]):
+            pass
+
+    # checks exception for input_names is caught
+    assert "input_names" in str(exc_info.value)
+    assert "input" in str(exc_info.value)
+
+    # checks exception for output_names is caught
+    assert "output_names" in str(exc_info.value)
+    assert "output_name" in str(exc_info.value)
+
+
+def test_init_subclass_accepts_valid_params():
+    # Should not raise an error
+    class Good(Task, input_names=["reason"], output_names=["result", "reason"]):
+        pass
+
+
 def test_task_cleanup_references():
     class MyTask(Task, input_names=["mylist"], output_names=["mylist"]):
         def run(self):
