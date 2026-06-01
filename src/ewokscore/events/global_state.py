@@ -33,10 +33,13 @@ def send(
     with _ewoks_event_logger(
         handlers=handlers, asynchronous=asynchronous, cleanup_on_different_handlers=True
     ) as logger:
+        extra = kw.get("extra", {})
+        level = logging.ERROR if extra.get("error", False) else logging.INFO
+
         # Send to the EWOKS event handlers
-        logger.info(*args, **kw)
+        logger.log(level, *args, **kw)
         # Send to the application log handlers
-        _app_logger.info(*args, **kw)
+        _app_logger.log(level, *args, **kw)
 
 
 def add_handler(
