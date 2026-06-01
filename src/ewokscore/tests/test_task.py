@@ -1,5 +1,6 @@
 import gc
 import json
+import warnings
 from glob import glob
 from pathlib import Path
 
@@ -41,6 +42,12 @@ def test_no_public_reserved_names():
 def test_task_missing_input():
     with pytest.raises(TaskInputError):
         SumTask()
+
+
+def test_task_unexpected_input_warning():
+    with pytest.warns(UserWarning, match=r"Unexpected inputs for task SumTask"):
+        task = SumTask(inputs={"a": 10, "unknown": 1})
+    assert "unknown" in task.input_variables
 
 
 def test_task_readonly_input():
@@ -146,6 +153,15 @@ def test_task_required_positional_inputs():
 
     with pytest.raises(TaskInputError):
         MyTask()
+
+
+def test_task_unexpected_input_warning_ignores_positional_inputs():
+    class MyTask(Task, n_required_positional_inputs=1):
+        pass
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        MyTask(inputs={0: "value"})
 
 
 def test_task_cleanup_references():

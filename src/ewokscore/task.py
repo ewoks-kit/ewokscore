@@ -3,6 +3,7 @@ import os
 import random
 import re
 import time
+import warnings
 from contextlib import ExitStack
 from contextlib import contextmanager
 from typing import Any
@@ -134,6 +135,22 @@ class Task(Registered, UniversalHashable, register=False):
                 self._raise_task_input_error(
                     "Missing inputs", f"positional argument #{i}"
                 )
+
+        # Check unexpected named inputs
+        extra_inputs = input_names - self.input_names()
+
+        # if input is positional argument
+        unexpected_named_inputs = {
+            name for name in extra_inputs if not isinstance(name, int)
+        }
+
+        if unexpected_named_inputs:
+            warnings.warn(
+                f"Unexpected inputs for task {type(self).__name__}: "
+                f"{sorted(unexpected_named_inputs)}",
+                UserWarning,
+                stacklevel=2,
+            )
 
         # Init missing optional inputs
         missing_optional = self.optional_input_names() - input_names
