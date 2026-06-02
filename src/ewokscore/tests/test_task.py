@@ -1,5 +1,6 @@
 import gc
 import json
+import re
 from glob import glob
 from pathlib import Path
 
@@ -148,19 +149,46 @@ def test_task_required_positional_inputs():
         MyTask()
 
 
-def test_init_subclass_rejects_typos_with_suggestions():
-    with pytest.raises(TypeError) as exc_info:
+def test_init_subclass_rejects_input_name_typo():
+    # test that the wrong name appears in the error statement
+    with pytest.raises(TypeError, match=re.escape("input")):
 
-        class Bad(Task, input=["reason"], output_name=["result", "reason"]):
+        class Bad1(Task, input=["reason"]):
             pass
 
-    # checks exception for input_names is caught
-    assert "input_names" in str(exc_info.value)
-    assert "input" in str(exc_info.value)
+    # test that the correct name appears somewhere in the error statement
+    with pytest.raises(TypeError, match=re.escape("input_names")):
 
-    # checks exception for output_names is caught
-    assert "output_names" in str(exc_info.value)
-    assert "output_name" in str(exc_info.value)
+        class Bad2(Task, input=["reason"]):
+            pass
+
+
+def test_init_subclass_rejects_optional_input_names_typo():
+    # test that the wrong name appears in the error statement
+    with pytest.raises(TypeError, match=re.escape("optinal_input_names")):
+
+        class Bad1(Task, optinal_input_names=["reason"]):
+            pass
+
+    # test that the correct name appears somewhere in the error statement
+    with pytest.raises(TypeError, match=re.escape("optinal_input_names")):
+
+        class Bad2(Task, optinal_input_names=["reason"]):
+            pass
+
+
+def test_init_subclass_rejects_output_name_typo():
+    # test that the wrong name appears in the error statement
+    with pytest.raises(TypeError, match="output_name"):
+
+        class Bad1(Task, output_name=["reason"]):
+            pass
+
+    # test that the correct name appears in the error statement
+    with pytest.raises(TypeError, match="output_names"):
+
+        class Bad2(Task, output_name=["reason"]):
+            pass
 
 
 def test_init_subclass_accepts_valid_params():
