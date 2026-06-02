@@ -23,6 +23,9 @@ class NotebookExecutorTask(
 ):
     NOTEBOOK_ARGUMENT = NOTEBOOK_ARGUMENT
 
+    def __init__(self, *args, ignore_missing_inputs: bool = True, **kwargs):
+        super().__init__(*args, ignore_missing_inputs=ignore_missing_inputs, **kwargs)
+
     def run(self):
         if execute_notebook is None:
             raise ImportError("requires papermill")

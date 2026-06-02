@@ -22,6 +22,9 @@ class PpfMethodExecutorTask(
     METHOD_ARGUMENT = METHOD_ARGUMENT
     PPF_DICT_ARGUMENT = PPF_DICT_ARGUMENT
 
+    def __init__(self, *args, ignore_missing_inputs: bool = True, **kwargs):
+        super().__init__(*args, ignore_missing_inputs=ignore_missing_inputs, **kwargs)
+
     def _get_task_identifier(self, inputs: Mapping) -> str:
         return inputs.get(self.METHOD_ARGUMENT, self.class_registry_name())
 

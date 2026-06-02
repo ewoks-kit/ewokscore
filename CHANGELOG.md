@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add workflow discovery from python package data files in analogy to task discovery.
   Full qualifier names or patterns can be added to the entry point group `"ewoks.workflows"`
   of any python project.
+- Unsused provided inputs throw a warning message for class type Tasks
 
 ## [5.0.0rc1] - 2026-04-13
 

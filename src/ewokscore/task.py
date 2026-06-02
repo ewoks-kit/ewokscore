@@ -63,6 +63,7 @@ class Task(Registered, UniversalHashable, register=False):
         node_attrs: Optional[dict] = None,
         execinfo: Optional[dict] = None,
         profile_directory: Optional[dict] = None,
+        ignore_missing_inputs: bool = False,
     ):
         """The named arguments are inputs and Variable configuration"""
         if inputs is None:
@@ -91,6 +92,7 @@ class Task(Registered, UniversalHashable, register=False):
         self.__succeeded = None
         self._cancelled = False
         self._profile_directory = profile_directory or dict()
+        self.ignore_missing_inputs = ignore_missing_inputs
 
         # The output hash will update dynamically if any of the input
         # variables change
@@ -144,7 +146,7 @@ class Task(Registered, UniversalHashable, register=False):
             name for name in extra_inputs if not isinstance(name, int)
         }
 
-        if unexpected_named_inputs:
+        if not self.ignore_missing_inputs and unexpected_named_inputs:
             warnings.warn(
                 f"Unexpected inputs for task {type(self).__name__}: "
                 f"{sorted(unexpected_named_inputs)}",
