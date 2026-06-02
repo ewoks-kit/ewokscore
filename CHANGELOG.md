@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Full qualifier names or patterns can be added to the entry point group `"ewoks.workflows"`
   of any python project.
 
+### Fixed
+
+- Error was logged at INFO level in app logs and ewoks events. Now error is logged at the error level.
+
 ## [5.0.0rc1] - 2026-04-13
 
 ### Added
