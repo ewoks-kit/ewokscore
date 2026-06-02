@@ -1,5 +1,6 @@
 import gc
 import json
+import re
 import warnings
 from glob import glob
 from pathlib import Path
@@ -45,7 +46,10 @@ def test_task_missing_input():
 
 
 def test_task_unexpected_input_warning():
-    with pytest.warns(UserWarning, match=r"Unexpected inputs for task SumTask"):
+    with pytest.warns(
+        UserWarning,
+        match=re.escape("Unexpected inputs for task SumTask: ['unknown']"),
+    ):
         task = SumTask(inputs={"a": 10, "unknown": 1})
     assert "unknown" in task.input_variables
 
