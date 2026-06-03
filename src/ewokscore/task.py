@@ -15,6 +15,7 @@ from typing import Set
 from typing import Tuple
 from typing import Type
 from typing import Union
+from difflib import SequenceMatcher
 
 from ewoksutils.deprecation_utils import deprecated
 
@@ -126,7 +127,14 @@ class Task(Registered, UniversalHashable, register=False):
         # Check required inputs
         missing_required = self.required_input_names() - input_names
         if missing_required:
-            self._raise_task_input_error("Missing inputs", str(list(missing_required)))
+            error_report = ""
+            for missing_key in missing_required:
+                for input_key in input_names:
+                    if SequenceMatcher(None, input_key, missing_key).ratio() >= 0.8:
+                        error_report += f"The required key '{missing_key}' is missing and you provide '{input_key}'. Could this be a typo?\n"
+            self._raise_task_input_error(
+                "Missing inputs", str(list(missing_required)) + "\n" + error_report
+            )
 
         # Check required positional inputs
         nrequiredargs = self._N_REQUIRED_POSITIONAL_INPUTS
