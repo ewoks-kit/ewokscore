@@ -16,6 +16,7 @@ from typing import Tuple
 from typing import Type
 from typing import Union
 from difflib import SequenceMatcher
+import logging
 
 from ewoksutils.deprecation_utils import deprecated
 
@@ -30,6 +31,8 @@ from .variable import ReadOnlyVariableContainerNamespace
 from .variable import VariableContainer
 from .variable import VariableContainerMissingNamespace
 from .variable import VariableContainerNamespace
+
+logger = logging.getLogger(__name__)
 
 
 class TaskInputError(ValueError):
@@ -123,6 +126,9 @@ class Task(Registered, UniversalHashable, register=False):
         Persisted variables are not loaded.
         """
         input_names = set(inputs.keys())
+        required_and_optional_inputs = (
+            self.required_input_names() | self.optional_input_names()
+        )
 
         # Check required inputs
         missing_required = self.required_input_names() - input_names
@@ -130,7 +136,9 @@ class Task(Registered, UniversalHashable, register=False):
             error_report = ""
             for missing_key in missing_required:
                 for input_key in input_names:
-                    if SequenceMatcher(None, input_key, missing_key).ratio() >= 0.8:
+                    if (
+                        SequenceMatcher(None, input_key, missing_key).ratio() >= 0.8
+                    ) and (input_key not in required_and_optional_inputs):
                         error_report += f"The required key '{missing_key}' is missing and you provide '{input_key}'. Could this be a typo?\n"
             self._raise_task_input_error(
                 "Missing inputs", str(list(missing_required)) + "\n" + error_report
@@ -149,6 +157,13 @@ class Task(Registered, UniversalHashable, register=False):
         if missing_optional:
             inputs = dict(inputs)
             for varname in missing_optional:
+                for input_key in input_names:
+                    if (SequenceMatcher(None, input_key, varname).ratio() >= 0.8) and (
+                        input_key not in required_and_optional_inputs
+                    ):
+                        logger.warning(
+                            f"The optional key '{varname}' is missing and you provide '{input_key}'. Could this be a typo?"
+                        )
                 inputs[varname] = self.MISSING_DATA
 
         return inputs

@@ -67,6 +67,7 @@ def parse_inputs(
 
     for input_item in list(inputs):
         missing = required - input_item.keys()
+
         if missing:
             error_report = ""
             for missing_key in missing:
@@ -96,6 +97,7 @@ def parse_inputs(
             input_item = {k: v for k, v in input_item.items() if k in returned}
             input_item["id"] = node_id
             parsed.append(input_item)
+
     return parsed
 
 
