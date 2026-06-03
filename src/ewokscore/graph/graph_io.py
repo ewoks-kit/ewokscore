@@ -13,7 +13,8 @@ from .. import missing_data
 from ..node import NodeIdType
 from ..node import get_node_label
 from ..task import Task
-from .analysis import end_nodes, start_nodes
+from .analysis import end_nodes
+from .analysis import start_nodes
 
 logger = logging.getLogger(__name__)
 
