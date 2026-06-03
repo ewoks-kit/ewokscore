@@ -1,6 +1,7 @@
 import json
 import logging
 from typing import Optional
+from typing import Set
 
 try:
     from papermill import execute_notebook
@@ -23,8 +24,8 @@ class NotebookExecutorTask(
 ):
     NOTEBOOK_ARGUMENT = NOTEBOOK_ARGUMENT
 
-    def __init__(self, *args, ignore_missing_inputs: bool = True, **kwargs):
-        super().__init__(*args, ignore_missing_inputs=ignore_missing_inputs, **kwargs)
+    def _warn_unexpected_inputs(self, unexpected_input_names: Set[str]) -> None:
+        _ = unexpected_input_names
 
     def run(self):
         if execute_notebook is None:

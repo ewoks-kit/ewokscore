@@ -63,7 +63,6 @@ class Task(Registered, UniversalHashable, register=False):
         node_attrs: Optional[dict] = None,
         execinfo: Optional[dict] = None,
         profile_directory: Optional[dict] = None,
-        ignore_missing_inputs: bool = False,
     ):
         """The named arguments are inputs and Variable configuration"""
         if inputs is None:
@@ -92,7 +91,6 @@ class Task(Registered, UniversalHashable, register=False):
         self.__succeeded = None
         self._cancelled = False
         self._profile_directory = profile_directory or dict()
-        self.ignore_missing_inputs = ignore_missing_inputs
 
         # The output hash will update dynamically if any of the input
         # variables change
@@ -146,13 +144,7 @@ class Task(Registered, UniversalHashable, register=False):
             name for name in extra_inputs if not isinstance(name, int)
         }
 
-        if not self.ignore_missing_inputs and unexpected_named_inputs:
-            warnings.warn(
-                f"Unexpected inputs for task {type(self).__name__}: "
-                f"{sorted(unexpected_named_inputs)}",
-                UserWarning,
-                stacklevel=2,
-            )
+        self._warn_unexpected_inputs(unexpected_named_inputs)
 
         # Init missing optional inputs
         missing_optional = self.optional_input_names() - input_names
@@ -668,6 +660,17 @@ class Task(Registered, UniversalHashable, register=False):
         else:
             err_msg = f"{prefix} for ewoks task (id: {node_id!r}, task: {task_identifier!r}): {message}"
         raise exc_class(err_msg) from cause
+
+    def _warn_unexpected_inputs(self, unexpected_input_names: Set[str]) -> None:
+        if not unexpected_input_names:
+            return
+
+        warnings.warn(
+            f"Unexpected inputs for task {type(self).__name__}: "
+            f"{sorted(unexpected_input_names)}",
+            UserWarning,
+            stacklevel=3,
+        )
 
     def reset_state(self):
         self._cancelled = False

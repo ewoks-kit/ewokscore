@@ -1,4 +1,5 @@
 from typing import Mapping
+from typing import Set
 
 from ewoksutils.import_utils import import_method
 
@@ -22,8 +23,8 @@ class PpfMethodExecutorTask(
     METHOD_ARGUMENT = METHOD_ARGUMENT
     PPF_DICT_ARGUMENT = PPF_DICT_ARGUMENT
 
-    def __init__(self, *args, ignore_missing_inputs: bool = True, **kwargs):
-        super().__init__(*args, ignore_missing_inputs=ignore_missing_inputs, **kwargs)
+    def _warn_unexpected_inputs(self, unexpected_input_names: Set[str]) -> None:
+        _ = unexpected_input_names
 
     def _get_task_identifier(self, inputs: Mapping) -> str:
         return inputs.get(self.METHOD_ARGUMENT, self.class_registry_name())
