@@ -75,9 +75,11 @@ def parse_inputs(
         if missing:
             error_report = ""
             for missing_key in missing:
-                for input_key in input_item.keys():
-                    if get_close_matches(input_key, [missing_key], n=1, cutoff=0.5):
-                        error_report += f"For input {input_item}, you provided '{input_key}'. Did you mean '{missing_key}'?\n"
+                close_match = get_close_matches(
+                    missing_key, input_item.keys(), n=1, cutoff=0.5
+                )
+                if close_match:
+                    error_report += f"For input {input_item}, you provided '{close_match[0]}'. Did you mean '{missing_key}'?\n"
             raise ValueError(
                 f"missing keys in one of the graph inputs: {missing}: \n{error_report}"
             )
