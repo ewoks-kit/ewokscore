@@ -4,7 +4,9 @@ from ewokscore import execute_graph
 
 
 def test_sequence_matcher_missing_required_inputs():
-    with pytest.raises(ValueError, match="you got 'valufe'. Could this be a typo?"):
+    with pytest.raises(
+        ValueError, match="you provided 'valufe'. Did you mean 'value'?"
+    ):
         _ = execute_graph(
             graph={
                 "graph": {"id": "test"},
@@ -29,7 +31,7 @@ def test_sequence_matcher_missing_required_inputs():
 def test_sequence_matcher_typo_required_inputs():
     with pytest.raises(
         ValueError,
-        match="The required key 'list' is missing and you provide 'listx'. Could this be a typo?",
+        match="You provided 'listx', which does not exist as input. Did you mean 'list'?",
     ):
         _ = execute_graph(
             graph={
@@ -79,7 +81,7 @@ def test_sequence_matcher_typo_optional_inputs(caplog):
             ],
         )
     assert (
-        "The optional key 'delay' is missing and you provide 'delayx'. Could this be a typo?"
+        "You provided 'delayx', which does not exist as input. Did you mean 'delay'?"
         in caplog.text
     )
 
@@ -87,7 +89,7 @@ def test_sequence_matcher_typo_optional_inputs(caplog):
 def test_sequence_matcher_typo_required_default_inputs():
     with pytest.raises(
         ValueError,
-        match="The required key 'list' is missing and you provide 'listx'. Could this be a typo?",
+        match="You provided 'listx', which does not exist as input. Did you mean 'list'?",
     ):
         _ = execute_graph(
             graph={
@@ -134,6 +136,6 @@ def test_sequence_matcher_typo_optional_default_inputs(caplog):
             },
         )
     assert (
-        "The optional key 'delay' is missing and you provide 'delayx'. Could this be a typo?"
+        "You provided 'delayx', which does not exist as input. Did you mean 'delay'?"
         in caplog.text
     )

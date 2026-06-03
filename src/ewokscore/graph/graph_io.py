@@ -1,3 +1,4 @@
+from difflib import get_close_matches
 from typing import Dict
 from typing import Iterator
 from typing import List
@@ -6,13 +7,15 @@ from typing import Optional
 from typing import Union
 
 import networkx
-from difflib import SequenceMatcher
+import logging
 
 from .. import missing_data
 from ..node import NodeIdType
 from ..node import get_node_label
 from ..task import Task
 from .analysis import end_nodes, start_nodes
+
+logger = logging.getLogger(__name__)
 
 
 def update_default_inputs(
@@ -72,8 +75,8 @@ def parse_inputs(
             error_report = ""
             for missing_key in missing:
                 for input_key in input_item.keys():
-                    if SequenceMatcher(None, input_key, missing_key).ratio() >= 0.5:
-                        error_report += f"Input item {input_item} requires key '{missing_key}', but you got '{input_key}'. Could this be a typo?\n"
+                    if get_close_matches(input_key, [missing_key], n=1, cutoff=0.5):
+                        error_report += f"For input {input_item}, you provided '{input_key}'. Did you mean '{missing_key}'?\n"
             raise ValueError(
                 f"missing keys in one of the graph inputs: {missing}: \n{error_report}"
             )
@@ -85,6 +88,12 @@ def parse_inputs(
         for k in ("label", "task_identifier"):
             if k in input_item:
                 node_filters[k] = input_item[k]
+            else:
+                for i in input_item.keys():
+                    if get_close_matches(i, [k], n=1, cutoff=0.5):
+                        logger.warning(
+                            f"For input {input_item}, you provided '{i}'. Did you mean '{k}'?\n"
+                        )
 
         if node_filters:
             node_ids = iter_node_ids(graph, **node_filters)
