@@ -6,7 +6,6 @@ from typing import Optional
 from typing import Union
 
 import networkx
-import logging
 from difflib import SequenceMatcher
 
 from .. import missing_data
@@ -14,8 +13,6 @@ from ..node import NodeIdType
 from ..node import get_node_label
 from ..task import Task
 from .analysis import end_nodes, start_nodes
-
-logger = logging.getLogger(__name__)
 
 
 def update_default_inputs(
