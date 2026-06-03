@@ -80,6 +80,7 @@ def parse_inputs(
             raise ValueError(
                 f"missing keys in one of the graph inputs: {missing}: \n{error_report}"
             )
+
         if "id" in input_item:
             parsed.append({k: v for k, v in input_item.items() if k in returned})
             continue
@@ -88,12 +89,6 @@ def parse_inputs(
         for k in ("label", "task_identifier"):
             if k in input_item:
                 node_filters[k] = input_item[k]
-            else:
-                for i in input_item.keys():
-                    if get_close_matches(i, [k], n=1, cutoff=0.5):
-                        logger.warning(
-                            f"For input {input_item}, you provided '{i}'. Did you mean '{k}'?\n"
-                        )
 
         if node_filters:
             node_ids = iter_node_ids(graph, **node_filters)
@@ -101,6 +96,16 @@ def parse_inputs(
             node_ids = graph.nodes
         else:
             node_ids = start_nodes(graph)
+
+        if not node_filters:
+            error_report = f"For input {input_item}, there is no node filter (id, label or task_identifier).\n"
+            for i in input_item:
+                close_match = get_close_matches(
+                    i, ["id", "label", "task_identifier"], n=1, cutoff=0.5
+                )
+                if close_match:
+                    error_report += f"  You provided '{i}', which does not exist as input. Did you mean '{close_match[0]}'?\n"
+            logger.warning(error_report)
 
         for node_id in node_ids:
             input_item = {k: v for k, v in input_item.items() if k in returned}
