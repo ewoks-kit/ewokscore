@@ -1,5 +1,6 @@
-from ewokscore import execute_graph
 import pytest
+
+from ewokscore import execute_graph
 
 
 def test_sequence_matcher_missing_required_inputs():
@@ -76,6 +77,61 @@ def test_sequence_matcher_typo_optional_inputs(caplog):
                     "value": 1,
                 },
             ],
+        )
+    assert (
+        "The optional key 'delay' is missing and you provide 'delayx'. Could this be a typo?"
+        in caplog.text
+    )
+
+
+def test_sequence_matcher_typo_required_default_inputs():
+    with pytest.raises(
+        ValueError,
+        match="The required key 'list' is missing and you provide 'listx'. Could this be a typo?",
+    ):
+        _ = execute_graph(
+            graph={
+                "graph": {"id": "test"},
+                "nodes": [
+                    {
+                        "id": "sumlist1",
+                        "task_type": "class",
+                        "task_identifier": "ewokscore.tests.examples.tasks.sumlist.SumList",
+                        "default_inputs": [
+                            {
+                                "name": "listx",
+                                "value": [1, 2, 3],
+                            },
+                        ],
+                    }
+                ],
+            },
+        )
+
+
+def test_sequence_matcher_typo_optional_default_inputs(caplog):
+    with caplog.at_level("WARNING", logger="ewokscore.task"):
+        _ = execute_graph(
+            graph={
+                "graph": {"id": "test"},
+                "nodes": [
+                    {
+                        "id": "sumlist1",
+                        "task_type": "class",
+                        "task_identifier": "ewokscore.tests.examples.tasks.sumlist.SumList",
+                        "default_inputs": [
+                            {
+                                "name": "list",
+                                "value": [1, 2, 3],
+                            },
+                            {
+                                "name": "delayx",
+                                "value": 1,
+                            },
+                        ],
+                    }
+                ],
+            },
         )
     assert (
         "The optional key 'delay' is missing and you provide 'delayx'. Could this be a typo?"
