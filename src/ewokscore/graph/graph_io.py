@@ -6,13 +6,16 @@ from typing import Optional
 from typing import Union
 
 import networkx
+import logging
+from difflib import SequenceMatcher
 
 from .. import missing_data
 from ..node import NodeIdType
 from ..node import get_node_label
 from ..task import Task
-from .analysis import end_nodes
-from .analysis import start_nodes
+from .analysis import end_nodes, start_nodes
+
+logger = logging.getLogger(__name__)
 
 
 def update_default_inputs(
@@ -64,10 +67,18 @@ def parse_inputs(
     required = {"name", "value"}
     returned = {"id", "name", "value"}
     parsed = list()
+
     for input_item in list(inputs):
         missing = required - input_item.keys()
         if missing:
-            raise ValueError(f"missing keys in one of the graph inputs: {missing}")
+            error_report = ""
+            for missing_key in missing:
+                for input_key in input_item.keys():
+                    if SequenceMatcher(None, input_key, missing_key).ratio() >= 0.5:
+                        error_report += f"Input item {input_item} requires key '{missing_key}', but you got '{input_key}'. Could this be a typo?\n"
+            raise ValueError(
+                f"missing keys in one of the graph inputs: {missing}: \n{error_report}"
+            )
         if "id" in input_item:
             parsed.append({k: v for k, v in input_item.items() if k in returned})
             continue
