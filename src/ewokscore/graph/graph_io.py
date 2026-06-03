@@ -1,3 +1,4 @@
+import logging
 from difflib import get_close_matches
 from typing import Dict
 from typing import Iterator
@@ -7,7 +8,6 @@ from typing import Optional
 from typing import Union
 
 import networkx
-import logging
 
 from .. import missing_data
 from ..node import NodeIdType
