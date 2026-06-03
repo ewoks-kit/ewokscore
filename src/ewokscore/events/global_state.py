@@ -33,10 +33,13 @@ def send(
     with _ewoks_event_logger(
         handlers=handlers, asynchronous=asynchronous, cleanup_on_different_handlers=True
     ) as logger:
+        extra = kw.get("extra", {})
+        level = logging.ERROR if extra.get("error", False) else logging.INFO
+
         # Send to the EWOKS event handlers
-        logger.info(*args, **kw)
+        logger.log(level, *args, **kw)
         # Send to the application log handlers
-        _app_logger.info(*args, **kw)
+        _app_logger.log(level, *args, **kw)
 
 
 def add_handler(
@@ -45,6 +48,8 @@ def add_handler(
 ) -> None:
     """Add a handler to the global EWOKS event logger."""
     with _ewoks_event_logger() as logger:
+        # If logging was disable, re-enable it.
+        logger.disabled = False
         if _has_handler_instance(logger, handler):
             return
         if asynchronous is None and is_ewoks_event_handler(handler):
@@ -135,6 +140,10 @@ def _init_ewoks_event_logger(
     logger.ewoks_handlers = handlers
     logger.propagate = False
     if not handlers:
+        # No handlers -> so no event logging.
+        # If logger is not disabled `logging.lastResort` will be used
+        # as a default handler and we do not want that.
+        logger.disabled = True
         return
     for desc in handlers:
         try:

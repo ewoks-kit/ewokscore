@@ -6,6 +6,7 @@ import time
 import warnings
 from contextlib import ExitStack
 from contextlib import contextmanager
+from difflib import get_close_matches
 from typing import Any
 from typing import Generator
 from typing import Mapping
@@ -197,6 +198,32 @@ class Task(Registered, UniversalHashable, register=False):
         output_model: Union[Type[BaseInputModel], None] = None,
         **kwargs,
     ):
+        # Hard code the parameters to __init_subclass__ to check for misspellings
+        task_param_names = {
+            "input_names",
+            "optional_input_names",
+            "output_names",
+            "n_required_positional_inputs",
+            "input_model",
+            "output_model",
+        }
+
+        # Use difflib to find potential typos in kwargs
+        bad_kwargs = {}
+        for kwarg_name in kwargs.keys():
+            matches = get_close_matches(kwarg_name, task_param_names, n=1, cutoff=0.6)
+            if matches:
+                bad_kwargs[kwarg_name] = matches[0]
+
+        if bad_kwargs:
+            suggestion_msgs = []
+            for invalid, suggested in bad_kwargs.items():
+                suggestion_msgs.append(f"Did you mean '{suggested}'? (got '{invalid}')")
+            raise TypeError(
+                f"{subclass.__name__}.__init_subclass__() got invalid keyword argument(s): "
+                f"{', '.join(sorted(bad_kwargs.keys()))}. " + ". ".join(suggestion_msgs)
+            )
+
         super().__init_subclass__(**kwargs)
 
         input_names_set, optional_input_names_set = subclass._generate_inputs_sets(

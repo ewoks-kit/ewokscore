@@ -110,3 +110,23 @@ def test_root_logger(blocking, caplog):
         assert len(caplog.records) == 1
         event_root = caplog.records[0]
         assert event_root.type == "start"
+
+
+def test_workflow_event_error_log_level(caplog):
+    execinfo = {
+        "job_id": None,
+        "host_name": None,
+        "user_name": None,
+        "process_id": None,
+        "workflow_id": None,
+    }
+    with capture_events(blocking=True) as get_event:
+        with caplog.at_level(logging.DEBUG):
+            events.send_workflow_event(
+                execinfo=execinfo,
+                event="end",
+                exception=RuntimeError("something failed"),
+            )
+        get_event()
+        assert len(caplog.records) == 1
+        assert caplog.records[0].levelno == logging.ERROR
