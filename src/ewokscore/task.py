@@ -1,4 +1,5 @@
 import cProfile
+import logging
 import os
 import random
 import re
@@ -15,7 +16,6 @@ from typing import Set
 from typing import Tuple
 from typing import Type
 from typing import Union
-import logging
 
 from ewoksutils.deprecation_utils import deprecated
 
