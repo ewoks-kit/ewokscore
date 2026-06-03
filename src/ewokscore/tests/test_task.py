@@ -166,6 +166,8 @@ def test_task_unexpected_input_warning_ignores_positional_inputs():
     with warnings.catch_warnings():
         warnings.simplefilter("error", UserWarning)
         MyTask(inputs={0: "value"})
+
+
 def test_init_subclass_rejects_input_name_typo():
     # test that the wrong name appears in the error statement
     with pytest.raises(TypeError, match=re.escape("input")):
