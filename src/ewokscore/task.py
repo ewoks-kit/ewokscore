@@ -3,6 +3,7 @@ import os
 import random
 import re
 import time
+import warnings
 from contextlib import ExitStack
 from contextlib import contextmanager
 from difflib import get_close_matches
@@ -159,7 +160,12 @@ class Task(Registered, UniversalHashable, register=False):
         model = self._INPUT_MODEL(**inputs)
 
         for name in self._INPUT_MODEL.model_fields.keys():
-            self.__inputs[name].value = getattr(model, name)
+            if self.__inputs[name].is_missing():
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", DeprecationWarning)
+                    self.__inputs[name].value = getattr(model, name)
+            else:
+                self.__inputs[name].value = getattr(model, name)
 
     def _validate_outputs(self) -> None:
         """Check outputs with accessing the output values.
