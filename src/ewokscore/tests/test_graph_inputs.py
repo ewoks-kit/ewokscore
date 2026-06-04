@@ -82,6 +82,17 @@ def test_graph_inputs():
             id="task2",
             label="task2 label",
             task_identifier="ClassExampleWithModel",
+            name="b",
+            value=3,
+            required=True,
+            description=None,
+            examples=None,
+            import_error=None,
+        ),
+        inputs.NodeInput(
+            id="task2",
+            label="task2 label",
+            task_identifier="ClassExampleWithModel",
             name="c",
             value=4,
             required=False,
@@ -176,6 +187,7 @@ def test_graph_inputs_as_table():
         ["a", "1", "", "", "ClassExample", "task1", ""],
         ["c", "<MISSING_DATA>", "", "", "ClassExample", "task1", ""],
         ["d", "<MISSING_DATA>", "", "", "ClassExample", "task1", ""],
+        ["b", "3", "", "", "ClassExampleWithModel", "task2", "task2 label"],
         ["c", "4", "parameter c", "", "ClassExampleWithModel", "task2", "task2 label"],
         [
             "d",
@@ -217,7 +229,7 @@ class ClassExample(
 
 class InputModel(BaseInputModel):
     a: Union[int, str] = Field(...)
-    a: Union[int, str] = Field(...)
+    b: Union[int, str] = Field(...)
     c: Union[int, str] = Field(-1, description="parameter c")
     d: Union[int, str] = Field(-2, examples=[100, "word"])
 

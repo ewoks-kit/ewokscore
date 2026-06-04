@@ -15,7 +15,7 @@ class User(BaseOutputModel):
 
 
 class PassThroughTask(
-    Task, input_names=["id"], optional_input_names=["name"], output_model=User
+    Task, input_names=["id"], optional_input_names=["name", "age"], output_model=User
 ):
     def run(self):
         self.outputs.id = self.inputs.id

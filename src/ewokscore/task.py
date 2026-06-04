@@ -3,6 +3,7 @@ import os
 import random
 import re
 import time
+import warnings
 from contextlib import ExitStack
 from contextlib import contextmanager
 from difflib import get_close_matches
@@ -135,6 +136,8 @@ class Task(Registered, UniversalHashable, register=False):
                 self._raise_task_input_error(
                     "Missing inputs", f"positional argument #{i}"
                 )
+
+        self._warn_unexpected_inputs(input_names)
 
         # Init missing optional inputs
         missing_optional = self.optional_input_names() - input_names
@@ -676,6 +679,24 @@ class Task(Registered, UniversalHashable, register=False):
         else:
             err_msg = f"{prefix} for ewoks task (id: {node_id!r}, task: {task_identifier!r}): {message}"
         raise exc_class(err_msg) from cause
+
+    def _warn_unexpected_inputs(self, input_names: Set[str]) -> None:
+        extra_inputs = input_names - self.input_names()
+
+        # if input is positional argument
+        unexpected_named_inputs = {
+            name for name in extra_inputs if not isinstance(name, int)
+        }
+
+        if not unexpected_named_inputs:
+            return
+
+        warnings.warn(
+            f"Unexpected inputs for task {type(self).__name__}: "
+            f"{sorted(unexpected_named_inputs)}",
+            UserWarning,
+            stacklevel=3,
+        )
 
     def reset_state(self):
         self._cancelled = False
