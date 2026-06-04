@@ -3,9 +3,10 @@ import pytest
 from ewokscore import execute_graph
 
 
-def test_matcher_input_key():
+def test_matcher_input_typo():
     with pytest.raises(
-        ValueError, match="you provided 'valufe'. Did you mean 'value'?"
+        ValueError,
+        match=r"(?s)(?=.*Did you mean 'value'\?)(?=.*Did you mean 'name'\?)",
     ):
         _ = execute_graph(
             graph={
@@ -21,7 +22,7 @@ def test_matcher_input_key():
             inputs=[
                 {
                     "id": "sum1",
-                    "name": "a",
+                    "namze": "a",
                     "valufe": 1,
                 },
             ],

@@ -1,6 +1,7 @@
 import logging
 from difflib import get_close_matches
 from typing import Dict
+from typing import Iterable
 from typing import Iterator
 from typing import List
 from typing import Mapping
@@ -51,6 +52,23 @@ def update_default_inputs(
             node_attrs["default_inputs"] = [input_item]
 
 
+def suggest_close_match(word: str, possibilities: Iterable[str]) -> Optional[str]:
+    """Return the closest match from possibilities, or None if none found."""
+    close_match = get_close_matches(word, list(possibilities), n=1, cutoff=0.5)
+    return close_match[0] if close_match else None
+
+
+def build_close_match_report(words: Iterable[str], possibilities: Iterable[str]) -> str:
+    """Return an error report with close match suggestions for each word."""
+    possibilities = list(possibilities)
+    error_report = ""
+    for word in words:
+        suggestion = suggest_close_match(word, possibilities)
+        if suggestion:
+            error_report += f"\n  @ You provided '{suggestion}'. Did you mean '{word}'?"
+    return error_report
+
+
 def parse_inputs(
     graph: networkx.DiGraph, inputs: Optional[List[dict]] = None
 ) -> List[dict]:
@@ -73,16 +91,11 @@ def parse_inputs(
         missing = required - input_item.keys()
 
         if missing:
-            error_report = ""
-            for missing_key in missing:
-                close_match = get_close_matches(
-                    missing_key, input_item.keys(), n=1, cutoff=0.5
-                )
-                if close_match:
-                    error_report += f"For input {input_item}, you provided '{close_match[0]}'. Did you mean '{missing_key}'?\n"
-            raise ValueError(
-                f"missing keys in one of the graph inputs: {missing}: \n{error_report}"
+            error_report = (
+                f"\n Missing required keys {missing} in input item: {input_item}."
+                + build_close_match_report(missing, input_item.keys())
             )
+            raise ValueError(error_report)
 
         if "id" in input_item:
             parsed.append({k: v for k, v in input_item.items() if k in returned})
@@ -100,14 +113,13 @@ def parse_inputs(
         else:
             node_ids = start_nodes(graph)
 
-        if not node_filters:
-            error_report = f"For input {input_item}, there is no node filter (id, label or task_identifier).\n"
-            for i in input_item:
-                close_match = get_close_matches(
-                    i, ["id", "label", "task_identifier"], n=1, cutoff=0.5
+        if not node_ids:
+            error_report = (
+                f"\n The input item {input_item} could not be associated to any node."
+                + build_close_match_report(
+                    input_item.keys(), ["id", "label", "task_identifier"]
                 )
-                if close_match:
-                    error_report += f"  You provided '{i}', which does not exist as input. Did you mean '{close_match[0]}'?\n"
+            )
             logger.warning(error_report)
 
         for node_id in node_ids:
@@ -150,6 +162,15 @@ def parse_outputs(
             node_ids = graph.nodes
         else:
             node_ids = end_nodes(graph)
+
+        if not node_ids:
+            error_report = (
+                f"\n The output item {output_item} could not be associated to any node."
+                + build_close_match_report(
+                    output_item.keys(), ["id", "label", "task_identifier"]
+                )
+            )
+            logger.warning(error_report)
 
         for node_id in node_ids:
             output_item = {k: v for k, v in output_item.items() if k in returned}
