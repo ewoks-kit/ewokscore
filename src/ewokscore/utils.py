@@ -1,5 +1,8 @@
 from collections.abc import Mapping
 from collections.abc import Sequence
+from difflib import get_close_matches
+from typing import Iterable
+from typing import Optional
 
 
 def dict_merge(
@@ -33,3 +36,20 @@ def dict_merge(
                 raise ValueError("Conflict at " + ".".join(_nodes))
         else:
             destination[key] = value
+
+
+def suggest_close_match(word: str, possibilities: Iterable[str]) -> Optional[str]:
+    """Return the closest match from possibilities, or None if none found."""
+    close_match = get_close_matches(word, list(possibilities), n=1, cutoff=0.5)
+    return close_match[0] if close_match else None
+
+
+def build_close_match_report(words: Iterable[str], possibilities: Iterable[str]) -> str:
+    """Return an error report with close match suggestions for each word."""
+    possibilities = list(possibilities)
+    error_report = ""
+    for word in words:
+        suggestion = suggest_close_match(word, possibilities)
+        if suggestion:
+            error_report += f"\n  @ You provided '{suggestion}'. Did you mean '{word}'?"
+    return error_report

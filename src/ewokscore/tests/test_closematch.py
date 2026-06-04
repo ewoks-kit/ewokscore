@@ -32,7 +32,7 @@ def test_matcher_input_typo():
 def test_matcher_typo_required_inputs():
     with pytest.raises(
         ValueError,
-        match="You provided 'listx', which does not exist as input. Did you mean 'list'?",
+        match="You provided 'listx'. Did you mean 'list'?",
     ):
         _ = execute_graph(
             graph={
@@ -81,16 +81,13 @@ def test_matcher_typo_optional_inputs(caplog):
                 },
             ],
         )
-    assert (
-        "You provided 'delayx', which does not exist as input. Did you mean 'delay'?"
-        in caplog.text
-    )
+    assert "You provided 'delayx'. Did you mean 'delay'?" in caplog.text
 
 
 def test_matcher_typo_required_default_inputs():
     with pytest.raises(
         ValueError,
-        match="You provided 'listx', which does not exist as input. Did you mean 'list'?",
+        match="You provided 'listx'. Did you mean 'list'?",
     ):
         _ = execute_graph(
             graph={
@@ -136,7 +133,4 @@ def test_matcher_typo_optional_default_inputs(caplog):
                 ],
             },
         )
-    assert (
-        "You provided 'delayx', which does not exist as input. Did you mean 'delay'?"
-        in caplog.text
-    )
+    assert "You provided 'delayx'. Did you mean 'delay'?" in caplog.text

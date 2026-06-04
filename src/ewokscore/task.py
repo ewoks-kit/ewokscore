@@ -26,6 +26,7 @@ from .hashing import UniversalHashable
 from .model import BaseInputModel
 from .model import BaseOutputModel
 from .registration import Registered
+from .utils import build_close_match_report
 from .variable import ReadOnlyVariableContainerNamespace
 from .variable import VariableContainer
 from .variable import VariableContainerMissingNamespace
@@ -128,20 +129,16 @@ class Task(Registered, UniversalHashable, register=False):
         required_and_optional_inputs = (
             self.required_input_names() | self.optional_input_names()
         )
+        non_existing_inputs = input_names - required_and_optional_inputs
 
         # Check required inputs
         missing_required = self.required_input_names() - input_names
         if missing_required:
-            error_report = ""
-            for missing_key in missing_required:
-                close_match = get_close_matches(
-                    missing_key, input_names, n=1, cutoff=0.8
-                )
-                if close_match and close_match[0] not in required_and_optional_inputs:
-                    error_report += f"You provided '{close_match[0]}', which does not exist as input. Did you mean '{missing_key}'?\n"
-            self._raise_task_input_error(
-                "Missing inputs", str(list(missing_required)) + "\n" + error_report
+            error_report = (
+                f"\n Missing required inputs {missing_required}."
+                + build_close_match_report(missing_required, non_existing_inputs)
             )
+            self._raise_task_input_error("Missing inputs", error_report)
 
         # Check required positional inputs
         nrequiredargs = self._N_REQUIRED_POSITIONAL_INPUTS
@@ -154,15 +151,14 @@ class Task(Registered, UniversalHashable, register=False):
         # Init missing optional inputs
         missing_optional = self.optional_input_names() - input_names
         if missing_optional:
+            error_report = build_close_match_report(
+                missing_optional, non_existing_inputs
+            )
+            if error_report:
+                logger.warning("\n Possible missing optional inputs:" + error_report)
             inputs = dict(inputs)
             for varname in missing_optional:
-                close_match = get_close_matches(varname, input_names, n=1, cutoff=0.8)
-                if close_match and close_match[0] not in required_and_optional_inputs:
-                    logger.warning(
-                        f"You provided '{close_match[0]}', which does not exist as input. Did you mean '{varname}'?"
-                    )
                 inputs[varname] = self.MISSING_DATA
-
         return inputs
 
     def _validate_inputs(self) -> None:
