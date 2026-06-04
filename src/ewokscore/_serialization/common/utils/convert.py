@@ -8,5 +8,7 @@ def convert_if_equal(value: Any, new_type: Type) -> Optional[Any]:
         new_value = new_type(value)
         if value == new_value:
             return new_value
+        else:
+            return None
     except Exception:
-        pass
+        return None
