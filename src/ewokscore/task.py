@@ -1,4 +1,5 @@
 import cProfile
+import logging
 import os
 import random
 import re
@@ -26,10 +27,13 @@ from .hashing import UniversalHashable
 from .model import BaseInputModel
 from .model import BaseOutputModel
 from .registration import Registered
+from .utils import build_close_match_report
 from .variable import ReadOnlyVariableContainerNamespace
 from .variable import VariableContainer
 from .variable import VariableContainerMissingNamespace
 from .variable import VariableContainerNamespace
+
+logger = logging.getLogger(__name__)
 
 
 class TaskInputError(ValueError):
@@ -123,11 +127,20 @@ class Task(Registered, UniversalHashable, register=False):
         Persisted variables are not loaded.
         """
         input_names = set(inputs.keys())
+        required_and_optional_inputs = (
+            self.required_input_names() | self.optional_input_names()
+        )
+        non_existing_inputs = input_names - required_and_optional_inputs
 
         # Check required inputs
         missing_required = self.required_input_names() - input_names
         if missing_required:
-            self._raise_task_input_error("Missing inputs", str(list(missing_required)))
+            error_report = build_close_match_report(
+                missing_required, non_existing_inputs
+            )
+            self._raise_task_input_error(
+                "Missing inputs", str(list(missing_required)) + error_report
+            )
 
         # Check required positional inputs
         nrequiredargs = self._N_REQUIRED_POSITIONAL_INPUTS
@@ -142,10 +155,14 @@ class Task(Registered, UniversalHashable, register=False):
         # Init missing optional inputs
         missing_optional = self.optional_input_names() - input_names
         if missing_optional:
+            error_report = build_close_match_report(
+                missing_optional, non_existing_inputs
+            )
+            if error_report:
+                logger.warning("\n Possible missing optional inputs:" + error_report)
             inputs = dict(inputs)
             for varname in missing_optional:
                 inputs[varname] = self.MISSING_DATA
-
         return inputs
 
     def _validate_inputs(self) -> None:

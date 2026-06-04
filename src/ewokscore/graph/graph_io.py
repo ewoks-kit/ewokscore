@@ -1,3 +1,4 @@
+import logging
 from typing import Dict
 from typing import Iterator
 from typing import List
@@ -11,8 +12,11 @@ from .. import missing_data
 from ..node import NodeIdType
 from ..node import get_node_label
 from ..task import Task
+from ..utils import build_close_match_report
 from .analysis import end_nodes
 from .analysis import start_nodes
+
+logger = logging.getLogger(__name__)
 
 
 def update_default_inputs(
@@ -64,10 +68,17 @@ def parse_inputs(
     required = {"name", "value"}
     returned = {"id", "name", "value"}
     parsed = list()
+
     for input_item in list(inputs):
         missing = required - input_item.keys()
+
         if missing:
-            raise ValueError(f"missing keys in one of the graph inputs: {missing}")
+            error_report = (
+                f"\n Missing required keys {missing} in input item: {input_item}."
+                + build_close_match_report(missing, input_item.keys())
+            )
+            raise ValueError(error_report)
+
         if "id" in input_item:
             parsed.append({k: v for k, v in input_item.items() if k in returned})
             continue
@@ -84,10 +95,20 @@ def parse_inputs(
         else:
             node_ids = start_nodes(graph)
 
+        if not node_ids:
+            error_report = (
+                f"\n The input item {input_item} could not be associated to any node."
+                + build_close_match_report(
+                    input_item.keys(), ["id", "label", "task_identifier"]
+                )
+            )
+            logger.warning(error_report)
+
         for node_id in node_ids:
             input_item = {k: v for k, v in input_item.items() if k in returned}
             input_item["id"] = node_id
             parsed.append(input_item)
+
     return parsed
 
 
@@ -123,6 +144,15 @@ def parse_outputs(
             node_ids = graph.nodes
         else:
             node_ids = end_nodes(graph)
+
+        if not node_ids:
+            error_report = (
+                f"\n The output item {output_item} could not be associated to any node."
+                + build_close_match_report(
+                    output_item.keys(), ["id", "label", "task_identifier"]
+                )
+            )
+            logger.warning(error_report)
 
         for node_id in node_ids:
             output_item = {k: v for k, v in output_item.items() if k in returned}
