@@ -3,9 +3,7 @@ from pprint import pformat as _pformat  # hide from task discovery
 from ....task import Task
 
 
-class NoOutputTask(
-    Task,
-):
+class NoOutputTask(Task):
     """A task without outputs"""
 
     def run(self):

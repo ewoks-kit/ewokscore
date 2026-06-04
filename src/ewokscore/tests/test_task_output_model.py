@@ -15,7 +15,7 @@ class User(BaseOutputModel):
 
 
 class PassThroughTask(
-    Task, input_names=["id"], optional_input_names=["name"], output_model=User
+    Task, input_names=["id"], optional_input_names=["name", "age"], output_model=User
 ):
     def run(self):
         self.outputs.id = self.inputs.id
@@ -143,9 +143,7 @@ class UserWithTypeCoercion(User):
         return value
 
 
-class TaskWithTypeCoercion(
-    PassThroughTask, optional_input_names=["age"], output_model=UserWithTypeCoercion
-):
+class TaskWithTypeCoercion(PassThroughTask, output_model=UserWithTypeCoercion):
     def run(self):
         super().run()
         if not self.missing_inputs.age:
