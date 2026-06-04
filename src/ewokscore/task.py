@@ -134,11 +134,12 @@ class Task(Registered, UniversalHashable, register=False):
         # Check required inputs
         missing_required = self.required_input_names() - input_names
         if missing_required:
-            error_report = (
-                f"\n Missing required inputs {missing_required}."
-                + build_close_match_report(missing_required, non_existing_inputs)
+            error_report = build_close_match_report(
+                missing_required, non_existing_inputs
             )
-            self._raise_task_input_error("Missing inputs", error_report)
+            self._raise_task_input_error(
+                "Missing inputs", str(list(missing_required)) + error_report
+            )
 
         # Check required positional inputs
         nrequiredargs = self._N_REQUIRED_POSITIONAL_INPUTS
