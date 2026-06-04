@@ -9,7 +9,7 @@ from typing import Tuple
 from typing import Union
 
 from .utils import types
-from .utils.transversal import Traversal
+from .utils.traversal import Traversal
 
 
 def pre_serialize(

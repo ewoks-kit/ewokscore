@@ -16,7 +16,7 @@ Serialized objects and handle types like python's json module as follows
 
 from typing import Any
 
-from .utils.transversal import Traversal
+from .utils.traversal import Traversal
 
 
 def pre_serialize(obj: Any) -> Any:

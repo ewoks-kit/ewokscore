@@ -21,7 +21,7 @@ from .utils import constants
 from .utils import types
 from .utils.container import MutableContainer
 from .utils.convert import convert_if_equal
-from .utils.transversal import Traversal
+from .utils.traversal import Traversal
 
 
 def pre_serialize(obj: Any) -> Any:
