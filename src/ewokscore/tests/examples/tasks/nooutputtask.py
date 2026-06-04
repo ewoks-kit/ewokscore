@@ -5,7 +5,6 @@ from ....task import Task
 
 class NoOutputTask(
     Task,
-    optional_input_names=["inputs", "label", "result"],
 ):
     """A task without outputs"""
 

@@ -56,7 +56,7 @@ def test_all_tasks_discovery():
         },
         {
             "category": "ewokscore",
-            "optional_input_names": ["inputs", "label", "result"],
+            "optional_input_names": [],
             "output_names": [],
             "required_input_names": [],
             "task_identifier": "ewokscore.tests.examples.tasks.nooutputtask.NoOutputTask",

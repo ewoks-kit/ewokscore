@@ -95,7 +95,6 @@ def create_graph():
         {
             "source": "task6",
             "target": "task7",
-            "map_all_data": True,
         },
     ]
 

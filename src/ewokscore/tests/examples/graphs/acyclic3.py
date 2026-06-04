@@ -85,7 +85,6 @@ def acyclic3():
         {
             "source": "task6",
             "target": "task7",
-            "map_all_data": True,
         },
         {
             "source": "task7",
