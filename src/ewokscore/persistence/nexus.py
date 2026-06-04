@@ -2,6 +2,8 @@ from pathlib import Path
 from typing import Any
 from typing import List
 from typing import Mapping
+from typing import Optional
+from typing import Union
 
 import h5py
 from silx.io import h5py_utils
@@ -9,6 +11,8 @@ from silx.io.dictdump import dicttonx
 from silx.io.dictdump import nxtodict
 from silx.utils.proxy import docstring
 
+from .._serialization import common
+from .._serialization.common import types
 from . import atomic
 from .file import FileProxy
 
@@ -33,7 +37,17 @@ class NexusProxy(FileProxy):
             return False
         return h5_item_exists(self.path, self.path_in_file)
 
-    def _dump(self, path: Path, data: Any, update_mode: str = "add", **_) -> None:
+    def _dump(
+        self,
+        path: Path,
+        data: Any,
+        update_mode: str = "add",
+        serializer: Optional[
+            Union[types.GraphSerializer, str]
+        ] = types.GraphSerializer.hdf5_pickle,
+        **_,
+    ) -> None:
+        prefix = ""
         if isinstance(data, Mapping):
             h5group = self.path_in_file
         else:
@@ -41,8 +55,24 @@ class NexusProxy(FileProxy):
             h5name = self.path_in_file_name
             if h5name:
                 data = {h5name: data}
-            elif not isinstance(data, Mapping):
+                prefix = h5name
+            elif isinstance(data, Mapping):
+                pass
+            else:
                 raise TypeError("'data' must be a dictionary")
+
+        def _insert_serialize_info(
+            data: dict, key: str, serialize_info: types.SerializeInfo
+        ) -> dict:
+            if serializer is not None:
+                for k, v in serialize_info.serialize().items():
+                    data[f"{prefix}@{key}{k}"] = v
+            return data
+
+        data = common.pre_serialize(
+            data, serializer=serializer, insert_serialize_info=_insert_serialize_info
+        )
+
         with atomic.atomic_write_hdf5(path, h5group) as (h5file, h5group):
             dicttonx(
                 treedict=data,
@@ -72,7 +102,25 @@ class NexusProxy(FileProxy):
     def _load(self, path: Path, **kw) -> Any:
         h5group = self.path_in_file_parent
         h5name = self.path_in_file_name
+
         adict = nxtodict(h5file=str(path), path=h5group, **kw)
+
+        def _pop_serialize_info(data: dict, key: str) -> Optional[types.SerializeInfo]:
+            parent = data
+            if h5name and isinstance(data[h5name], dict):
+                parent = data[h5name]
+
+            prefix = f"@{key}"
+            nprefix = len(prefix)
+            keys = [k for k in parent if k.startswith(prefix)]
+            if not keys:
+                return None
+
+            serialize_info = {k[nprefix:]: parent.pop(k, None) for k in keys}
+            return types.SerializeInfo.deserialize(serialize_info)
+
+        adict = common.post_deserialize(adict, pop_serialize_info=_pop_serialize_info)
+
         if h5name:
             return adict[h5name]
         return adict

@@ -27,7 +27,7 @@ def assert_storage(tmp_path, expected):
     lst = []
     for filename in find_files(tmp_path, ".json"):
         with open(filename, "r") as fileobj:
-            lst.append(json.load(fileobj))
+            lst.append(json.load(fileobj)["data"])
     for v in lst:
         if isinstance(v, dict):
             v.pop("__traceback__", None)

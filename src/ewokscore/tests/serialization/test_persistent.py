@@ -1,9 +1,14 @@
 import json
 import sys
 
+from silx.io.dictdump import h5todict
+
 from ...persistence.json import JsonProxy
+from ...persistence.nexus import NexusProxy
 from ...persistence.proxy import DataUri
 from . import example_data
+from .example_data import compare_hdf5
+from .example_data import compare_json
 
 
 def test_json_data_persistence(tmp_path):
@@ -18,8 +23,27 @@ def test_json_data_persistence(tmp_path):
 
     proxy = JsonProxy(uri=uri)
     proxy.dump(original_data)
-    python_data = proxy.load()
-    example_data.assert_python_data(python_data, original_data)
+    deserialized_data = proxy.load()
+    compare_json.assert_deserialized_data(deserialized_data, original_data)
 
-    raw_data = json.loads(path.read_text(encoding="utf-8"))
-    example_data.assert_raw_data(raw_data, original_data)
+    serialized_data = json.loads(path.read_text(encoding="utf-8"))
+    compare_json.assert_serialized_data(serialized_data["data"], original_data)
+
+
+def test_nexus_data_persistence(tmp_path):
+    path = tmp_path / "data.h5"
+    if sys.platform == "win32":
+        prefix = "nexus:///"
+    else:
+        prefix = "nexus://"
+    uri = DataUri(f"{prefix}{path}::/result", None)
+
+    original_data = example_data.generate_example_data()
+    proxy = NexusProxy(uri=uri)
+    proxy.dump(original_data)
+
+    deserialized_data = proxy.load()
+    compare_hdf5.assert_deserialized_data(deserialized_data, original_data)
+
+    serialized_data = h5todict(path, "/result", include_attributes=False)
+    compare_hdf5.assert_serialized_data(serialized_data, original_data)

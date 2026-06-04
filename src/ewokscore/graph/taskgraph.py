@@ -8,6 +8,7 @@ import networkx
 from ewoksutils.import_utils import qualname
 
 from .. import inittask
+from .._serialization.common.utils.types import GraphSerializer
 from . import analysis
 from . import serialize
 from .compare import graphs_are_equal
@@ -131,17 +132,24 @@ class TaskGraph:
         self,
         destination: Optional[Union[str, Path]] = None,
         representation: Optional[Union[serialize.GraphRepresentation, str]] = None,
+        serializer: Optional[Union[GraphSerializer, str]] = None,
         **save_options,
     ) -> Union[str, Path, dict]:
         return serialize.dump(
             self.graph,
             destination=destination,
             representation=representation,
+            serializer=serializer,
             **save_options,
         )
 
-    def serialize(self) -> str:
-        return self.dump(representation=serialize.GraphRepresentation.json_string)
+    def serialize(
+        self, serializer: Optional[Union[GraphSerializer, str]] = None
+    ) -> str:
+        return self.dump(
+            representation=serialize.GraphRepresentation.json_string,
+            serializer=serializer,
+        )
 
     @property
     def is_cyclic(self) -> bool:

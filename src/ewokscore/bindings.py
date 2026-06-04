@@ -5,6 +5,7 @@ from typing import List
 from typing import Optional
 from typing import Union
 
+from ._serialization.common.utils.types import GraphSerializer
 from .events import job_decorator as execute_graph_decorator
 from .graph import TaskGraph
 from .graph import load_graph as _load_graph
@@ -44,11 +45,17 @@ def load_graph(
 
 def save_graph(
     graph: TaskGraph,
-    destination,
+    destination: Optional[Union[str, Path]],
     representation: Optional[Union[GraphRepresentation, str]] = None,
+    serializer: Optional[Union[GraphSerializer, str]] = None,
     **save_options,
 ) -> Union[str, dict]:
-    return graph.dump(destination, representation=representation, **save_options)
+    return graph.dump(
+        destination,
+        representation=representation,
+        serializer=serializer,
+        **save_options,
+    )
 
 
 def convert_graph(
