@@ -24,8 +24,8 @@ class NotebookExecutorTask(
 ):
     NOTEBOOK_ARGUMENT = NOTEBOOK_ARGUMENT
 
-    def _warn_unexpected_inputs(self, unexpected_input_names: Set[str]) -> None:
-        _ = unexpected_input_names
+    def _warn_unexpected_inputs(self, input_names: Set[str]) -> None:
+        pass
 
     def run(self):
         if execute_notebook is None:

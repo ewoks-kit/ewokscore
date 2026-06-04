@@ -137,15 +137,7 @@ class Task(Registered, UniversalHashable, register=False):
                     "Missing inputs", f"positional argument #{i}"
                 )
 
-        # Check unexpected named inputs
-        extra_inputs = input_names - self.input_names()
-
-        # if input is positional argument
-        unexpected_named_inputs = {
-            name for name in extra_inputs if not isinstance(name, int)
-        }
-
-        self._warn_unexpected_inputs(unexpected_named_inputs)
+        self._warn_unexpected_inputs(input_names)
 
         # Init missing optional inputs
         missing_optional = self.optional_input_names() - input_names
@@ -688,13 +680,20 @@ class Task(Registered, UniversalHashable, register=False):
             err_msg = f"{prefix} for ewoks task (id: {node_id!r}, task: {task_identifier!r}): {message}"
         raise exc_class(err_msg) from cause
 
-    def _warn_unexpected_inputs(self, unexpected_input_names: Set[str]) -> None:
-        if not unexpected_input_names:
+    def _warn_unexpected_inputs(self, input_names: Set[str]) -> None:
+        extra_inputs = input_names - self.input_names()
+
+        # if input is positional argument
+        unexpected_named_inputs = {
+            name for name in extra_inputs if not isinstance(name, int)
+        }
+
+        if not unexpected_named_inputs:
             return
 
         warnings.warn(
             f"Unexpected inputs for task {type(self).__name__}: "
-            f"{sorted(unexpected_input_names)}",
+            f"{sorted(unexpected_named_inputs)}",
             UserWarning,
             stacklevel=3,
         )
