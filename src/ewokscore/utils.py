@@ -49,7 +49,7 @@ def build_close_match_report(words: Iterable[str], possibilities: Iterable[str])
     possibilities = list(possibilities)
     error_report = ""
     for word in words:
-        suggestion = suggest_close_match(word, possibilities)
-        if suggestion:
-            error_report += f"\n  @ You provided '{suggestion}'. Did you mean '{word}'?"
+        match_ = suggest_close_match(word, possibilities)
+        if match_:
+            error_report += f"\n  @ You provided '{match_}'. Did you mean '{word}'?"
     return error_report
