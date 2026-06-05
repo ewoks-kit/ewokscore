@@ -74,7 +74,7 @@ def parse_inputs(
 
         if missing:
             error_report = (
-                f"\n Missing required keys {missing} in input item: {input_item}."
+                f"Missing required keys {missing} in input item: {input_item}."
                 + build_close_match_report(missing, input_item.keys())
             )
             raise ValueError(error_report)
