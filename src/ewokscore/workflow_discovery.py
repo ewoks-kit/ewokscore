@@ -29,7 +29,7 @@ def discover_all_workflows(
     )
 
 
-def discover_workflows_from_package_data(
+def discover_tasks_from_modules(
     *fq_names_or_patterns: str,
     workflow_extension: Optional[str] = None,
     raise_import_failure: bool = True,
@@ -66,7 +66,7 @@ def _iter_discover_all_workflows(
         if module_pattern in visited:
             continue
         visited.add(module_pattern)
-        yield from discover_workflows_from_package_data(
+        yield from discover_tasks_from_modules(
             module_pattern,
             workflow_extension=workflow_extension,
             raise_import_failure=raise_import_failure,

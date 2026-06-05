@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for Graph serialization and transparent handling of `Numpy arrays` in both JSON and 
   YAML via pickling.
-- Add workflow discovery from python package data files in analogy to task discovery.
+- Add workflow discovery from python modules in analogy to task discovery from python modules.
   Full qualifier names or patterns can be added to the entry point group `"ewoks.workflows"`
   of any python project.
 - Emit a `TaskInputWarning` if a `Task` class instance received unknown named inputs.
