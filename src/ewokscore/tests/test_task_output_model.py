@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 
 import pytest
+from ewoksutils.exceptions import TaskExecutionError
+from ewoksutils.exceptions import TaskInputError
 from pydantic import BaseModel
+from pydantic import ValidationError
 from pydantic import field_validator
 
 from ..model import BaseOutputModel
@@ -47,9 +50,16 @@ def test_error_if_output_model_used_with_output_names():
 
 
 def test_validation():
-    task = PassThroughTask(inputs={"id": "wrong type"})
-    with pytest.raises(RuntimeError, match=r"id(\s*)Input should be a valid integer"):
-        task.execute()
+    task = PassThroughTask(inputs={"id": 5})  # Valid input
+    task.execute()
+    # Set invalid output type directly to trigger validation error
+    task.outputs.id = "wrong type"
+    with pytest.raises(TaskInputError) as exc_info:
+        task._validate_outputs()
+
+    # The ValidationError is chained as the cause
+    assert isinstance(exc_info.value.__cause__, ValidationError)
+    assert "Input should be a valid integer" in str(exc_info.value.__cause__)
 
 
 def test_default_value():
@@ -121,8 +131,11 @@ class PassThroughSubTask(
 
 def test_subclass_validation():
     task = PassThroughSubTask(inputs={"id": 5})
-    with pytest.raises(RuntimeError, match=r"1 validation error for SuperUser\nage"):
+    with pytest.raises(TaskExecutionError) as exc_info:
         task.execute()
+
+    assert isinstance(exc_info.value.__cause__, TaskInputError)
+    assert "age" in str(exc_info.value.__cause__)
 
 
 def test_subclass():

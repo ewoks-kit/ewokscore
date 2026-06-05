@@ -1,9 +1,9 @@
 import re
 
 import pytest
+from ewoksutils.exceptions import TaskInputWarning
 
 from ..bindings import execute_graph
-from ..task import TaskInputWarning
 
 
 def test_matcher_input_typo():

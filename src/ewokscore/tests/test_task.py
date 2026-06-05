@@ -6,10 +6,10 @@ from glob import glob
 from pathlib import Path
 
 import pytest
+from ewoksutils.exceptions import TaskInputError
+from ewoksutils.exceptions import TaskInputWarning
 
 from ..task import Task
-from ..task import TaskInputError
-from ..task import TaskInputWarning
 from .examples.tasks.sumtask import SumTask
 
 
@@ -171,13 +171,13 @@ def test_task_unexpected_input_warning_ignores_positional_inputs():
 
 def test_init_subclass_rejects_input_name_typo():
     # test that the wrong name appears in the error statement
-    with pytest.raises(TypeError, match=re.escape("input")):
+    with pytest.raises(TaskInputError, match=re.escape("input")):
 
         class Bad1(Task, input=["reason"]):
             pass
 
     # test that the correct name appears somewhere in the error statement
-    with pytest.raises(TypeError, match=re.escape("input_names")):
+    with pytest.raises(TaskInputError, match=re.escape("input_names")):
 
         class Bad2(Task, input=["reason"]):
             pass
@@ -185,13 +185,13 @@ def test_init_subclass_rejects_input_name_typo():
 
 def test_init_subclass_rejects_optional_input_names_typo():
     # test that the wrong name appears in the error statement
-    with pytest.raises(TypeError, match=re.escape("optinal_input_names")):
+    with pytest.raises(TaskInputError, match=re.escape("optinal_input_names")):
 
         class Bad1(Task, optinal_input_names=["reason"]):
             pass
 
     # test that the correct name appears somewhere in the error statement
-    with pytest.raises(TypeError, match=re.escape("optinal_input_names")):
+    with pytest.raises(TaskInputError, match=re.escape("optinal_input_names")):
 
         class Bad2(Task, optinal_input_names=["reason"]):
             pass
@@ -199,13 +199,13 @@ def test_init_subclass_rejects_optional_input_names_typo():
 
 def test_init_subclass_rejects_output_name_typo():
     # test that the wrong name appears in the error statement
-    with pytest.raises(TypeError, match="output_name"):
+    with pytest.raises(TaskInputError, match="output_name"):
 
         class Bad1(Task, output_name=["reason"]):
             pass
 
     # test that the correct name appears in the error statement
-    with pytest.raises(TypeError, match="output_names"):
+    with pytest.raises(TaskInputError, match="output_names"):
 
         class Bad2(Task, output_name=["reason"]):
             pass
