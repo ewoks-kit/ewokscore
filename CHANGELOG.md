@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `GraphSerializer.json`: explicit serialization like python's `json` module does
   - `GraphSerializer.json_pickle` (default for `JsonProxy`): preserve JSON type, pickle others types
   - `GraphSerializer.hdf5_pickle` (default for `NexusProxy`): preserve JSON+numpy type, pickle others types
+- Add new field `inputs` to the spec
+
 
 ### Fixed
 

@@ -3,7 +3,25 @@ from . import graph
 
 @graph
 def demo():
-    graph = {"id": "demo", "label": "demo", "schema_version": "1.1"}
+    graph = {
+        "id": "demo",
+        "label": "demo",
+        "schema_version": "1.2",
+        "inputs": {
+            "properties": {
+                "task0a": {
+                    "type": "number",
+                    "__ewoks__": {"name": "a", "id": "task0"},
+                },
+                "task0b": {
+                    "type": "number",
+                    "default": 0,
+                    "__ewoks__": {"name": "b", "id": 2},
+                },
+            },
+            "required": ["task0a"],
+        },
+    }
 
     sumtask = "ewokscore.tests.examples.tasks.sumtask.SumTask"
     sumlist = "ewokscore.tests.examples.tasks.sumlist.SumList"
@@ -120,7 +138,11 @@ def demo():
         },
     ]
 
-    taskgraph = {"graph": graph, "links": links, "nodes": nodes}
+    taskgraph = {
+        "graph": graph,
+        "links": links,
+        "nodes": nodes,
+    }
 
     expected_results = {
         "task0": {"sum": 3},

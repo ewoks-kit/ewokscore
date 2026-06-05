@@ -8,6 +8,7 @@ from packaging.version import parse as parse_version
 
 from .metadata import SchemaMetadata
 from .update import from_v1_0_to_v1_1
+from .update import from_v1_1_to_v1_2
 from .update import v0_update
 
 _VERSIONS = None
@@ -21,7 +22,8 @@ def get_versions() -> Dict[Version, SchemaMetadata]:
     _VERSIONS = {
         parse_version("0.0"): SchemaMetadata(("0.0", "0.0.1"), v0_update),
         parse_version("1.0"): SchemaMetadata(("0.1.0-rc", None), from_v1_0_to_v1_1),
-        parse_version("1.1"): SchemaMetadata(("0.1.0-rc", None), None),
+        parse_version("1.1"): SchemaMetadata(("0.1.0-rc", None), from_v1_1_to_v1_2),
+        parse_version("1.2"): SchemaMetadata(("0.1.0-rc1", None), None),
     }
     return _VERSIONS
 

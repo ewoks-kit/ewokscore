@@ -1,5 +1,6 @@
 import sys
 from typing import Any
+from typing import Dict
 from typing import Hashable
 from typing import Literal
 from typing import Optional
@@ -17,8 +18,12 @@ else:
     from typing import Self
 
 
+from jsonschema import Draft7Validator
+from jsonschema.exceptions import SchemaError
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import ValidationError
+from pydantic import field_validator
 from pydantic import model_validator
 
 from . import LATEST_VERSION
@@ -109,6 +114,14 @@ EwoksNode = Annotated[
 ]
 
 
+class EwoksWorkflowInput(BaseModel):
+    name: str
+    task_identifier: Optional[str] = None
+    id: Optional[NodeId] = None
+    label: Optional[str] = None
+    all_nodes: bool = False
+
+
 class EwoksNodeAlias(EwoksNodeAttributes):
     id: NodeId
     node: NodeId
@@ -123,6 +136,23 @@ class EwoksGraphAttributes(BaseModel):
     requirements: Sequence[str] = []
     input_nodes: Sequence[EwoksNodeAlias] = []
     output_nodes: Sequence[EwoksNodeAlias] = []
+    inputs: Dict[str, Any] = {}
+
+    @field_validator("inputs")
+    @classmethod
+    def validate_schema(cls, inputs):
+        try:
+            Draft7Validator.check_schema(inputs)
+        except SchemaError:
+            raise
+
+        properties = inputs.get("properties", {})
+        for input in properties.values():
+            try:
+                EwoksWorkflowInput(**input.get("__ewoks__"))
+            except ValidationError:
+                raise
+        return inputs
 
 
 class EwoksGraph(BaseModel):

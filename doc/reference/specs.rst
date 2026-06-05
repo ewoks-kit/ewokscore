@@ -49,7 +49,8 @@ Graph attributes
 ^^^^^^^^^^^^^^^^
 * *id* (optional): graph identifier unique to a database of graphs (Default: "notspecified")
 * *label* (optional): non-unique label to be used when identifying a graph for human consumption
-* *schema_version* (optional): the schema version of this graph representation (Default: "1.0")
+* *schema_version* (optional): the schema version of this graph representation (Default: "1.2")
+* *inputs* (optional): inputs of the workflow itself. Must be a JSON schema representing a subset of the node inputs.
 * *requirements* (optional): a list of projects that should be present in the Python environment for the 
   graph to be executed.
 * *input_nodes* (optional): nodes that are expected to be used as link targets when the graph
