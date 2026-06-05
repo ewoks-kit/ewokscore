@@ -30,7 +30,7 @@ class GraphRepresentation(StrEnum):
     json_dict = "json_dict"  # python types
     json_string = "json_string"  # only JSON types
     json_module = "json_module"  # only JSON types
-    yaml = "yaml"  # only JSON types
+    yaml = "yaml"  # only yaml types
     yaml_module = "yaml_module"  # only yaml types
     test_core = "test_core"  # python types
 
