@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Full qualifier names or patterns can be added to the entry point group `"ewoks.workflows"`
   of any python project.
 - Emit a `TaskInputWarning` if a `Task` class instance received unknown named inputs.
+- Add "serializer" argument to `save_graph`.
+- Serialization before final serialization (`json`, `yaml`, `h5py`, ...):
+  - `None` (default for `save_graph`): no additional serialization apart from the explicit mapping
+  - `GraphSerializer.json`: explicit serialization like python's `json` module does
+  - `GraphSerializer.json_pickle` (default for `JsonProxy`): preserve JSON type, pickle others types
+  - `GraphSerializer.hdf5_pickle` (default for `NexusProxy`): preserve JSON+numpy type, pickle others types
 
 ### Fixed
 
@@ -27,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Graphs which are python package-data files are ensured to have the python full qualifier name as graph id.
+- `JsonProxy`: use `GraphSerializer.json_pickle` serialization by default.
+- `NexusProxy`: use `GraphSerializer.hdf5_pickle` serialization by default.
 
 ## [5.0.0rc1] - 2026-04-13
 

@@ -1,31 +1,38 @@
-import enum
 import importlib
 import logging
 import os
 from collections.abc import Mapping
-from functools import lru_cache
 from pathlib import Path
-from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
 
+try:
+    from enum import StrEnum
+except ImportError:
+    from backports.strenum import StrEnum
 import networkx
 from ewoksutils.path_utils import makedirs_from_filename
 from packaging.version import Version
 
 from .. import node
-from .._serialization import common
 from .._serialization import json
 from .._serialization import yaml
+from .._serialization.common.utils import types
 from .models import GraphSource
 from .schema import normalize_schema_version
 
 logger = logging.getLogger(__name__)
 
-GraphRepresentation = enum.Enum(
-    "GraphRepresentation", "json json_dict json_string json_module yaml test_core"
-)
+
+class GraphRepresentation(StrEnum):
+    json = "json"  # only JSON types (file)
+    json_dict = "json_dict"  # python types
+    json_string = "json_string"  # only JSON types
+    json_module = "json_module"  # only JSON types
+    yaml = "yaml"  # only JSON types
+    test_core = "test_core"  # python types
+
 
 network_x_version = Version(networkx.__version__)
 
@@ -34,11 +41,12 @@ def dump(
     graph: networkx.DiGraph,
     destination: Optional[Union[str, Path]] = None,
     representation: Optional[Union[GraphRepresentation, str]] = None,
+    serializer: Optional[Union[types.GraphSerializer, str]] = None,
     **save_options,
 ) -> Union[str, Path, dict]:
     """From runtime to persistent representation"""
     if isinstance(representation, str):
-        representation = GraphRepresentation.__members__[representation]
+        representation = GraphRepresentation(representation)
     if representation is None:
         if isinstance(destination, (str, Path)):
             filename = str(destination).lower()
@@ -55,35 +63,46 @@ def dump(
     if representation == GraphRepresentation.json:
         if destination is None:
             raise TypeError("Destination should be specified when dumping to json")
-        dictrepr = dump(graph)
+        dictrepr = dump(graph, representation=GraphRepresentation.json_dict)
+
         makedirs_from_filename(destination)
         save_options.setdefault("indent", 2)
         with open(destination, mode="w") as f:
             json.dump(
                 dictrepr,
                 f,
+                item_serializers=_ITEM_SERIALIZERS,
+                serializer=serializer,
+                insert_serialize_info=_insert_serialize_info,
                 **save_options,
-                custom_rules=_get_custom_serialization_rules(),
             )
         return destination
 
     if representation == GraphRepresentation.json_string:
-        dictrepr = dump(graph)
+        dictrepr = dump(graph, representation=GraphRepresentation.json_dict)
+
         return json.dumps(
-            dictrepr, **save_options, custom_rules=_get_custom_serialization_rules()
+            dictrepr,
+            item_serializers=_ITEM_SERIALIZERS,
+            serializer=serializer,
+            insert_serialize_info=_insert_serialize_info,
+            **save_options,
         )
 
     if representation == GraphRepresentation.yaml:
         if destination is None:
             raise TypeError("Destination should be specified when dumping to yaml")
-        dictrepr = dump(graph)
+        dictrepr = dump(graph, representation=GraphRepresentation.json_dict)
+
         makedirs_from_filename(destination)
         with open(destination, mode="w") as f:
             yaml.dump(
                 dictrepr,
                 f,
+                item_serializers=_ITEM_SERIALIZERS,
+                serializer=serializer,
+                insert_serialize_info=_insert_serialize_info,
                 **save_options,
-                custom_rules=_get_custom_serialization_rules(),
             )
         return destination
 
@@ -92,9 +111,14 @@ def dump(
             raise TypeError("Destination should be specified when dumping to json")
         package, _, file = str(destination).rpartition(".")
         assert package, f"No package provided when saving graph to '{destination}'"
+
         destination = os.path.join(_package_path(package), f"{file}.json")
         return dump(
-            graph, destination=destination, representation="json", **save_options
+            graph,
+            destination=destination,
+            representation=GraphRepresentation.json,
+            serializer=serializer,
+            **save_options,
         )
 
     if representation == GraphRepresentation.test_core:
@@ -111,7 +135,7 @@ def load(
 ) -> networkx.DiGraph:
     """From persistent to runtime representation"""
     if isinstance(representation, str):
-        representation = GraphRepresentation.__members__[representation]
+        representation = GraphRepresentation(representation)
 
     if representation is None:
         if isinstance(source, Mapping):
@@ -138,33 +162,45 @@ def load(
     elif hasattr(source, "graph") and isinstance(source.graph, networkx.Graph):
         graph = source.graph
     elif representation == GraphRepresentation.json_dict:
-        graph_dict = common.post_deserialize(
-            source, custom_rules=_get_custom_deserialization_rules()
-        )
-        graph = _dict_to_networkx(graph_dict)
+        graph = _dict_to_networkx(source)
     elif representation == GraphRepresentation.json:
         graph_dict = _read_json_file(source, root_dir=root_dir, root_module=root_module)
-        graph = _dict_to_networkx(graph_dict)
+        return load(
+            graph_dict,
+            representation=GraphRepresentation.json_dict,
+            root_dir=root_dir,
+            root_module=root_module,
+        )
     elif representation == GraphRepresentation.json_string:
         graph_dict = _json_load(source)
-        graph = _dict_to_networkx(graph_dict)
+        return load(
+            graph_dict,
+            representation=GraphRepresentation.json_dict,
+            root_dir=root_dir,
+            root_module=root_module,
+        )
     elif representation == GraphRepresentation.yaml:
         graph_dict = _read_yaml_file(source, root_dir=root_dir, root_module=root_module)
-        graph = _dict_to_networkx(graph_dict)
+        return load(
+            graph_dict,
+            representation=GraphRepresentation.json_dict,
+            root_dir=root_dir,
+            root_module=root_module,
+        )
     elif representation == GraphRepresentation.json_module:
         package, _, source = source.rpartition(".")
         if package:
             source = os.path.join(_package_path(package), source)
         return load(
             source,
-            representation="json",
+            representation=GraphRepresentation.json,
             root_dir=root_dir,
             root_module=root_module,
         )
     elif representation == GraphRepresentation.test_core:
         from ..tests.examples.graphs import get_graph
 
-        return load(get_graph(source)[0], representation="json_dict")
+        return load(get_graph(source)[0], GraphRepresentation.json_dict)
     else:
         raise TypeError(representation, type(representation))
 
@@ -218,12 +254,12 @@ def _read_any_file(
 
     try:
         return _overwrite_graph_id(_json_load(content), graph_id)
-    except common.EwoksDecodeError:
+    except types.EwoksDecodeError:
         pass
 
     try:
         return _overwrite_graph_id(_yaml_load(content), graph_id)
-    except common.EwoksDecodeError:
+    except types.EwoksDecodeError:
         pass
 
     raise ValueError(f"File format of '{filename}' not supported")
@@ -231,9 +267,17 @@ def _read_any_file(
 
 def _json_load(content) -> dict:
     if isinstance(content, str):
-        result = json.loads(content, custom_rules=_get_custom_deserialization_rules())
+        result = json.loads(
+            content,
+            item_deserializers=_ITEM_DESERIALIZERS,
+            pop_serialize_info=_pop_serialize_info,
+        )
     else:
-        result = json.load(content, custom_rules=_get_custom_deserialization_rules())
+        result = json.load(
+            content,
+            item_deserializers=_ITEM_DESERIALIZERS,
+            pop_serialize_info=_pop_serialize_info,
+        )
     if not isinstance(result, Mapping):
         raise TypeError("graph must be a dictionary")
     return result
@@ -241,9 +285,17 @@ def _json_load(content) -> dict:
 
 def _yaml_load(content) -> dict:
     if isinstance(content, str):
-        result = yaml.loads(content, custom_rules=_get_custom_deserialization_rules())
+        result = yaml.loads(
+            content,
+            item_deserializers=_ITEM_DESERIALIZERS,
+            pop_serialize_info=_pop_serialize_info,
+        )
     else:
-        result = yaml.load(content, custom_rules=_get_custom_deserialization_rules())
+        result = yaml.load(
+            content,
+            item_deserializers=_ITEM_DESERIALIZERS,
+            pop_serialize_info=_pop_serialize_info,
+        )
     if not isinstance(result, Mapping):
         raise TypeError("graph must be a dictionary")
     return result
@@ -348,35 +400,46 @@ def _networkx_to_dict(graph: networkx.DiGraph) -> dict:
     return graph_dict
 
 
-@lru_cache
-def _get_custom_serialization_rules() -> List[common.RuleType]:
-    return [
-        (("nodes", "*", "id"), node.as_json_node_id_type),
-        (("nodes", "*", "node"), node.as_json_node_id_type),
-        (("nodes", "*", "sub_node"), node.as_json_node_id_type),
-        (("links", "*", "source"), node.as_json_node_id_type),
-        (("links", "*", "target"), node.as_json_node_id_type),
-        (("links", "*", "sub_source"), node.as_json_node_id_type),
-        (("links", "*", "sub_target"), node.as_json_node_id_type),
-        (("subgraphs", "*", "id"), node.as_json_node_id_type),
-        (("subgraphs", "*", "nodes", "*", "id"), node.as_json_node_id_type),
-        (("subgraphs", "*", "links", "*", "source"), node.as_json_node_id_type),
-        (("subgraphs", "*", "links", "*", "target"), node.as_json_node_id_type),
-    ]
+def _insert_serialize_info(
+    graph: dict, key: str, serialize_info: types.SerializeInfo
+) -> dict:
+    graph[key] = serialize_info.serialize()
+    return graph
 
 
-@lru_cache
-def _get_custom_deserialization_rules() -> List[common.RuleType]:
-    return [
-        (("nodes", "*", "id"), node.as_node_id_type),
-        (("nodes", "*", "node"), node.as_node_id_type),
-        (("nodes", "*", "sub_node"), node.as_node_id_type),
-        (("links", "*", "source"), node.as_node_id_type),
-        (("links", "*", "target"), node.as_node_id_type),
-        (("links", "*", "sub_source"), node.as_node_id_type),
-        (("links", "*", "sub_target"), node.as_node_id_type),
-        (("subgraphs", "*", "id"), node.as_node_id_type),
-        (("subgraphs", "*", "nodes", "*", "id"), node.as_node_id_type),
-        (("subgraphs", "*", "links", "*", "source"), node.as_node_id_type),
-        (("subgraphs", "*", "links", "*", "target"), node.as_node_id_type),
-    ]
+def _pop_serialize_info(graph: dict, key: str) -> Optional[types.SerializeInfo]:
+    serialize_info = graph.get(key)
+    if serialize_info:
+        return types.SerializeInfo.deserialize(serialize_info)
+
+
+_ITEM_SERIALIZERS = {
+    ("graph", "input_nodes", "*", "id"): node.as_json_node_id_type,
+    ("graph", "input_nodes", "*", "node"): node.as_json_node_id_type,
+    ("graph", "input_nodes", "*", "sub_node"): node.as_json_node_id_type,
+    ("graph", "output_nodes", "*", "id"): node.as_json_node_id_type,
+    ("graph", "output_nodes", "*", "node"): node.as_json_node_id_type,
+    ("graph", "output_nodes", "*", "sub_node"): node.as_json_node_id_type,
+    ("nodes", "*", "id"): node.as_json_node_id_type,
+    ("nodes", "*", "node"): node.as_json_node_id_type,
+    ("links", "*", "source"): node.as_json_node_id_type,
+    ("links", "*", "target"): node.as_json_node_id_type,
+    ("links", "*", "sub_source"): node.as_json_node_id_type,
+    ("links", "*", "sub_target"): node.as_json_node_id_type,
+}
+
+
+_ITEM_DESERIALIZERS = {
+    ("graph", "input_nodes", "*", "id"): node.as_node_id_type,
+    ("graph", "input_nodes", "*", "node"): node.as_node_id_type,
+    ("graph", "input_nodes", "*", "sub_node"): node.as_node_id_type,
+    ("graph", "output_nodes", "*", "id"): node.as_node_id_type,
+    ("graph", "output_nodes", "*", "node"): node.as_node_id_type,
+    ("graph", "output_nodes", "*", "sub_node"): node.as_node_id_type,
+    ("nodes", "*", "id"): node.as_node_id_type,
+    ("nodes", "*", "node"): node.as_node_id_type,
+    ("links", "*", "source"): node.as_node_id_type,
+    ("links", "*", "target"): node.as_node_id_type,
+    ("links", "*", "sub_source"): node.as_node_id_type,
+    ("links", "*", "sub_target"): node.as_node_id_type,
+}

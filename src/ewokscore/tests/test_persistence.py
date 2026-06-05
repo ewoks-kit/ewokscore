@@ -99,7 +99,6 @@ def test_proxy_dump(scheme, full, tmp_path):
     )
     data2 = proxy2.load()
     if scheme == "nexus":
-        data2 = data2.tolist()
         adict = nxtodict(str(proxy2.path))
         assert adict["@NX_class"] == "NXroot"
         if full:
