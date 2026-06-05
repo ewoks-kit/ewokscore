@@ -10,7 +10,7 @@ def test_discover_workflows_from_one_module(workflow_extension):
         "ewokscore.tests.examples.loadtest", workflow_extension
     )
 
-    workflows = workflow_discovery.discover_tasks_from_modules(
+    workflows = workflow_discovery.discover_workflows_from_modules(
         "ewokscore.tests.examples.loadtest.*", workflow_extension=workflow_extension
     )
     assert set(workflows) == set(expected)
@@ -22,7 +22,7 @@ def test_discover_workflows_from_module_pattern(workflow_extension):
         "ewokscore.tests.examples.loadtest", workflow_extension
     )
 
-    workflows = workflow_discovery.discover_tasks_from_modules(
+    workflows = workflow_discovery.discover_workflows_from_modules(
         "ewokscore.tests.ex*.loadtest.*", workflow_extension=workflow_extension
     )
     assert set(workflows) == set(expected)
