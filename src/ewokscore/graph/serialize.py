@@ -213,6 +213,16 @@ def load(
             root_dir=root_dir,
             root_module=root_module,
         )
+    elif representation == GraphRepresentation.yaml_module:
+        package, _, source = source.rpartition(".")
+        if package:
+            source = os.path.join(_package_path(package), source)
+        return load(
+            source,
+            representation=GraphRepresentation.yaml,
+            root_dir=root_dir,
+            root_module=root_module,
+        )
     elif representation == GraphRepresentation.test_core:
         from ..tests.examples.graphs import get_graph
 
