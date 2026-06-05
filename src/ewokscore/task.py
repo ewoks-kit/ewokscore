@@ -40,6 +40,10 @@ class TaskInputError(ValueError):
     pass
 
 
+class TaskInputWarning(UserWarning):
+    pass
+
+
 class Task(Registered, UniversalHashable, register=False):
     """Node in a task Graph with named inputs and outputs.
 
@@ -126,43 +130,49 @@ class Task(Registered, UniversalHashable, register=False):
         """Check inputs without accessing the input values.
         Persisted variables are not loaded.
         """
-        input_names = set(inputs.keys())
-        required_and_optional_inputs = (
-            self.required_input_names() | self.optional_input_names()
-        )
-        non_existing_inputs = input_names - required_and_optional_inputs
+        input_keys = set(inputs.keys())
+        input_names = {
+            key for key in input_keys if isinstance(key, str) and not key.isdigit()
+        }
 
-        # Check required inputs
-        missing_required = self.required_input_names() - input_names
-        if missing_required:
+        # Warn about unexpected named inputs
+        expected_names = self.required_input_names() | self.optional_input_names()
+        unexpected_names = input_names - expected_names
+        if unexpected_names:
+            self._warn_unexpected_inputs(unexpected_names)
+
+        # Warn about potential typo's in named optional inputs
+        missing_optional_names = self.optional_input_names() - input_names
+        if missing_optional_names:
             error_report = build_close_match_report(
-                missing_required, non_existing_inputs
+                missing_optional_names, unexpected_names
+            )
+            if error_report:
+                logger.warning("Possible missing optional inputs:%s", error_report)
+
+        # Raise error when required named inputs are missing
+        missing_required_names = self.required_input_names() - input_names
+        if missing_required_names:
+            error_report = build_close_match_report(
+                missing_required_names, unexpected_names
             )
             self._raise_task_input_error(
-                "Missing inputs", str(list(missing_required)) + error_report
+                "Missing inputs", str(list(missing_required_names)) + error_report
             )
 
-        # Check required positional inputs
-        nrequiredargs = self._N_REQUIRED_POSITIONAL_INPUTS
-        for i in range(nrequiredargs):
-            if i not in inputs and str(i) not in inputs:
+        # Raise error when required positional inputs are missing
+        for i in range(self._N_REQUIRED_POSITIONAL_INPUTS):
+            if i not in input_keys and str(i) not in input_keys:
                 self._raise_task_input_error(
                     "Missing inputs", f"positional argument #{i}"
                 )
 
-        self._warn_unexpected_inputs(input_names)
-
-        # Init missing optional inputs
-        missing_optional = self.optional_input_names() - input_names
-        if missing_optional:
-            error_report = build_close_match_report(
-                missing_optional, non_existing_inputs
-            )
-            if error_report:
-                logger.warning("\n Possible missing optional inputs:" + error_report)
+        # Initialize missing optional inputs
+        if missing_optional_names:
             inputs = dict(inputs)
-            for varname in missing_optional:
+            for varname in missing_optional_names:
                 inputs[varname] = self.MISSING_DATA
+
         return inputs
 
     def _validate_inputs(self) -> None:
@@ -697,21 +707,11 @@ class Task(Registered, UniversalHashable, register=False):
             err_msg = f"{prefix} for ewoks task (id: {node_id!r}, task: {task_identifier!r}): {message}"
         raise exc_class(err_msg) from cause
 
-    def _warn_unexpected_inputs(self, input_names: Set[str]) -> None:
-        extra_inputs = input_names - self.input_names()
-
-        # if input is positional argument
-        unexpected_named_inputs = {
-            name for name in extra_inputs if not isinstance(name, int)
-        }
-
-        if not unexpected_named_inputs:
-            return
-
+    def _warn_unexpected_inputs(self, unexpected_names: Set[str]) -> None:
         warnings.warn(
             f"Unexpected inputs for task {type(self).__name__}: "
-            f"{sorted(unexpected_named_inputs)}",
-            UserWarning,
+            f"{sorted(unexpected_names)}",
+            TaskInputWarning,
             stacklevel=3,
         )
 

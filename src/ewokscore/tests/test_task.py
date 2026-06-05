@@ -9,6 +9,7 @@ import pytest
 
 from ..task import Task
 from ..task import TaskInputError
+from ..task import TaskInputWarning
 from .examples.tasks.sumtask import SumTask
 
 
@@ -47,7 +48,7 @@ def test_task_missing_input():
 
 def test_task_unexpected_input_warning():
     with pytest.warns(
-        UserWarning,
+        TaskInputWarning,
         match=re.escape("Unexpected inputs for task SumTask: ['unknown']"),
     ):
         task = SumTask(inputs={"a": 10, "unknown": 1})

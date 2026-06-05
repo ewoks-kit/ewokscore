@@ -143,7 +143,7 @@ def test_command_task(tmp_path, varinfo):
     task = Task.instantiate(
         "ScriptExecutorTask",
         inputs={
-            0: str(tmp_path),
+            "0": str(tmp_path),
             "_script": "dir",
             "_capture_output": True,
             "_raise_on_error": False,

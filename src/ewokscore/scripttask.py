@@ -92,7 +92,7 @@ class ScriptExecutorTask(
 
     SCRIPT_ARGUMENT = SCRIPT_ARGUMENT
 
-    def _warn_unexpected_inputs(self, input_names: Set[str]) -> None:
+    def _warn_unexpected_inputs(self, unexpected_names: Set[str]) -> None:
         pass
 
     def _get_task_identifier(self, inputs: Mapping) -> str:
