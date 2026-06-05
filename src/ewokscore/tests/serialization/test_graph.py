@@ -53,6 +53,7 @@ def test_graph_discovery_json_module(with_representation):
     )
 
     assert set(ewoksgraph.graph.nodes) == {"node1", ("node2", "subnode1")}
+    assert ewoksgraph.graph.graph["id"] == "ewokscore.tests.examples.loadtest.graph"
 
 
 def _dump_graph_and_subgraph(tmp_path, format, with_ext):
