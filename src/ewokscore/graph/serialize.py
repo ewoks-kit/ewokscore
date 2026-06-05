@@ -172,7 +172,7 @@ def load(
             root_module=root_module,
         )
     elif representation == GraphRepresentation.json_string:
-        graph_dict = _json_load(source)
+        graph_dict = json_load(source)
         return load(
             graph_dict,
             representation=GraphRepresentation.json_dict,
@@ -222,7 +222,7 @@ def _read_json_file(
         possible_extensions=(".json",),
     )
     with open(filename, mode="r") as f:
-        return _overwrite_graph_id(_json_load(f), graph_id)
+        return _overwrite_graph_id(json_load(f), graph_id)
 
 
 def _read_yaml_file(
@@ -253,7 +253,7 @@ def _read_any_file(
         content = f.read()
 
     try:
-        return _overwrite_graph_id(_json_load(content), graph_id)
+        return _overwrite_graph_id(json_load(content), graph_id)
     except types.EwoksDecodeError:
         pass
 
@@ -265,7 +265,7 @@ def _read_any_file(
     raise ValueError(f"File format of '{filename}' not supported")
 
 
-def _json_load(content) -> dict:
+def json_load(content) -> dict:
     if isinstance(content, str):
         result = json.loads(
             content,
