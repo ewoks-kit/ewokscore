@@ -31,6 +31,7 @@ class GraphRepresentation(StrEnum):
     json_string = "json_string"  # only JSON types
     json_module = "json_module"  # only JSON types
     yaml = "yaml"  # only JSON types
+    yaml_module = "yaml_module"  # only yaml types
     test_core = "test_core"  # python types
 
 
@@ -117,6 +118,21 @@ def dump(
             graph,
             destination=destination,
             representation=GraphRepresentation.json,
+            serializer=serializer,
+            **save_options,
+        )
+
+    if representation == GraphRepresentation.yaml_module:
+        if destination is None:
+            raise TypeError("Destination should be specified when dumping to yaml")
+        package, _, file = str(destination).rpartition(".")
+        assert package, f"No package provided when saving graph to '{destination}'"
+
+        destination = os.path.join(_package_path(package), f"{file}.yaml")
+        return dump(
+            graph,
+            destination=destination,
+            representation=GraphRepresentation.yaml,
             serializer=serializer,
             **save_options,
         )
