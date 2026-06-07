@@ -30,7 +30,8 @@ class GraphRepresentation(StrEnum):
     json_dict = "json_dict"  # python types
     json_string = "json_string"  # only JSON types
     json_module = "json_module"  # only JSON types
-    yaml = "yaml"  # only JSON types
+    yaml = "yaml"  # only yaml types
+    yaml_module = "yaml_module"  # only yaml types
     test_core = "test_core"  # python types
 
 
@@ -121,6 +122,21 @@ def dump(
             **save_options,
         )
 
+    if representation == GraphRepresentation.yaml_module:
+        if destination is None:
+            raise TypeError("Destination should be specified when dumping to yaml")
+        package, _, file = str(destination).rpartition(".")
+        assert package, f"No package provided when saving graph to '{destination}'"
+
+        destination = os.path.join(_package_path(package), f"{file}.yaml")
+        return dump(
+            graph,
+            destination=destination,
+            representation=GraphRepresentation.yaml,
+            serializer=serializer,
+            **save_options,
+        )
+
     if representation == GraphRepresentation.test_core:
         raise TypeError("'test_core' workflows representations cannot be saved")
 
@@ -194,6 +210,16 @@ def load(
         return load(
             source,
             representation=GraphRepresentation.json,
+            root_dir=root_dir,
+            root_module=root_module,
+        )
+    elif representation == GraphRepresentation.yaml_module:
+        package, _, source = source.rpartition(".")
+        if package:
+            source = os.path.join(_package_path(package), source)
+        return load(
+            source,
+            representation=GraphRepresentation.yaml,
             root_dir=root_dir,
             root_module=root_module,
         )
