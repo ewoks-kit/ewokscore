@@ -1,7 +1,7 @@
 Loading and saving workflows
 ============================
 
-This tutorial uses a workflow with one node that passes an object
+This tutorial uses a workflow with a single node passing through an object:
 
 .. code-block:: python
 
@@ -58,7 +58,8 @@ Workflow representations
 ------------------------
 
 In short, `convert_graph` allows converting different workflow representations,
-either in file or memory (dictionary, string). The representation can be provided
+either in file or as a Python object in memory (dictionary, string, `TaskGraph`
+from ewokscore, `Graph` from networkx). The representation can be provided
 explicitly when automatic inference fails
 
 .. code-block:: python

@@ -1,7 +1,7 @@
 Task output caching
 ===================
 
-This tutorial uses a workflow with one node that passes an object
+This tutorial uses a workflow with a single node passing through an object:
 
 .. code-block:: python
 
