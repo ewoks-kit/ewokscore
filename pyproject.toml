@@ -23,7 +23,7 @@ dependencies = [
     "pyyaml >=5.1",
     "h5py >=2.8",
     "packaging",
-    "ewoksutils >=1.9.1",
+    "ewoksutils >=1.10.0rc1"
     "importlib_metadata;python_version < '3.9'",
     "pydantic >= 2",
     "typing_extensions;python_version < '3.11'",
