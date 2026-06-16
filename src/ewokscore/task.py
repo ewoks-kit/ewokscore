@@ -19,6 +19,10 @@ from typing import Type
 from typing import Union
 
 from ewoksutils.deprecation_utils import deprecated
+from ewoksutils.exceptions import TaskExecutionError
+from ewoksutils.exceptions import TaskInputError
+from ewoksutils.exceptions import TaskInputWarning
+from pydantic import ValidationError
 
 from . import events
 from . import missing_data
@@ -34,14 +38,6 @@ from .variable import VariableContainerMissingNamespace
 from .variable import VariableContainerNamespace
 
 logger = logging.getLogger(__name__)
-
-
-class TaskInputError(ValueError):
-    pass
-
-
-class TaskInputWarning(UserWarning):
-    pass
 
 
 class Task(Registered, UniversalHashable, register=False):
@@ -77,7 +73,9 @@ class Task(Registered, UniversalHashable, register=False):
         if inputs is None:
             inputs = dict()
         elif not isinstance(inputs, Mapping):
-            raise TypeError(inputs, type(inputs))
+            raise TaskInputError(
+                f"Task inputs must be a Mapping (dict), got {type(inputs).__name__}"
+            )
 
         # Required outputs for the task to be "done"
         ovars = {varname: self.MISSING_DATA for varname in self._OUTPUT_NAMES}
@@ -186,7 +184,10 @@ class Task(Registered, UniversalHashable, register=False):
                 "Trying to validate inputs while no input model was specified"
             )
         inputs = self.__inputs.get_variable_values()
-        model = self._INPUT_MODEL(**inputs)
+        try:
+            model = self._INPUT_MODEL(**inputs)
+        except ValidationError as e:
+            raise TaskInputError(f"Invalid task inputs: {e}") from e
 
         for name in self._INPUT_MODEL.model_fields.keys():
             self.__inputs[name].value = getattr(model, name)
@@ -202,7 +203,10 @@ class Task(Registered, UniversalHashable, register=False):
                 "Trying to validate outputs while no output model was specified"
             )
         outputs = self.__outputs.get_variable_values()
-        model = self._OUTPUT_MODEL(**outputs)
+        try:
+            model = self._OUTPUT_MODEL(**outputs)
+        except ValidationError as e:
+            raise TaskInputError(f"Invalid task outputs: {e}") from e
 
         for name in self._OUTPUT_MODEL.model_fields.keys():
             self.__outputs[name].value = getattr(model, name)
@@ -238,7 +242,7 @@ class Task(Registered, UniversalHashable, register=False):
             suggestion_msgs = []
             for invalid, suggested in bad_kwargs.items():
                 suggestion_msgs.append(f"Did you mean '{suggested}'? (got '{invalid}')")
-            raise TypeError(
+            raise TaskInputError(
                 f"{subclass.__name__}.__init_subclass__() got invalid keyword argument(s): "
                 f"{', '.join(sorted(bad_kwargs.keys()))}. " + ". ".join(suggestion_msgs)
             )
@@ -259,7 +263,7 @@ class Task(Registered, UniversalHashable, register=False):
         forbidden |= output_names_set & reserved
         if forbidden:
             raise RuntimeError(
-                "The following names cannot be used a variable names: "
+                "The following names cannot be used as variable names: "
                 + str(list(forbidden))
             )
 
@@ -763,7 +767,7 @@ class Task(Registered, UniversalHashable, register=False):
                 self.__exception = e
                 if raise_on_error:
                     self._raise_task_error(
-                        "Execution failed", str(e), RuntimeError, cause=e
+                        "Execution failed", str(e), TaskExecutionError, cause=e
                     )
             finally:
                 if cleanup_references:

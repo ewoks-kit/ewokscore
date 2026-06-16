@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Graphs which are python package-data files are ensured to have the python full qualifier name as graph id.
 - `JsonProxy`: use `GraphSerializer.json_pickle` serialization by default.
 - `NexusProxy`: use `GraphSerializer.hdf5_pickle` serialization by default.
+- Updated task exceptions to utilize `ewoksutils.exceptions`
 
 ## [5.0.0rc1] - 2026-04-13
 

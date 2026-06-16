@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Union
 
 import pytest
+from ewoksutils.exceptions import TaskExecutionError
+from ewoksutils.exceptions import TaskInputError
 from pydantic import BaseModel
 from pydantic import field_validator
 
@@ -10,7 +12,6 @@ from ..missing_data import MissingData
 from ..missing_data import is_missing_data
 from ..model import BaseInputModel
 from ..task import Task
-from ..task import TaskInputError
 from ..variable import Variable
 from .examples.tasks.sumtask import SumTask
 
@@ -53,8 +54,11 @@ def test_validation():
         PassThroughTask(inputs={})
 
     task = PassThroughTask(inputs={"id": "wrong type"})
-    with pytest.raises(RuntimeError, match=r"id(\s*)Input should be a valid integer"):
+    with pytest.raises(TaskExecutionError) as exc_info:
         task.execute()
+
+    assert isinstance(exc_info.value.__cause__, TaskInputError)
+    assert "Input should be a valid integer" in str(exc_info.value.__cause__)
 
 
 def test_default_value():
