@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [5.0.0rc2] - 2026-06-17
+## [5.0.0] - 2026-07-01
 
 ### Added
 
@@ -408,8 +408,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `execute_graph` for naive task scheduling in a single thread.
 - Execution events based on python's logging facility.
 
-[unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0rc1...HEAD
-[5.0.0rc2]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.2...v5.0.0rc2
+[unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...HEAD
+[5.0.0]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.2...v5.0.0
 [4.0.2]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/ewoks-kit/ewokscore/compare/v3.1.0...v4.0.0
