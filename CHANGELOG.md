@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0rc2] - 2026-06-17
+
 ### Added
 
+- Added link attribute `cache_if_optional`: cache inputs from optional links just like required links.
 - Support for Graph serialization and transparent handling of `Numpy arrays` in both JSON and 
   YAML via pickling.
 - Add workflow discovery from python modules in analogy to task discovery from python modules.
@@ -28,24 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Graphs which are python package-data files are ensured to have the python full qualifier name as graph id.
-- `JsonProxy`: use `GraphSerializer.json_pickle` serialization by default.
-- `NexusProxy`: use `GraphSerializer.hdf5_pickle` serialization by default.
-- Updated task exceptions to utilize `ewoksutils.exceptions`
-
-## [5.0.0rc1] - 2026-04-13
-
-### Added
-
-- Added link attribute `cache_if_optional`: cache inputs from optional links just like required links.
-
-### Changed
-
 - `required=False` now forces the link to be explicitly optional. This may change execution order of
   tasks in a workflow (see the updated spec for more info).
 - Upstream nodes with error handlers no longer make a link optional.
 - Define in the Ewoks workflow specification that optional and non-cached inputs are never lost
   when all required inputs are provided at any point in time.
+- Graphs which are python package-data files are ensured to have the python full qualifier name as graph id.
+- `JsonProxy`: use `GraphSerializer.json_pickle` serialization by default.
+- `NexusProxy`: use `GraphSerializer.hdf5_pickle` serialization by default.
+- Updated task exceptions to utilize `ewoksutils.exceptions`
 
 ## [4.0.2] - 2026-03-03
 
@@ -414,7 +408,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Execution events based on python's logging facility.
 
 [unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0rc1...HEAD
-[5.0.0rc1]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.2...v5.0.0rc1
+[5.0.0rc2]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.2...v5.0.0rc2
 [4.0.2]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/ewoks-kit/ewokscore/compare/v3.1.0...v4.0.0
