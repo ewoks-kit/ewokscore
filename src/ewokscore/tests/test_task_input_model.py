@@ -6,7 +6,6 @@ import pytest
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import field_validator
-from typing_extensions import deprecated
 
 from ..missing_data import MISSING_DATA
 from ..missing_data import MissingData
@@ -313,7 +312,7 @@ def test_dataclass_field_stays_dataclass():
 
 
 class DeprecatedInput(BaseInputModel):
-    a: int = Field(2, deprecated=deprecated("deprecated"))
+    a: int = Field(2, deprecated="deprecated")
 
 
 class MyTaskWithDeprecatedInput(Task, input_model=DeprecatedInput):

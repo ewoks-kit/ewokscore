@@ -160,7 +160,10 @@ class Task(Registered, UniversalHashable, register=False):
         model = self._INPUT_MODEL(**inputs)
 
         for name in self._INPUT_MODEL.model_fields.keys():
-            if self.__inputs[name].is_missing():
+            is_deprecated = self._INPUT_MODEL.model_fields[name].deprecated
+            not_supplied = self.__inputs[name].is_missing()
+
+            if is_deprecated and not_supplied:
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore", DeprecationWarning)
                     self.__inputs[name].value = getattr(model, name)
