@@ -190,7 +190,15 @@ class Task(Registered, UniversalHashable, register=False):
             raise TaskInputError(f"Invalid task inputs: {e}") from e
 
         for name in self._INPUT_MODEL.model_fields.keys():
-            self.__inputs[name].value = getattr(model, name)
+            is_deprecated = self._INPUT_MODEL.model_fields[name].deprecated
+            not_supplied = self.__inputs[name].is_missing()
+
+            if is_deprecated and not_supplied:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", DeprecationWarning)
+                    self.__inputs[name].value = getattr(model, name)
+            else:
+                self.__inputs[name].value = getattr(model, name)
 
     def _validate_outputs(self) -> None:
         """Check outputs with accessing the output values.

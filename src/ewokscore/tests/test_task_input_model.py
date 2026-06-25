@@ -1,3 +1,4 @@
+import warnings
 from dataclasses import dataclass
 from typing import Union
 
@@ -5,6 +6,7 @@ import pytest
 from ewoksutils.exceptions import TaskExecutionError
 from ewoksutils.exceptions import TaskInputError
 from pydantic import BaseModel
+from pydantic import Field
 from pydantic import field_validator
 
 from ..missing_data import MISSING_DATA
@@ -311,3 +313,25 @@ def test_dataclass_field_stays_dataclass():
         inputs={"address": Address(city="Grenoble", street="Jean-Jaurès")}
     )
     task.execute()
+
+
+class DeprecatedInput(BaseInputModel):
+    a: int = Field(2, deprecated="deprecated")
+
+
+class MyTaskWithDeprecatedInput(Task, input_model=DeprecatedInput):
+    def run(self):
+        pass
+
+
+def test_no_deprecation_warning_when_deprecated_field_not_provided():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        task = MyTaskWithDeprecatedInput()
+        task.execute()
+
+
+def test_deprecation_warning_when_deprecated_field_is_used_in_task():
+    task = MyTaskWithDeprecatedInput(inputs={"a": 42})
+    with pytest.warns(DeprecationWarning):
+        task.execute()
