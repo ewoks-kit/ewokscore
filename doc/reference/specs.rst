@@ -1,5 +1,6 @@
 Ewoks workflow specification
 ============================
+
 A **workflow** is a directed graph of nodes connected by links.
 
 A **node** is an opaque unit of execution implemented by a task.
@@ -355,3 +356,27 @@ When a task is defined as a *method*, *script* or *notebook*, a class wrapper wi
   and one output argument ("return_code")
 * *notebook*: defined by a `Task` class with one required input argument ("_notebook": path to the notebook)
   and two output arguments ("results" and "output_notebook")
+
+``schema_version`` changelog
+----------------------------
+
+1.2
+^^^
+
+- The schema may now contain internal fields used for (de-)serialization (``__ewoks_serialize__``) 
+- Optional link attribute ``cache_if_optional`` has been added
+- Interpretation of the optional link attribute ``required`` changed:
+
+  - If ``True``, the link is forcibly required (no change)
+  - If not specified, the fact that the link is required depends on the graph analysis (no change)
+  - If ``False``, **the link is forcibly optional** (previously, it was interpreted the same as if not specified) 
+
+1.1
+^^^
+
+- Optional graph attribute ``requirements`` has been added.
+
+1.0
+^^^
+
+First version
