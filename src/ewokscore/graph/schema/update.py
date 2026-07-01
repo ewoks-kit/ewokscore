@@ -19,3 +19,8 @@ def from_v1_1_to_v1_2(graph: networkx.DiGraph) -> None:
      - `required` when set explicitly to `False`, ignoring graph analysis
     """
     graph.graph["schema_version"] = "1.2"
+
+
+def from_v1_2_to_v1_3(graph: networkx.DiGraph) -> None:
+    """v1.3 adds `workflow_input_schema` and `workflow_output_schema`"""
+    graph.graph["schema_version"] = "1.3"

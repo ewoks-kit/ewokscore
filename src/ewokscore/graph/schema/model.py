@@ -22,6 +22,7 @@ from pydantic import Field
 from pydantic import model_validator
 
 from . import LATEST_VERSION
+from .parameter_schema import EwoksParameterSchema
 
 NodeId = Hashable  # Could be recursive: Union[Tuple[str, "Id"], str]
 
@@ -123,6 +124,8 @@ class EwoksGraphAttributes(BaseModel):
     requirements: Sequence[str] = []
     input_nodes: Sequence[EwoksNodeAlias] = []
     output_nodes: Sequence[EwoksNodeAlias] = []
+    workflow_input_schema: Optional[EwoksParameterSchema] = None
+    workflow_output_schema: Optional[EwoksParameterSchema] = None
 
 
 class EwoksGraph(BaseModel):

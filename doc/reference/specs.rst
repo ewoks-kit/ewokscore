@@ -51,6 +51,8 @@ Graph attributes
 * *id* (optional): graph identifier unique to a database of graphs (Default: "notspecified")
 * *label* (optional): non-unique label to be used when identifying a graph for human consumption
 * *schema_version* (optional): the schema version of this graph representation (Default: "1.2")
+* *workflow_input_schema* (optional): A `JSON schema <https://json-schema.org/draft/2020-12>`_ defining the inputs of the workflow, representing a subset of the node inputs.
+* *workflow_output_schema* (optional): A `JSON schema <https://json-schema.org/draft/2020-12>`_ defining the outputs of the workflow, representing a subset of the node outputs.
 * *requirements* (optional): a list of projects that should be present in the Python environment for the 
   graph to be executed.
 * *input_nodes* (optional): nodes that are expected to be used as link targets when the graph
@@ -359,6 +361,11 @@ When a task is defined as a *method*, *script* or *notebook*, a class wrapper wi
 
 ``schema_version`` changelog
 ----------------------------
+
+1.3
+^^^
+
+- Added new graph attributes ``workflow_input_schema`` and ``workflow_output_schema``
 
 1.2
 ^^^
