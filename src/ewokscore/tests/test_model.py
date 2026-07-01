@@ -172,3 +172,23 @@ def test_missing_name_in_ewoks_target():
         match="1 validation error for EwoksGraph\ngraph.workflow_input_schema.properties.a.x_ewoks_targets.0.name\n",
     ):
         EwoksGraph(**graph_dict)
+
+
+def test_wrong_required_inputs():
+    graph_dict = {
+        "graph": {
+            "id": "required",
+            "workflow_input_schema": {
+                "properties": {"a": {"type": "number"}},
+                "required": ["not_a"],
+            },
+        },
+        "nodes": [],
+        "links": [],
+    }
+
+    with pytest.raises(
+        pydantic.ValidationError,
+        match="1 validation error for EwoksGraph\ngraph.workflow_input_schema\n",
+    ):
+        EwoksGraph(**graph_dict)

@@ -49,3 +49,12 @@ class EwoksParameterSchema(BaseModel, extra="forbid"):
         Draft202012Validator.check_schema(schema_dict)
 
         return self
+
+    @model_validator(mode="after")
+    def validate_required(self) -> Self:
+        missing = set(self.required) - self.properties.keys()
+        if missing:
+            raise ValueError(
+                f"'required' contains unknown properties: {sorted(missing)}"
+            )
+        return self
