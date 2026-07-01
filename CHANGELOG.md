@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `JsonProxy`: use `GraphSerializer.json_pickle` serialization by default.
 - `NexusProxy`: use `GraphSerializer.hdf5_pickle` serialization by default.
 - Updated task exceptions to utilize `ewoksutils.exceptions`
+- Ewoks workflow specification version (`schema_version`) was bumped to `1.2`
 
 ## [4.0.2] - 2026-03-03
 

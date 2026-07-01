@@ -4,7 +4,11 @@ from pathlib import Path
 import pytest
 import yaml
 
+from ..._serialization.common.utils.types import GraphSerializer
+from ...bindings import save_graph
 from ...graph import load_graph
+from ..test_examples import get_graph
+from ..test_examples import graph_names
 
 
 @pytest.mark.parametrize("with_ext", [True, False])
@@ -54,6 +58,17 @@ def test_graph_discovery_json_module(with_representation):
 
     assert set(ewoksgraph.graph.nodes) == {"node1", ("node2", "subnode1")}
     assert ewoksgraph.graph.graph["id"] == "ewokscore.tests.examples.loadtest.graph"
+
+
+@pytest.mark.parametrize("graph_name", graph_names())
+@pytest.mark.parametrize("serializer", [None, *GraphSerializer])
+def test_graph_save(tmp_path, graph_name, serializer):
+    graph_dict, _ = get_graph("demo")
+    graph = load_graph(graph_dict, representation="json_dict")
+    save_graph(
+        graph, destination=tmp_path / f"{graph_name}.json", serializer=serializer
+    )
+    assert (tmp_path / f"{graph_name}.json").exists()
 
 
 def _dump_graph_and_subgraph(tmp_path, format, with_ext):
