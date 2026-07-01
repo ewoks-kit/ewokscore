@@ -6,6 +6,8 @@ persistent representation. At runtime, links between nodes are hash links which 
 identifier for each task output. This identifier is used to save and load task outputs from external
 storage (e.g. HDF5).
 
+.. _hash-tree:
+
 Hash links
 ----------
 
