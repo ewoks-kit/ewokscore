@@ -65,6 +65,18 @@ html_theme_options = {
             "url": "https://pypi.org/project/ewokscore",
             "icon": "fa-brands fa-python",
         },
+        {
+            "name": "ewoks",
+            "url": "https://ewoks.readthedocs.io/en/stable",
+            "icon": "https://ewoks.esrf.fr/en/latest/_static/ewoks_for_sphinx_theme.svg",  # This svg contains dark / light mode information
+            "type": "local",
+        },
+        {
+            "name": "matrix",
+            "url": "https://matrix.to/#/#ewoks:helmholtz.cloud",
+            "icon": "https://ewoks.esrf.fr/en/latest/_static/matrix-icon.svg",  # This svg contains dark / light mode information
+            "type": "local",
+        },
     ],
     "logo": {
         "text": docstitle,
