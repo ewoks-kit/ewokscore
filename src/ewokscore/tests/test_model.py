@@ -1,5 +1,6 @@
 import pydantic
 import pytest
+from jsonschema.exceptions import SchemaError
 
 from ewokscore import load_graph
 from ewokscore.graph.schema.model import EwoksGraph
@@ -125,5 +126,49 @@ def test_link_with_datamapping_and_map_all_data():
     with pytest.raises(
         pydantic.ValidationError,
         match="1 validation error for EwoksGraph\nlinks.0\n",
+    ):
+        EwoksGraph(**graph_dict)
+
+
+def test_wrong_type_in_schema():
+    graph_dict = {
+        "graph": {
+            "id": "required",
+            "workflow_input_schema": {"properties": {"a": {"type": "oo"}}},
+        },
+        "nodes": [
+            {
+                "id": "node1",
+                "task_type": "class",
+                "task_identifier": "task1",
+            },
+        ],
+        "links": [],
+    }
+    with pytest.raises(SchemaError):
+        EwoksGraph(**graph_dict)
+
+
+def test_missing_name_in_ewoks_target():
+    graph_dict = {
+        "graph": {
+            "id": "required",
+            "workflow_input_schema": {
+                "properties": {"a": {"type": "number", "x_ewoks_targets": [{}]}}
+            },
+        },
+        "nodes": [
+            {
+                "id": "node1",
+                "task_type": "class",
+                "task_identifier": "task1",
+            },
+        ],
+        "links": [],
+    }
+
+    with pytest.raises(
+        pydantic.ValidationError,
+        match="1 validation error for EwoksGraph\ngraph.workflow_input_schema.properties.a.x_ewoks_targets.0.name\n",
     ):
         EwoksGraph(**graph_dict)

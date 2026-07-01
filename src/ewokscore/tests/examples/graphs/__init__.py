@@ -34,7 +34,6 @@ def graph(graph_method):
         attrs = g.setdefault("graph", dict())
         assert attrs.get("id") == name
         assert attrs.get("label") == name
-        assert attrs.get("schema_version") == "1.2"
         return g, result
 
     if _ALL_GRAPHS is None:

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add new fields `workflow_input_schema` and `workflow_output_schema` to the spec
+
+
 ## [5.0.0] - 2026-07-01
 
 ### Added

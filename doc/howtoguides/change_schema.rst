@@ -40,6 +40,9 @@ The ``SchemaMetadata`` creation needs two arguments:
 - ``ewokscore`` version bounds (stored as a 2-tuple of `Version`_): the first tuple value is the lowest ``ewokscore`` version that supports this schema, the second is the highest version that supports this schema (put ``None`` if there is no upper bound).
 - a function that converts this schema version to the next version. The function can be defined in the ``update`` submodule. If the version is the latest one, put ``None`` since there is no next version.
 
+Update the schema version changelog
+-----------------------------------
 
+Once all the steps above are done, update the :doc:`../reference/specs` page with the new version changes.
 
 .. _Version: https://packaging.pypa.io/en/stable/version.html#packaging.version.Version
