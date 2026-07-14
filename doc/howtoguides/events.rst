@@ -46,13 +46,27 @@ event handler as follows:
 
     class MyHandler(EwoksEventHandlerMixIn, ConnectionHandler):
 
-        def _connect(self, uri:str, param1:int, timeout=1) -> None:
-            self._connection = Connection(uri, param1)
+        def __init__(
+            self,
+            uri:str,
+            param1: int,
+            disconnect_on_error: bool = False,
+        ):
+            super().__init__(disconnect_on_error=disconnect_on_error)
+            self._uri = uri
+            self._param1 = param1
+            self._connection = None
+
+        def _connect(self) -> None:
+            self._connection = Connection(self._uri, self._param1)
             self._fields = send_events.FIELDS
 
         def _disconnect(self) -> None:
             del self._connection
             self._connection = None
+
+        def _connected(self) -> bool:
+            return self._connection is not None
 
         def _send_serialized_record(self, srecord):
             self._connection.send(srecord)
