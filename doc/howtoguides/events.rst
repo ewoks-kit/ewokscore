@@ -33,7 +33,7 @@ Define an Ewoks event handler
 -----------------------------
 
 You can use any handler derived from `logging.Handler` as an Ewoks event handler. For example if you
-have a `Connection` class with a constructor that accepts two arguments, you can define an ewoks
+have a `MyConnection` class with a constructor that accepts two arguments, you can define an ewoks
 event handler as follows:
 
 .. code-block:: python
@@ -58,8 +58,7 @@ event handler as follows:
             self._connection = None
 
         def _connect(self) -> None:
-            self._connection = Connection(self._uri, self._param1)
-            self._fields = send_events.FIELDS
+            self._connection = MyConnection(self._uri, self._param1)
 
         def _disconnect(self) -> None:
             del self._connection
@@ -68,13 +67,16 @@ event handler as follows:
         def _connected(self) -> bool:
             return self._connection is not None
 
-        def _send_serialized_record(self, srecord):
-            self._connection.send(srecord)
-
         def _serialize_record(self, record):
+            """Convert a record to something that can be given to the connection."""
             return {
-                field: self.get_value(record, field, None) for field in self._fields
+                field: self.get_value(record, field, None) for field in self.FIELD_TYPES
             }
+
+        def _send_serialized_record(self, serialized_record):
+            """Send the output from `_serialize_record` to the connection."""
+            self._connection.send(serialized_record)
+
 
 `ConnectionHandler` is an abstract python logging handler which can be used for convenience.
 
