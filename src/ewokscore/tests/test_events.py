@@ -187,7 +187,5 @@ def test_concurrent_send(tmp_path):
         events.cleanup()
 
     with sqlite3_utils.connect(uri, uri=True) as conn:
-        rows = list(
-            sqlite3_utils.select(conn, "ewoks_events", field_types=FIELD_TYPES)
-        )
+        rows = list(sqlite3_utils.select(conn, "ewoks_events", field_types=FIELD_TYPES))
     assert len(rows) == nthreads * nevents_per_thread
