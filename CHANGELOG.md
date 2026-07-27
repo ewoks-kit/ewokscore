@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `Sqlite3EwoksEventHandler`: implement abstract method `_connected()`.
+- Handle `node_id=0` in `get_node_label`.
 
 ## [5.0.0] - 2026-07-01
 
