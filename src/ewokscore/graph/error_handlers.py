@@ -15,12 +15,17 @@ def connect_default_error_handlers(graph: networkx.DiGraph) -> networkx.DiGraph:
         default_error_node = attrs.pop("default_error_node", False)
         if not default_error_node:
             continue
+
         link_attrs = attrs.pop("default_error_attributes", None)
         if not isinstance(link_attrs, Mapping):
             link_attrs = dict()
+        else:
+            link_attrs = dict(link_attrs)
+
         link_attrs["on_error"] = True
         if not (set(link_attrs.keys()) & {"map_all_data", "data_mapping"}):
             link_attrs["map_all_data"] = True
+
         default_error_handlers[node_id] = link_attrs
 
     # All nodes which are not default error handlers
@@ -44,7 +49,8 @@ def connect_default_error_handlers(graph: networkx.DiGraph) -> networkx.DiGraph:
         # Connect to the default error handlers
         for source_id in nodes_without_error_handlers:
             for target_id, link_attrs in default_error_handlers.items():
-                graph.add_edge(source_id, target_id, **link_attrs)
+                if not graph.has_edge(source_id, target_id):
+                    graph.add_edge(source_id, target_id, **link_attrs)
     else:
         # Remove the default error handlers and their pure descendants
         for node_id in default_error_handlers:

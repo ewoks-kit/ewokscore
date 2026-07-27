@@ -280,3 +280,84 @@ def test_remove_default_error_handlers():
     workflow = load_graph(workflow, None).dump(None)
 
     assert not workflow["nodes"]
+
+
+def test_default_error_handlers_required():
+    # Use-case: error handler has a predecessor that feeds the
+    #           error handler with metadata. The error handler
+    #           should not become an error handler of the metadata
+    #           node itself.
+
+    global_error_handler = {
+        "graph": {"id": "test"},
+        "nodes": [
+            {
+                "id": "failing_node",
+                "task_type": "class",
+                "task_identifier": f"{__name__}.MyTask",
+            },
+            {
+                "id": "error_handler",
+                "task_type": "class",
+                "task_identifier": f"{__name__}.ErrorHandler",
+                "default_error_node": True,
+                "default_error_attributes": {"required": True},
+            },
+            {
+                "id": "meta_node",
+                "task_type": "class",
+                "task_identifier": f"{__name__}.ErrorMetadataTask",
+            },
+        ],
+        "links": [
+            {
+                "source": "meta_node",
+                "target": "error_handler",
+                "map_all_data": True,
+                "required": True,
+            },
+        ],
+    }
+
+    explicit_error_handler = {
+        "graph": {"id": "test"},
+        "nodes": [
+            {
+                "id": "failing_node",
+                "task_type": "class",
+                "task_identifier": f"{__name__}.MyTask",
+            },
+            {
+                "id": "error_handler",
+                "task_type": "class",
+                "task_identifier": f"{__name__}.ErrorHandler",
+                "default_error_node": False,
+            },
+            {
+                "id": "meta_node",
+                "task_type": "class",
+                "task_identifier": f"{__name__}.ErrorMetadataTask",
+            },
+        ],
+        "links": [
+            {
+                "source": "meta_node",
+                "target": "error_handler",
+                "map_all_data": True,
+                # NOT "on_error": True,
+                "required": True,
+            },
+            {
+                "source": "failing_node",
+                "target": "error_handler",
+                "on_error": True,
+                "map_all_data": True,
+                "required": True,
+            },
+        ],
+    }
+
+    global_error_handler = load_graph(global_error_handler).dump()
+    explicit_error_handler = load_graph(explicit_error_handler).dump()
+
+    assert global_error_handler == explicit_error_handler
