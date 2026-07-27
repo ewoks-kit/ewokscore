@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Sqlite3EwoksEventHandler`: implement abstract method `_connected()`.
 - Handle `node_id=0` in `get_node_label`.
 - Bug in removing default error handlers that have no predecessor in `connect_default_error_handlers`.
+- A node that is already connected to a global error handler should not be reconnected
+  to the global error handler in `connect_default_error_handlers`.
 
 ## [5.0.0] - 2026-07-01
 
