@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.1.0rc1] - 2026-07-27
+
 ### Added
 
 - Add new fields `workflow_input_schema` and `workflow_output_schema` to the spec.
@@ -421,7 +423,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `execute_graph` for naive task scheduling in a single thread.
 - Execution events based on python's logging facility.
 
-[unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...HEAD
+[unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.1.0rc1...HEAD
+[5.1.0rc1]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...v5.1.0rc1
 [5.0.0]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.2...v5.0.0
 [4.0.2]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.0...v4.0.1
