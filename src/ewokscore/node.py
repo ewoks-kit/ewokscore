@@ -52,7 +52,7 @@ def get_node_label(
         if node_label:
             return node_label
     node_id = get_node_id(node_id, node_attrs)
-    if node_id:
+    if node_id is not None:
         return node_id_as_string(node_id, sep=sep)
     return None
 
