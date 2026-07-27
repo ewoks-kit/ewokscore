@@ -49,7 +49,8 @@ def connect_default_error_handlers(graph: networkx.DiGraph) -> networkx.DiGraph:
         # Remove the default error handlers and their pure descendants
         for node_id in default_error_handlers:
             try:
-                next(graph.predecessors())
+                next(graph.predecessors(node_id))
             except StopIteration:
+                # Default error handler has not predecessors
                 nodes = set(node_pure_descendants(graph, node_id, include_node=True))
                 graph.remove_nodes_from(nodes)
