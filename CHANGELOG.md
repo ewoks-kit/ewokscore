@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add new fields `workflow_input_schema` and `workflow_output_schema` to the spec
+- Add new fields `workflow_input_schema` and `workflow_output_schema` to the spec.
+- `RedisEwoksEventHandler`: add `disconnect_on_error` and `timeout` argument.
 
+### Fixed
+
+- `Sqlite3EwoksEventHandler`: implement abstract method `_connected()`.
 
 ## [5.0.0] - 2026-07-01
 
