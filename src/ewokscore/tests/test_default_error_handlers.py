@@ -262,3 +262,21 @@ def test_default_error_handlers2():
     }
 
     assert expected == links
+
+
+def test_remove_default_error_handlers():
+    workflow = {
+        "graph": {"id": "test"},
+        "nodes": [
+            {
+                "id": 0,
+                "task_type": "class",
+                "task_identifier": "__main__.ErrorHandler",
+                "default_error_node": True,
+            },
+        ],
+    }
+
+    workflow = load_graph(workflow, None).dump(None)
+
+    assert not workflow["nodes"]
