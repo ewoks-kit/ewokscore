@@ -47,7 +47,7 @@ class EwoksNodeAttributes(BaseModel):
     force_start_node: bool = False
     conditions_else_value: bool = False
     default_error_node: bool = False
-    default_error_attributes: Optional["EwoksLink"] = None
+    default_error_attributes: Optional["EwoksLinkAttributes"] = None
 
 
 class EwoksLinkAttributes(BaseModel):
