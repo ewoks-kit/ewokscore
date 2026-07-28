@@ -195,7 +195,7 @@ def _get_node_inputs(graph: networkx.DiGraph) -> List[NodeInput]:
     """
     all_node_inputs = []
     for node_id, node_attrs in graph.nodes.items():
-        node_inputs = _get_all_node_inputs(node_id, node_attrs)
+        node_inputs = get_all_node_inputs(node_id, node_attrs)
         connected_input_names = _get_connected_input_names(graph, node_id)
         all_node_inputs += [
             node_input
@@ -229,12 +229,12 @@ def _get_connected_input_names(
             node_attrs = graph.nodes[predecessor_id]
             task_type = node_attrs["task_type"]
             task_identifier = node_attrs["task_identifier"]
-            output_names = _get_all_task_output_names(task_type, task_identifier)
+            output_names = get_all_task_output_names(task_type, task_identifier)
             connected_input_names.update(output_names)
     return connected_input_names
 
 
-def _get_all_node_inputs(
+def get_all_node_inputs(
     node_id: NodeIdType, node_attrs: Dict[str, Any]
 ) -> List[NodeInput]:
     """
@@ -301,7 +301,7 @@ def _get_all_node_inputs(
     return list(node_input_iterator)
 
 
-def _get_all_task_output_names(task_type: str, task_identifier: str) -> List[str]:
+def get_all_task_output_names(task_type: str, task_identifier: str) -> List[str]:
     """
     Return all the output parameter names of a task.
     """
