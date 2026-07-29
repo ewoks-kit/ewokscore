@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import secrets
+import string
 import time
 import warnings
 from contextlib import ExitStack
@@ -664,7 +665,7 @@ class Task(Registered, UniversalHashable, register=False):
         node_id = re.sub(r"[^A-Za-z0-9]", "_", node_id)
 
         timestamp = int(time.time() * 1000)
-        alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
+        alphabet = string.ascii_lowercase + string.digits
         random_chars = "".join(secrets.choice(alphabet) for _ in range(8))
         filename = f"{timestamp}_{random_chars}_{node_id}.prof"
 
