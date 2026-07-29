@@ -210,8 +210,8 @@ def merge_graphs(
     lst = list()
     if rename_nodes is None:
         rename_nodes = [True] * len(graphs)
-    else:
-        assert len(graphs) == len(rename_nodes)
+    elif len(graphs) != len(rename_nodes):
+        raise ValueError("rename_nodes must have the same length as graphs")
     for g, rename in zip(graphs, rename_nodes):
         g = load_graph(
             g, representation=representation, root_dir=root_dir, root_module=root_module

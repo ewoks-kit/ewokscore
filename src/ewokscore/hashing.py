@@ -1,5 +1,5 @@
 import hashlib
-import random
+import secrets
 from collections.abc import Iterable
 from collections.abc import Mapping
 from collections.abc import Set
@@ -287,7 +287,7 @@ class UniversalHashable(HasUhash):
         return self.MISSING_DATA
 
     def uhash_randomize(self):
-        self.__instance_nonce = random.randint(-1e100, 1e100)
+        self.__instance_nonce = secrets.randbits(128)
 
     def undo_randomize(self):
         self.__instance_nonce = self.__original__instance_nonce

@@ -111,7 +111,10 @@ def dump(
         if destination is None:
             raise TypeError("Destination should be specified when dumping to json")
         package, _, file = str(destination).rpartition(".")
-        assert package, f"No package provided when saving graph to '{destination}'"
+        if not package:
+            raise ValueError(
+                f"No package provided when saving graph to '{destination}'"
+            )
 
         destination = os.path.join(_package_path(package), f"{file}.json")
         return dump(
@@ -126,7 +129,10 @@ def dump(
         if destination is None:
             raise TypeError("Destination should be specified when dumping to yaml")
         package, _, file = str(destination).rpartition(".")
-        assert package, f"No package provided when saving graph to '{destination}'"
+        if not package:
+            raise ValueError(
+                f"No package provided when saving graph to '{destination}'"
+            )
 
         destination = os.path.join(_package_path(package), f"{file}.yaml")
         return dump(

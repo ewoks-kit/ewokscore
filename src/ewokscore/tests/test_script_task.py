@@ -31,7 +31,7 @@ def test_python_script_task(tmp_path, varinfo, shebang, fail):
             f.write(f"#!{sys.executable}\n")
         f.writelines(pyscript)
     if not WIN32:
-        os.chmod(pyscriptname, 0o755)
+        os.chmod(pyscriptname, 0o700)
 
     if fail:
         a = 11
@@ -114,7 +114,7 @@ def test_shell_script_task(tmp_path, varinfo, shebang, fail):
             f.write("#!/bin/bash\n")
         f.writelines(shellscript)
     if not WIN32:
-        os.chmod(filename, 0o755)
+        os.chmod(filename, 0o700)
 
     if fail:
         a = 11

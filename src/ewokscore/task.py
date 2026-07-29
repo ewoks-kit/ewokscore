@@ -1,8 +1,8 @@
 import cProfile
 import logging
 import os
-import random
 import re
+import secrets
 import time
 import warnings
 from contextlib import ExitStack
@@ -664,9 +664,8 @@ class Task(Registered, UniversalHashable, register=False):
         node_id = re.sub(r"[^A-Za-z0-9]", "_", node_id)
 
         timestamp = int(time.time() * 1000)
-        random_chars = "".join(
-            random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=8)
-        )
+        alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
+        random_chars = "".join(secrets.choice(alphabet) for _ in range(8))
         filename = f"{timestamp}_{random_chars}_{node_id}.prof"
 
         return os.path.join(profile_directory, workflow_id, job_id, filename)
