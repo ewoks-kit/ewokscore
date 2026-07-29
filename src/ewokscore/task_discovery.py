@@ -103,7 +103,8 @@ def _iter_discover_tasks_from_modules(
 def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, None]:
     """Yields all task classes registered in the current process."""
     for cls in Task.get_subclasses():
-        assert issubclass(cls, Task)
+        if not issubclass(cls, Task):
+            raise TypeError(f"{cls} is not a subclass of Task")
         module = cls.__module__
         if filter_modules and not any(
             module.startswith(prefix) for prefix in filter_modules

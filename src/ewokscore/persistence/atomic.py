@@ -1,5 +1,5 @@
 import os
-import random
+import secrets
 import string
 from contextlib import contextmanager
 from pathlib import Path
@@ -11,7 +11,8 @@ from silx.io import h5py_utils
 
 
 def random_string(n):
-    return "".join(random.choices(string.ascii_letters + string.digits, k=n))
+    alphabet = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(n))
 
 
 def nonexisting_tmp_file(path: Path) -> Path:

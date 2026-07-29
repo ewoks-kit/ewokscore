@@ -155,7 +155,9 @@ def post_deserialize(obj: Any) -> Any:
 
             if tag == "pickle":
                 t.assign(
-                    pickle.loads(base64.b64decode(current["data"].encode("ascii")))
+                    pickle.loads(  # noqa: S301
+                        base64.b64decode(current["data"].encode("ascii"))
+                    )
                 )
                 continue
 

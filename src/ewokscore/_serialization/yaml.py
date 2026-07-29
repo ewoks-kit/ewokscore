@@ -66,7 +66,7 @@ def loads(
     Deserialize YAML string to Python object.
     """
     try:
-        raw = yaml.load(s, yaml.Loader, **kwargs)
+        raw = yaml.load(s, yaml.Loader, **kwargs)  # noqa: S506
     except (yaml.YAMLError, TypeError) as e:
         raise types.EwoksDecodeError from e
 
@@ -89,7 +89,7 @@ def load(
     Load Python object from YAML file-like object.
     """
     try:
-        raw = yaml.load(fp, yaml.Loader, **kwargs)
+        raw = yaml.load(fp, yaml.Loader, **kwargs)  # noqa: S506
     except (yaml.YAMLError, TypeError) as e:
         raise types.EwoksDecodeError from e
 

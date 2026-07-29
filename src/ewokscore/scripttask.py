@@ -170,7 +170,9 @@ class ScriptExecutorTask(
             else:
                 stderr = subprocess.PIPE
 
-        result = subprocess.run(cmd, cwd=os.getcwd(), stdout=stdout, stderr=stderr)
+        result = subprocess.run(  # noqa: S603
+            cmd, cwd=os.getcwd(), stdout=stdout, stderr=stderr
+        )
         if self.inputs._raise_on_error:
             result.check_returncode()
 

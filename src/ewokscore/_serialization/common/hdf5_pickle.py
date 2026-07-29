@@ -173,7 +173,9 @@ def post_deserialize(obj: Any) -> Any:
                 continue
 
             if tag == "pickle":
-                t.assign(pickle.loads(base64.b64decode(current["data"].item())))
+                t.assign(
+                    pickle.loads(base64.b64decode(current["data"].item()))  # noqa: S301
+                )
                 continue
 
             raise types.EwoksDecodeError(

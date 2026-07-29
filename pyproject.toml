@@ -40,8 +40,16 @@ Changelog = "https://github.com/ewoks-kit/ewokscore/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 notebooks = ["papermill"]
-test = ["ewokscore[notebooks]", "pytest >=7", "matplotlib >=3", "ipykernel"]
-dev = ["ewokscore[test]", "ruff"]
+test = [
+    "ewokscore[notebooks]",
+    "pytest >=7",
+    "matplotlib >=3",
+    "ipykernel",
+]
+dev = [
+    "ewokscore[test]",
+    "ruff>=0.16.0",
+]
 doc = [
     "ewokscore[test]",
     "sphinx >=4.5",
@@ -86,12 +94,21 @@ omit = ["*/tests/*"]
 "test_core" = "ewokscore.engine:CoreWorkflowEngine"
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
-ignore = ["E501"]
+select = [
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "I", # isort
+    "S", # flake8-bandit
+]
+ignore = [
+    "E501", # line too long
+]
 
 [tool.ruff.lint.per-file-ignores]
-# Ignore `S101` (assert used violations) in all test files
-"src/ewokscore/tests/*.py" = ["S101"]
+"src/ewokscore/tests/*.py" = [
+    "S101"  # allow asserts
+]
 
 [tool.ruff.lint.isort]
 force-single-line = true
+known-first-party = ["ewokscore"]

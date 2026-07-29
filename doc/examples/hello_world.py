@@ -1,3 +1,5 @@
+import tempfile
+
 from ewokscore import execute_graph
 from ewokscore.task import Task
 
@@ -53,6 +55,7 @@ workflow = {"graph": graph, "nodes": nodes, "links": links}
 inputs = [{"id": "task1", "name": "a", "value": 10}]
 
 # Execute a workflow (use a proper Ewoks task scheduler in production)
-varinfo = {"root_uri": "/tmp/myresults"}  # optionally save all task outputs
+results_dir = f"{tempfile.gettempdir()}/myresults"
+varinfo = {"root_uri": results_dir}  # optionally save all task outputs
 result = execute_graph(workflow, varinfo=varinfo, inputs=inputs)
 print(result)
