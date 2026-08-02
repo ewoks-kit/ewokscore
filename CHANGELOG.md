@@ -9,15 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `get_all_node_inputs` and `get_all_task_output_names` to respectively get all inputs from a node_id and all output names from a task type and identifier.
-- `Sqlite3EwoksEventHandler`: add `retry_period` argument (see `ewoksutils.logging_utils.sqlite3.Sqlite3Handler`).
-
-## [5.1.0rc1] - 2026-07-27
+## [5.1.0rc2] - 2026-08-02
 
 ### Added
 
 - Add new fields `workflow_input_schema` and `workflow_output_schema` to the spec.
 - `RedisEwoksEventHandler`: add `disconnect_on_error` and `timeout` argument.
+- `get_all_node_inputs` and `get_all_task_output_names` to respectively get all inputs from a
+  node_id and all output names from a task type and identifier.
+- `Sqlite3EwoksEventHandler`: add `retry_period` argument (see `ewoksutils.logging_utils.sqlite3.Sqlite3Handler`).
 
 ### Fixed
 
@@ -429,7 +429,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Execution events based on python's logging facility.
 
 [unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.1.0rc1...HEAD
-[5.1.0rc1]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...v5.1.0rc1
+[5.1.0rc2]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...v5.1.0rc1
 [5.0.0]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.2...v5.0.0
 [4.0.2]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.0...v4.0.1
