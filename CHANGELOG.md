@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `get_all_node_inputs` and `get_all_task_output_names` to respectively get all inputs from a node_id and all output names from a task type and identifier.
+- `Sqlite3EwoksEventHandler`: add `retry_period` argument (see `ewoksutils.logging_utils.sqlite3.Sqlite3Handler`).
 
 ## [5.1.0rc1] - 2026-07-27
 
