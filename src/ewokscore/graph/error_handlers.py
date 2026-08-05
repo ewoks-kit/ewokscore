@@ -1,12 +1,13 @@
 from typing import Mapping
+from typing import Set
 
 import networkx
 
-from .analysis import node_ancestors
+from ..node import NodeIdType
 from .analysis import node_pure_descendants
 
 
-def connect_default_error_handlers(graph: networkx.DiGraph) -> networkx.DiGraph:
+def connect_default_error_handlers(graph: networkx.DiGraph) -> None:
     """All nodes without an error handler will be connected to all default error handlers.
     Default error handlers without predecessors will be removed.
     """
@@ -39,11 +40,8 @@ def connect_default_error_handlers(graph: networkx.DiGraph) -> networkx.DiGraph:
                 nodes_without_error_handlers.remove(source_id)
 
     # Remove nodes that have any of the default error handlers as ancestor
-    for node_id in set(nodes_without_error_handlers):
-        for ancestor_id in node_ancestors(graph, node_id):
-            if ancestor_id in default_error_handlers:
-                nodes_without_error_handlers.remove(node_id)
-                break
+    if default_error_handlers:
+        nodes_without_error_handlers -= _descendants(graph, set(default_error_handlers))
 
     if nodes_without_error_handlers:
         # Connect to the default error handlers
@@ -60,3 +58,16 @@ def connect_default_error_handlers(graph: networkx.DiGraph) -> networkx.DiGraph:
                 # Default error handler has not predecessors
                 nodes = set(node_pure_descendants(graph, node_id, include_node=True))
                 graph.remove_nodes_from(nodes)
+
+
+def _descendants(graph: networkx.DiGraph, node_ids: Set[NodeIdType]) -> Set[NodeIdType]:
+    """All descendants of any node in `node_ids`."""
+    visited: Set[NodeIdType] = set()
+    stack = list(node_ids)
+    while stack:
+        node_id = stack.pop()
+        for target_id in graph.successors(node_id):
+            if target_id not in visited:
+                visited.add(target_id)
+                stack.append(target_id)
+    return visited
