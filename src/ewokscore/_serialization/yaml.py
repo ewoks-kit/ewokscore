@@ -10,6 +10,11 @@ import yaml
 from . import common
 from .common import types
 
+# The libyaml implementations are several times faster than the Python ones and
+# behave the same. They are only available when PyYAML is built with libyaml.
+_LOADER = getattr(yaml, "CLoader", yaml.Loader)
+_DUMPER = getattr(yaml, "CSafeDumper", yaml.SafeDumper)
+
 
 def dumps(
     obj: Any,
@@ -29,7 +34,7 @@ def dumps(
         serializer=serializer,
         insert_serialize_info=insert_serialize_info,
     )
-    return yaml.dump(pre, stream=None, Dumper=yaml.SafeDumper, **kwargs)
+    return yaml.dump(pre, stream=None, Dumper=_DUMPER, **kwargs)
 
 
 def dump(
@@ -51,7 +56,7 @@ def dump(
         serializer=serializer,
         insert_serialize_info=insert_serialize_info,
     )
-    yaml.dump(pre, stream=fp, Dumper=yaml.SafeDumper, **kwargs)
+    yaml.dump(pre, stream=fp, Dumper=_DUMPER, **kwargs)
 
 
 def loads(
@@ -66,7 +71,7 @@ def loads(
     Deserialize YAML string to Python object.
     """
     try:
-        raw = yaml.load(s, yaml.Loader, **kwargs)  # noqa: S506
+        raw = yaml.load(s, _LOADER, **kwargs)  # noqa: S506
     except (yaml.YAMLError, TypeError) as e:
         raise types.EwoksDecodeError from e
 
@@ -89,7 +94,7 @@ def load(
     Load Python object from YAML file-like object.
     """
     try:
-        raw = yaml.load(fp, yaml.Loader, **kwargs)  # noqa: S506
+        raw = yaml.load(fp, _LOADER, **kwargs)  # noqa: S506
     except (yaml.YAMLError, TypeError) as e:
         raise types.EwoksDecodeError from e
 
