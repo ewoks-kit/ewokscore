@@ -13,14 +13,23 @@ from ..node import NodeIdType
 from ..node import get_node_label
 from ..task import Task
 from ..utils import build_close_match_report
-from .analysis import end_nodes
-from .analysis import start_nodes
+from ._analysis import GraphAnalysis
 
 logger = logging.getLogger(__name__)
 
 
+def _analysis(
+    graph: networkx.DiGraph, graph_analysis: Optional[GraphAnalysis]
+) -> GraphAnalysis:
+    if graph_analysis is None:
+        return GraphAnalysis(graph)
+    return graph_analysis
+
+
 def update_default_inputs(
-    graph: networkx.DiGraph, inputs: Optional[List[dict]] = None
+    graph: networkx.DiGraph,
+    inputs: Optional[List[dict]] = None,
+    graph_analysis: Optional[GraphAnalysis] = None,
 ) -> None:
     """Input items have the following keys:
 
@@ -31,7 +40,7 @@ def update_default_inputs(
     - task_identifier (optional): used when `id` is missing
     - all (optional): used when `id`, `label` and `task_identifier` are missing (`True`: all nodes, `False`: start nodes)
     """
-    inputs = parse_inputs(graph, inputs)
+    inputs = parse_inputs(graph, inputs, graph_analysis=graph_analysis)
     keys_to_update = "name", "value"
     for input_item in inputs:
         node_id = input_item.get("id")
@@ -52,7 +61,9 @@ def update_default_inputs(
 
 
 def parse_inputs(
-    graph: networkx.DiGraph, inputs: Optional[List[dict]] = None
+    graph: networkx.DiGraph,
+    inputs: Optional[List[dict]] = None,
+    graph_analysis: Optional[GraphAnalysis] = None,
 ) -> List[dict]:
     """Input items have the following keys:
 
@@ -93,7 +104,7 @@ def parse_inputs(
         elif input_item.get("all"):
             node_ids = graph.nodes
         else:
-            node_ids = start_nodes(graph)
+            node_ids = _analysis(graph, graph_analysis).start_nodes()
 
         if not node_ids:
             error_report = (
@@ -113,7 +124,9 @@ def parse_inputs(
 
 
 def parse_outputs(
-    graph: networkx.DiGraph, outputs: Optional[List[dict]] = None
+    graph: networkx.DiGraph,
+    outputs: Optional[List[dict]] = None,
+    graph_analysis: Optional[GraphAnalysis] = None,
 ) -> List[dict]:
     """Output items have the following keys:
 
@@ -143,7 +156,7 @@ def parse_outputs(
         elif output_item.get("all"):
             node_ids = graph.nodes
         else:
-            node_ids = end_nodes(graph)
+            node_ids = _analysis(graph, graph_analysis).end_nodes()
 
         if not node_ids:
             error_report = (

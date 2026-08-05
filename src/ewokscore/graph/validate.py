@@ -1,31 +1,33 @@
+from typing import Optional
+
 import networkx
 from packaging.version import parse as parse_version
 
 from ..inittask import validate_task_executable
-from .analysis import required_predecessors
+from ._analysis import GraphAnalysis
 from .schema import LATEST_VERSION
 from .schema import normalize_schema_version
 from .schema import update_graph_schema
 
 
-def validate_graph(graph: networkx.DiGraph) -> None:
+def validate_graph(
+    graph: networkx.DiGraph, graph_analysis: Optional[GraphAnalysis] = None
+) -> None:
     normalize_schema_version(graph)
     while parse_version(graph.graph["schema_version"]) != LATEST_VERSION:
         update_graph_schema(graph)
-    _validate_nodes(graph)
+    if graph_analysis is None:
+        graph_analysis = GraphAnalysis(graph)
+    _validate_nodes(graph, graph_analysis)
     _validate_links(graph)
 
 
-def _validate_nodes(graph: networkx.DiGraph) -> None:
+def _validate_nodes(graph: networkx.DiGraph, graph_analysis: GraphAnalysis) -> None:
     for node_id, node_attrs in graph.nodes.items():
         validate_task_executable(node_id, node_attrs)
 
-        # Isolated nodes do no harm so comment this
-        # if len(graph.nodes) > 1 and not node_has_links(graph, node_id):
-        #    raise ValueError(f"Node {repr(node_id)} has no links")
-
         inputs_from_required = dict()
-        for source_id in required_predecessors(graph, node_id):
+        for source_id in graph_analysis.required_predecessors(node_id):
             link_attrs = graph[source_id][node_id]
             arguments = link_attrs.get("data_mapping", list())
             for arg in arguments:

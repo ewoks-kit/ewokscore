@@ -5,7 +5,6 @@ from typing import Union
 
 from ... import missing_data
 from ...graph import load_graph
-from ...graph.analysis import end_nodes
 from ...graph.execute.sequential import instantiate_task_static
 from ...graph.taskgraph import TaskGraph
 from ...node import NodeIdType
@@ -136,7 +135,7 @@ def filter_expected_results(
 ) -> dict:
     taskgraph = load_graph(taskgraph)
     if end_only:
-        nodes = end_nodes(taskgraph.graph)
+        nodes = taskgraph.analysis.end_nodes()
         results = {k: v for k, v in results.items() if k in nodes}
     else:
         nodes = taskgraph.nodes()
