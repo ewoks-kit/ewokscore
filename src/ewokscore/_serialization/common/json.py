@@ -27,17 +27,12 @@ def pre_serialize(obj: Any) -> Any:
 
         # --- dict ---
         if isinstance(current, dict):
-            new_dict = {}
-            t.assign(new_dict)
-            for k, v in reversed(list(current.items())):
-                t.append_dict_key(new_dict, str(k), v)
+            t.assign_dict(current, key_converter=str)
             continue
 
         # --- list/tuple ---
         if isinstance(current, (list, tuple)):
-            new_list = [None] * len(current)
-            t.assign(new_list)
-            t.append_sequence_items(new_list, current)
+            t.assign_sequence(current)
             continue
 
         # --- fallback ---
