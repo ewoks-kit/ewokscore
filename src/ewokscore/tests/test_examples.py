@@ -10,7 +10,6 @@ import pytest
 from ..bindings import convert_graph
 from ..bindings import graph_is_supported
 from ..bindings import load_graph
-from ..graph.analysis import start_nodes
 from .examples.graphs import get_graph
 from .examples.graphs import graph_names
 from .utils.results import assert_execute_graph_default_result
@@ -53,25 +52,30 @@ def test_graph_cyclic():
 def test_start_nodes():
     graph, _ = get_graph("acyclic1")
     ewoksgraph = load_graph(graph)
-    assert start_nodes(ewoksgraph.graph) == {"task1", "task2"}
+    assert ewoksgraph.analysis.start_nodes() == {"task1", "task2"}
 
     graph, _ = get_graph("acyclic2")
     ewoksgraph = load_graph(graph)
-    assert start_nodes(ewoksgraph.graph) == {"task1"}
+    assert ewoksgraph.analysis.start_nodes() == {"task1"}
 
     graph, _ = get_graph("cyclic1")
     ewoksgraph = load_graph(graph)
-    assert start_nodes(ewoksgraph.graph) == {"task1"}
+    assert ewoksgraph.analysis.start_nodes() == {"task1"}
 
     graph, _ = get_graph("triangle1")
     ewoksgraph = load_graph(graph)
-    assert start_nodes(ewoksgraph.graph) == {"task1"}
+    assert ewoksgraph.analysis.start_nodes() == {"task1"}
 
     graph, _ = get_graph("self_trigger")
     ewoksgraph = load_graph(graph)
-    assert start_nodes(ewoksgraph.graph) == {"task1", "task2"}
-    ewoksgraph.graph.nodes["task1"].pop("force_start_node")
-    assert start_nodes(ewoksgraph.graph) == {"task2"}
+    assert ewoksgraph.analysis.start_nodes() == {"task1", "task2"}
+
+    graph, _ = get_graph("self_trigger")
+    for node in graph["nodes"]:
+        if node["id"] == "task1":
+            node.pop("force_start_node")
+    ewoksgraph = load_graph(graph)
+    assert ewoksgraph.analysis.start_nodes() == {"task2"}
 
 
 @pytest.mark.parametrize("graph_name", graph_names())

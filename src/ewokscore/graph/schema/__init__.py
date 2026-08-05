@@ -91,6 +91,13 @@ def update_graph_schema(graph: networkx.DiGraph):
             raise RuntimeError("graph conversion did not increment the schema version")
 
 
+def update_to_latest_schema(graph: networkx.DiGraph) -> None:
+    """Updates the graph description to the latest schema version."""
+    normalize_schema_version(graph)
+    while parse_version(graph.graph["schema_version"]) != LATEST_VERSION:
+        update_graph_schema(graph)
+
+
 class GraphSchemaError(ValueError):
     def __init__(self, schema_version: Version) -> None:
         version_metadata = get_versions().get(schema_version)

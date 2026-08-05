@@ -1,7 +1,6 @@
 import pytest
 
 from ..graph import load_graph
-from ..graph.analysis import link_is_required
 
 
 def test_required_links():
@@ -18,45 +17,45 @@ def test_required_links():
         {"source": "source2b", "target": "target"},
     ]
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
-    assert link_is_required(taskgraph.graph, "source1", "target")
-    assert link_is_required(taskgraph.graph, "source2a", "source2b")
-    assert link_is_required(taskgraph.graph, "source2b", "target")
+    assert taskgraph.analysis.link_is_required("source1", "target")
+    assert taskgraph.analysis.link_is_required("source2a", "source2b")
+    assert taskgraph.analysis.link_is_required("source2b", "target")
 
     links[0]["conditions"] = [{"source_output": "a", "value": 1}]
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
-    assert not link_is_required(taskgraph.graph, "source1", "target")
-    assert link_is_required(taskgraph.graph, "source2a", "source2b")
-    assert link_is_required(taskgraph.graph, "source2b", "target")
+    assert not taskgraph.analysis.link_is_required("source1", "target")
+    assert taskgraph.analysis.link_is_required("source2a", "source2b")
+    assert taskgraph.analysis.link_is_required("source2b", "target")
     links[0].pop("conditions")
 
     links[1]["conditions"] = [{"source_output": "a", "value": 1}]
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
-    assert link_is_required(taskgraph.graph, "source1", "target")
-    assert not link_is_required(taskgraph.graph, "source2a", "source2b")
-    assert not link_is_required(taskgraph.graph, "source2b", "target")
+    assert taskgraph.analysis.link_is_required("source1", "target")
+    assert not taskgraph.analysis.link_is_required("source2a", "source2b")
+    assert not taskgraph.analysis.link_is_required("source2b", "target")
     links[1].pop("conditions")
 
     links[1]["conditions"] = [{"source_output": "a", "value": 1}]
     links[1]["required"] = True
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
-    assert link_is_required(taskgraph.graph, "source1", "target")
-    assert link_is_required(taskgraph.graph, "source2a", "source2b")
-    assert link_is_required(taskgraph.graph, "source2b", "target")
+    assert taskgraph.analysis.link_is_required("source1", "target")
+    assert taskgraph.analysis.link_is_required("source2a", "source2b")
+    assert taskgraph.analysis.link_is_required("source2b", "target")
     links[1].pop("conditions")
 
     links[2]["conditions"] = [{"source_output": "a", "value": 1}]
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
-    assert link_is_required(taskgraph.graph, "source1", "target")
-    assert link_is_required(taskgraph.graph, "source2a", "source2b")
-    assert not link_is_required(taskgraph.graph, "source2b", "target")
+    assert taskgraph.analysis.link_is_required("source1", "target")
+    assert taskgraph.analysis.link_is_required("source2a", "source2b")
+    assert not taskgraph.analysis.link_is_required("source2b", "target")
     links[2].pop("conditions")
 
     links[2]["conditions"] = [{"source_output": "a", "value": 1}]
     links[2]["required"] = True
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
-    assert link_is_required(taskgraph.graph, "source1", "target")
-    assert link_is_required(taskgraph.graph, "source2a", "source2b")
-    assert link_is_required(taskgraph.graph, "source2b", "target")
+    assert taskgraph.analysis.link_is_required("source1", "target")
+    assert taskgraph.analysis.link_is_required("source2a", "source2b")
+    assert taskgraph.analysis.link_is_required("source2b", "target")
     links[2].pop("conditions")
 
 

@@ -1,31 +1,35 @@
+from typing import Optional
+
 import networkx
-from packaging.version import parse as parse_version
 
 from ..inittask import validate_task_executable
-from .analysis import required_predecessors
-from .schema import LATEST_VERSION
-from .schema import normalize_schema_version
-from .schema import update_graph_schema
+from ..node import NodeIdType
+from ._analysis import GraphAnalysis
+from .schema import update_to_latest_schema
 
 
-def validate_graph(graph: networkx.DiGraph) -> None:
-    normalize_schema_version(graph)
-    while parse_version(graph.graph["schema_version"]) != LATEST_VERSION:
-        update_graph_schema(graph)
-    _validate_nodes(graph)
+def validate_graph(
+    graph: networkx.DiGraph, graph_analysis: Optional[GraphAnalysis] = None
+) -> None:
+    update_to_latest_schema(graph)
+    _validate_nodes(graph, graph_analysis)
     _validate_links(graph)
 
 
-def _validate_nodes(graph: networkx.DiGraph) -> None:
+def _validate_nodes(
+    graph: networkx.DiGraph, graph_analysis: Optional[GraphAnalysis]
+) -> None:
     for node_id, node_attrs in graph.nodes.items():
         validate_task_executable(node_id, node_attrs)
 
-        # Isolated nodes do no harm so comment this
-        # if len(graph.nodes) > 1 and not node_has_links(graph, node_id):
-        #    raise ValueError(f"Node {repr(node_id)} has no links")
+        # Avoid the graph analysis when the links cannot be invalid
+        if not _may_have_invalid_input_links(graph, node_id):
+            continue
+        if graph_analysis is None:
+            graph_analysis = GraphAnalysis(graph)
 
         inputs_from_required = dict()
-        for source_id in required_predecessors(graph, node_id):
+        for source_id in graph_analysis.required_predecessors(node_id):
             link_attrs = graph[source_id][node_id]
             arguments = link_attrs.get("data_mapping", list())
             for arg in arguments:
@@ -41,6 +45,20 @@ def _validate_nodes(graph: networkx.DiGraph) -> None:
                         f"Node {repr(source_id)} and {repr(other_source_id)} both connect to the input {repr(name)} of {repr(node_id)}"
                     )
                 inputs_from_required[name] = source_id
+
+
+def _may_have_invalid_input_links(graph: networkx.DiGraph, node_id: NodeIdType) -> bool:
+    """Whether an input of the node is connected more than once or a link has
+    an argument without `target_input`.
+    """
+    names = set()
+    for link_attrs in graph.pred[node_id].values():
+        for arg in link_attrs.get("data_mapping", list()):
+            name = arg.get("target_input")
+            if name is None or name in names:
+                return True
+            names.add(name)
+    return False
 
 
 def _validate_links(graph: networkx.DiGraph) -> None:

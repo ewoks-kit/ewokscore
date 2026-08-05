@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `TaskGraph.analysis`: graph analysis with caching.
+
+### Deprecated
+
+- `ewokscore.graph.analysis`: use `TaskGraph.analysis` instead.
+- `ewokscore.graph.taskgraph`: `node_has_links` is deprecated and will be removed.
+
+### Fixed
+
+- `GraphAnalysis.node_pure_descendants` now returns all pure descendants of the node, not just the
+  direct ones like the deprecated `analysis.node_pure_descendants` still does.
+- `GraphAnalysis.node_has_noncovered_conditions` now treats a `True`/`False` condition value as
+  covered when the complementary link exists, not as always non-covered like the deprecated
+  `analysis.node_has_noncovered_conditions` still does.
+- `GraphAnalysis.link_is_required`: links downstream of a conditional link stay required when
+  their target can only run after their source (ewoksppf#23).
+- `GraphAnalysis.link_is_required`: a node that an error handler can trigger no longer waits for
+  the branch of the failed node.
+
 ## [5.1.0rc6] - 2026-10-21
 
 ### Added
