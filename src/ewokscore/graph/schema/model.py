@@ -33,6 +33,7 @@ class EwoksDataMapping(BaseModel):
 
 class EwoksCondition(BaseModel):
     source_output: NodeId
+    operator: Literal["eq", "ne", "lt", "le", "gt", "ge", "in", "not_in"] = "eq"
     value: Any
 
 

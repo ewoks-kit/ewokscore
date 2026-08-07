@@ -3,6 +3,10 @@ from packaging.version import parse as parse_version
 
 from ..inittask import validate_task_executable
 from .analysis import required_predecessors
+from .conditions import CONDITION_COLLECTION_OPERATOR_NAMES
+from .conditions import CONDITION_OPERATOR_NAMES
+from .conditions import DEFAULT_CONDITION_OPERATOR
+from .conditions import is_condition_collection_value
 from .schema import LATEST_VERSION
 from .schema import normalize_schema_version
 from .schema import update_graph_schema
@@ -50,3 +54,16 @@ def _validate_links(graph: networkx.DiGraph) -> None:
             raise ValueError(err_msg.format("map_all_data", "data_mapping"))
         if linkattrs.get("on_error") and linkattrs.get("conditions"):
             raise ValueError(err_msg.format("on_error", "conditions"))
+        for condition in linkattrs.get("conditions", list()):
+            operator = condition.get("operator", DEFAULT_CONDITION_OPERATOR)
+            if operator not in CONDITION_OPERATOR_NAMES:
+                raise ValueError(
+                    f"Link {source}->{target}: unsupported condition operator {repr(operator)}"
+                )
+            if (
+                operator in CONDITION_COLLECTION_OPERATOR_NAMES
+                and not is_condition_collection_value(condition.get("value"))
+            ):
+                raise ValueError(
+                    f"Link {source}->{target}: condition operator {repr(operator)} requires a non-string iterable value"
+                )

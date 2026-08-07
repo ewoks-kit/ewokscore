@@ -3,6 +3,8 @@ from typing import Sequence
 
 import networkx
 
+from .conditions import DEFAULT_CONDITION_OPERATOR
+
 
 def graphs_are_equal(graph1: networkx.DiGraph, graph2: networkx.DiGraph) -> bool:
     if not _attrs_are_equal(graph1.graph, graph2.graph):
@@ -37,8 +39,8 @@ def _attrs_are_equal(attrs1: dict, attrs2: dict) -> bool:
             value1 = _items_to_dict(value1, ["source_output", "target_input"])
             value2 = _items_to_dict(value2, ["source_output", "target_input"])
         elif name == "conditions":
-            value1 = _items_to_dict(value1, ["source_output"])
-            value2 = _items_to_dict(value2, ["source_output"])
+            value1 = _conditions_to_dict(value1)
+            value2 = _conditions_to_dict(value2)
         if value1 != value2:
             return False
     return True
@@ -48,4 +50,13 @@ def _items_to_dict(items: List[dict], keys: Sequence[str]) -> dict:
     result = dict()
     for item in items:
         result[tuple(item[k] for k in keys)] = item
+    return result
+
+
+def _conditions_to_dict(conditions: List[dict]) -> dict:
+    result = dict()
+    for condition in conditions:
+        condition = dict(condition)
+        condition["operator"] = condition.get("operator", DEFAULT_CONDITION_OPERATOR)
+        result[(condition["source_output"], condition["operator"])] = condition
     return result
