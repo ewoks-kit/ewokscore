@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Changed
+
+- Loading and executing a graph uses `TaskGraph.analysis`. Deriving whether a link is required
+  no longer walks the upstream sub-graph for every link, which makes loading large graphs
+  significantly faster.
+- JSON and YAML (de)serialization no longer matches every value against every custom item
+  (de)serializer, and no longer copies the parts of the graph that have none. This makes
+  loading and saving large graphs significantly faster.
+- YAML (de)serialization uses the libyaml implementation when available, which is several
+  times faster and behaves the same.
 
 ## [5.1.0rc2] - 2026-08-02
 

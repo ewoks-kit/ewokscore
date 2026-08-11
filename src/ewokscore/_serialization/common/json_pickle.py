@@ -58,18 +58,12 @@ def pre_serialize(obj: Any) -> Any:
                     f"Dictionary key '{constants.EWOKS_KEY}' is reserved"
                 )
 
-            new_dict = {}
-            t.assign(new_dict)
-
-            for k, v in reversed(list(current.items())):
-                t.append_dict_key(new_dict, k, v)
+            t.assign_dict(current)
             continue
 
         # --- list ---
         if isinstance(current, list):
-            new_list = [None] * len(current)
-            t.assign(new_list)
-            t.append_sequence_items(new_list, current)
+            t.assign_sequence(current)
             continue
 
         # --- tuple ---
@@ -79,7 +73,7 @@ def pre_serialize(obj: Any) -> Any:
                 "items": [None] * len(current),
             }
             t.assign(new_obj)
-            t.append_sequence_items(new_obj["items"], list(current))
+            t.append_sequence(new_obj["items"], current)
             continue
 
         # --- set ---
@@ -89,7 +83,7 @@ def pre_serialize(obj: Any) -> Any:
                 "items": [None] * len(current),
             }
             t.assign(new_obj)
-            t.append_sequence_items(new_obj["items"], list(current))
+            t.append_sequence(new_obj["items"], current)
             continue
 
         # --- bytes ---
@@ -122,11 +116,7 @@ def post_deserialize(obj: Any) -> Any:
         # --- dict ---
         if isinstance(current, dict):
             if constants.EWOKS_KEY not in current:
-                new_dict = {}
-                t.assign(new_dict)
-
-                for k, v in reversed(list(current.items())):
-                    t.append_dict_key(new_dict, k, v)
+                t.assign_dict(current)
                 continue
 
             tag = current[constants.EWOKS_KEY]
@@ -140,8 +130,8 @@ def post_deserialize(obj: Any) -> Any:
                 tmp = [None] * len(items)
                 t.assign(tmp)
 
-                t.append_dict_key(t.parent, t.key, MutableContainer(tmp, tuple))
-                t.append_sequence_items(tmp, items)
+                t.append(t.parent, t.key, MutableContainer(tmp, tuple))
+                t.append_sequence(tmp, items)
                 continue
 
             if tag == "set":
@@ -149,8 +139,8 @@ def post_deserialize(obj: Any) -> Any:
                 tmp = [None] * len(items)
                 t.assign(tmp)
 
-                t.append_dict_key(t.parent, t.key, MutableContainer(tmp, set))
-                t.append_sequence_items(tmp, items)
+                t.append(t.parent, t.key, MutableContainer(tmp, set))
+                t.append_sequence(tmp, items)
                 continue
 
             if tag == "pickle":
@@ -167,9 +157,7 @@ def post_deserialize(obj: Any) -> Any:
 
         # --- list ---
         if isinstance(current, list):
-            new_list = [None] * len(current)
-            t.assign(new_list)
-            t.append_sequence_items(new_list, current)
+            t.assign_sequence(current)
             continue
 
         # --- conversion of mutable containers ---
