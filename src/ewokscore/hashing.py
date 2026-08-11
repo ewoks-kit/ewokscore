@@ -1,3 +1,5 @@
+"""Universal hashing independent of the current process"""
+
 import hashlib
 import secrets
 from collections.abc import Iterable
@@ -12,32 +14,6 @@ import numpy
 from ewoksutils.import_utils import qualname
 
 from . import missing_data
-
-
-def classhashdata(cls: Type) -> bytes:
-    return qualname(cls).encode()
-
-
-def multitype_sorted(sequence: Iterable, key=None) -> list:
-    try:
-        return sorted(sequence, key=key)
-    except TypeError:
-        pass
-    if key is None:
-
-        def key(item):
-            return item
-
-    adict = dict()
-    for item in sequence:
-        typename = type(key(item)).__name__
-        adict.setdefault(typename, list()).append(item)
-
-    return [
-        item
-        for _, items in sorted(adict.items(), key=lambda tpl: tpl[0])
-        for item in sorted(items, key=key)
-    ]
 
 
 class UniversalHash:
@@ -65,54 +41,87 @@ class UniversalHash:
         return str(self) < str(other)
 
 
-def uhash(value, _hash=None) -> UniversalHash:
+def uhash(value) -> UniversalHash:
     """Universial hash (as opposed to python's `hash`)."""
-    # Avoid using python's hash!
-    bdigest = _hash is None
-    if bdigest:
-        _hash = hashlib.sha256()
-    _hash.update(classhashdata(type(value)))
-    if value is None:
-        pass
-    elif isinstance(value, HasUhash):
-        _hash.update(repr(value.uhash).encode())
-    elif isinstance(value, UniversalHash):
-        _hash.update(repr(value).encode())
-    elif isinstance(value, bytes):
-        _hash.update(value)
-    elif isinstance(value, str):
-        _hash.update(value.encode())
-    elif isinstance(value, int):
-        _hash.update(hex(value).encode())
-    elif isinstance(value, float):
-        _hash.update(value.hex().encode())
-    elif isinstance(value, (numpy.ndarray, numpy.number)):
-        _hash.update(value.tobytes())
-    elif isinstance(value, Mapping):
-        lst = multitype_sorted(value.items(), key=lambda item: item[0])
-        if lst:
-            keys, values = zip(*lst)
+    if hasattr(value, "__uhash__"):
+        v = value.__uhash__()
+        if isinstance(v, UniversalHash):
+            return v
+
+    _hash = hashlib.sha256()
+    _to_hash = [value]
+    while _to_hash:
+        value = _to_hash.pop()
+        _hash.update(_classhashdata(type(value)))
+        if value is None:
+            pass
+        elif isinstance(value, UniversalHash):
+            _hash.update(repr(value).encode())
+        elif hasattr(value, "__uhash__"):
+            _to_hash.append(value.__uhash__())
+        elif isinstance(value, bytes):
+            _hash.update(value)
+        elif isinstance(value, str):
+            _hash.update(value.encode())
+        elif isinstance(value, int):
+            _hash.update(hex(value).encode())
+        elif isinstance(value, float):
+            _hash.update(value.hex().encode())
+        elif isinstance(value, (numpy.ndarray, numpy.number)):
+            _hash.update(value.tobytes())
+        elif isinstance(value, Mapping):
+            lst = _multitype_sorted(value.items(), key=lambda item: item[0])
+            if lst:
+                keys, values = zip(*lst)
+            else:
+                keys = values = list()
+            _to_hash.append(keys)
+            _to_hash.append(values)
+        elif isinstance(value, Set):
+            values = _multitype_sorted(value)
+            _to_hash.append(values)
+        elif isinstance(value, Iterable):
+            _to_hash.extend(value)
         else:
-            keys = values = list()
-        uhash(keys, _hash=_hash)
-        uhash(values, _hash=_hash)
-    elif isinstance(value, Set):
-        values = multitype_sorted(value)
-        uhash(values, _hash=_hash)
-    elif isinstance(value, Iterable):
-        # Ordered
-        for v in value:
-            uhash(v, _hash=_hash)
-    else:
-        # TODO: register custom types
-        raise TypeError(f"cannot uhash {value} (type: {type(value)})")
-    if bdigest:
-        return UniversalHash(_hash.hexdigest())
+            raise TypeError(f"universal unhashable type: {type(value)}")
+
+    return UniversalHash(_hash.hexdigest())
+
+
+def _classhashdata(cls: Type) -> bytes:
+    return qualname(cls).encode()
+
+
+def _multitype_sorted(sequence: Iterable, key=None) -> list:
+    try:
+        return sorted(sequence, key=key)
+    except TypeError:
+        pass
+    if key is None:
+
+        def key(item):
+            return item
+
+    adict = dict()
+    for item in sequence:
+        typename = type(key(item)).__name__
+        adict.setdefault(typename, list()).append(item)
+
+    return [
+        item
+        for _, items in sorted(adict.items(), key=lambda tpl: tpl[0])
+        for item in sorted(items, key=key)
+    ]
 
 
 class HasUhash:
     @property
     def uhash(self) -> Optional[UniversalHash]:
+        # TODO: this should be hash(self)
+        return self.__uhash__()
+
+    def __uhash__(self) -> Optional[UniversalHash]:
+        # TODO: can return Any
         raise NotImplementedError
 
     def __hash__(self):
@@ -124,13 +133,7 @@ class HasUhash:
             return hash(uhash)
 
     def __eq__(self, other):
-        if isinstance(other, HasUhash):
-            uhash = other.uhash
-        elif isinstance(other, UniversalHash):
-            uhash = other
-        else:
-            raise TypeError(other, type(other))
-        return self.uhash == uhash
+        return uhash(self) == uhash(other)
 
     def _get_repr_data(self) -> dict:
         data = dict()
@@ -184,6 +187,10 @@ class UniversalHashable(HasUhash):
         pre_uhash: Optional[PreUhashTypes] = None,
         instance_nonce: Optional[Any] = None,
     ):
+        self.__pre_uhash: Union[None, UniversalHash, HasUhash] = None
+        self.__original_pre_uhash: Union[None, UniversalHash, HasUhash] = None
+        self.__instance_nonce: Optional[Any] = instance_nonce
+        self.__original__instance_nonce: Optional[Any] = instance_nonce
         self.set_uhash_init(pre_uhash=pre_uhash, instance_nonce=instance_nonce)
 
     def __init_subclass__(subcls, version=None, **kwargs):
@@ -203,6 +210,16 @@ class UniversalHashable(HasUhash):
         self.__instance_nonce = instance_nonce
         self.__original__instance_nonce = instance_nonce
 
+    def __set_pre_uhash(self, pre_uhash):
+        if pre_uhash is None:
+            self.__pre_uhash = None
+        elif isinstance(pre_uhash, (str, bytes)):
+            self.__pre_uhash = UniversalHash(pre_uhash)
+        elif isinstance(pre_uhash, (UniversalHash, HasUhash)):
+            self.__pre_uhash = pre_uhash
+        else:
+            self.__pre_uhash = uhash(pre_uhash)
+
     def get_uhash_init(self, serialize=False):
         pre_uhash = self.__original_pre_uhash
         if serialize:
@@ -214,16 +231,6 @@ class UniversalHashable(HasUhash):
             "pre_uhash": pre_uhash,
             "instance_nonce": self.__original__instance_nonce,
         }
-
-    def __set_pre_uhash(self, pre_uhash):
-        if pre_uhash is None:
-            self.__pre_uhash = None
-        elif isinstance(pre_uhash, (str, bytes)):
-            self.__pre_uhash = UniversalHash(pre_uhash)
-        elif isinstance(pre_uhash, (UniversalHash, HasUhash)):
-            self.__pre_uhash = pre_uhash
-        else:
-            self.__pre_uhash = uhash(pre_uhash)
 
     @classmethod
     def class_nonce(cls):
@@ -259,8 +266,7 @@ class UniversalHashable(HasUhash):
             self.__pre_uhash = pre_uhash
             self.__original_pre_uhash = pre_uhash
 
-    @property
-    def uhash(self) -> Optional[UniversalHash]:
+    def __uhash__(self) -> Union[None, UniversalHash, HasUhash]:
         _uhash = self.__pre_uhash
         if _uhash is None:
             data = self._uhash_data()
