@@ -236,14 +236,15 @@ def _get_connected_input_names(
 
 def get_all_node_inputs(
     node_id: NodeIdType, node_attrs: Dict[str, Any]
-) -> List[NodeInput]:
+) -> Tuple[List[NodeInput], Exception | None]:
     """
-    Return all the input parameters of a node.
+    Returns the input parameters of a node and the error encountered when parsing them, if any (else None).
     """
     task_type = node_attrs["task_type"]
     task_identifier = node_attrs["task_identifier"]
     default_inputs = node_attrs.get("default_inputs", [])
     default_input_map = {item["name"]: item.get("value") for item in default_inputs}
+    error = None
 
     node_attrs = {
         "id": node_id,
@@ -259,10 +260,13 @@ def get_all_node_inputs(
             node_input_iterator = _node_inputs_from_defaults(
                 default_input_map, node_attrs, import_error
             )
+            error = import_error
         else:
             node_input_iterator = _node_inputs_from_class(
                 task_cls, default_input_map, node_attrs
             )
+            error = None
+
     elif task_type == "generated":
         try:
             task_cls = get_dynamically_task_class(
@@ -273,10 +277,13 @@ def get_all_node_inputs(
             node_input_iterator = _node_inputs_from_defaults(
                 default_input_map, node_attrs, import_error
             )
+            error = import_error
         else:
             node_input_iterator = _node_inputs_from_class(
                 task_cls, default_input_map, node_attrs
             )
+            error = None
+
     elif task_type in ("method", "ppfmethod"):
         try:
             task_method = import_utils.import_qualname(task_identifier)
@@ -285,20 +292,22 @@ def get_all_node_inputs(
             node_input_iterator = _node_inputs_from_defaults(
                 default_input_map, node_attrs, import_error
             )
+            error = import_error
         else:
             node_input_iterator = _node_inputs_from_method(
                 task_method, default_input_map, node_attrs
             )
+            error = None
     else:
         _logger.warning(
             f"Task type {task_type!r} is not supported ({task_identifier!r}). Only using default values from the workflow."
         )
-        import_error = TypeError(f"Cannot get inputs from task type {task_type!r}")
+        error = TypeError(f"Cannot get inputs from task type {task_type!r}")
         node_input_iterator = _node_inputs_from_defaults(
-            default_input_map, node_attrs, import_error
+            default_input_map, node_attrs, error
         )
 
-    return list(node_input_iterator)
+    return list(node_input_iterator), error
 
 
 def get_all_task_output_names(task_type: str, task_identifier: str) -> List[str]:
