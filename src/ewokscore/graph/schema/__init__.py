@@ -55,9 +55,11 @@ def normalize_schema_version(graph: Union[dict, networkx.Graph]):
         )
         pversion = DEFAULT_VERSION
     if pversion != LATEST_VERSION:
-        # This warning is given because an exception may occur before `update_graph_schema`
-        # is called due to the different schema version.
-        logger.warning(
+        # This is not a warning because re-processing older graphs with an
+        # outdated (but still supported) schema version is expected and not
+        # actionable by the user: `update_graph_schema` takes care of the
+        # actual upgrade, or raises if the version is unsupported.
+        logger.debug(
             'Graph schema version "%s" is not equal to the latest version "%s"',
             pversion,
             LATEST_VERSION,

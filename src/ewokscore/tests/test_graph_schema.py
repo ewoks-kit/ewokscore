@@ -26,6 +26,33 @@ def test_graph_version(caplog):
     assert_load({"graph": {"id": "test", "schema_version": LATEST_VERSION}})
 
 
+def test_outdated_schema_version_logs_at_debug(caplog):
+    # Regression test: re-processing a graph with an older (but still
+    # supported) schema version used to log at WARNING level, which is
+    # noisy since re-processing older graphs is expected and the version
+    # is upgraded automatically by `update_graph_schema` (or a clear
+    # exception is raised if the version is unsupported/too old). This
+    # should only be logged at DEBUG level.
+    with caplog.at_level(logging.DEBUG):
+        assert_load({"graph": {"id": "test", "schema_version": "1.2"}})
+
+    debug_message = next(
+        (
+            record.getMessage()
+            for record in caplog.records
+            if record.levelno == logging.DEBUG
+            and "is not equal to the latest version" in record.getMessage()
+        ),
+        None,
+    )
+    assert debug_message is not None
+    assert logging.WARNING not in {
+        record.levelno
+        for record in caplog.records
+        if "is not equal to the latest version" in record.getMessage()
+    }
+
+
 def test_correct_update_method(use_test_schema_versions):
     assert_load({"graph": {"id": "test", "schema_version": "0.2"}})
 
