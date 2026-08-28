@@ -2,10 +2,13 @@ from copy import deepcopy
 from typing import Union
 
 from pydantic import Field
+from pydantic_core import PydanticUndefined
 
 from ..bindings import execute_graph
 from ..bindings import load_graph
 from ..graph import inputs
+from ..graph.models import NodeInput
+from ..graph.models import NodeSignature
 from ..graph.taskgraph import TaskGraph
 from ..missing_data import MISSING_DATA
 from ..model import BaseInputModel
@@ -166,6 +169,161 @@ def test_graph_inputs():
             node_input.import_error = repr(node_input.import_error)
 
     assert node_inputs == expected
+
+
+def _assert_node_signature_equal(signature: NodeSignature, expected: NodeSignature):
+    # Patch exceptions for comparison
+    if signature.import_error:
+        signature.import_error = repr(signature.import_error)
+    if expected.import_error:
+        expected.import_error = repr(expected.import_error)
+
+    assert signature == expected
+
+
+def test_node_signature_class():
+    graph = create_graph()
+
+    signature = inputs.node_signature("task1", graph.graph.nodes["task1"])
+    expected = NodeSignature(
+        id="task1",
+        label=None,
+        task_identifier=f"{__name__}.ClassExample",
+        import_error=None,
+        inputs=[
+            NodeInput(
+                name="a", value=1, required=True, description=None, examples=None
+            ),
+            NodeInput(
+                name="b",
+                value=MISSING_DATA,
+                required=True,
+                description=None,
+                examples=None,
+            ),
+            NodeInput(
+                name="c",
+                value=MISSING_DATA,
+                required=False,
+                description=None,
+                examples=None,
+            ),
+            NodeInput(
+                name="d",
+                value=MISSING_DATA,
+                required=False,
+                description=None,
+                examples=None,
+            ),
+        ],
+        outputs=["a", "b", "c", "d"],
+    )
+    _assert_node_signature_equal(signature, expected)
+
+
+def test_node_signature_class_with_model():
+    graph = create_graph()
+    signature = inputs.node_signature("task2", graph.graph.nodes["task2"])
+    expected = NodeSignature(
+        id="task2",
+        label="task2 label",
+        task_identifier=f"{__name__}.ClassExampleWithModel",
+        import_error=None,
+        inputs=[
+            NodeInput(
+                name="a",
+                value=PydanticUndefined,
+                required=True,
+                description=None,
+                examples=None,
+            ),
+            NodeInput(
+                name="b", value=3, required=True, description=None, examples=None
+            ),
+            NodeInput(
+                name="c",
+                value=4,
+                required=False,
+                description="parameter c",
+                examples=None,
+            ),
+            NodeInput(
+                name="d",
+                value=-2,
+                required=False,
+                description=None,
+                examples=[100, "word"],
+            ),
+        ],
+        outputs=["a", "b", "c", "d"],
+    )
+    _assert_node_signature_equal(signature, expected)
+
+
+def test_node_signature_method():
+    graph = create_graph()
+    signature = inputs.node_signature("task3", graph.graph.nodes["task3"])
+    expected = NodeSignature(
+        id="task3",
+        label=None,
+        task_identifier=f"{__name__}.method_example",
+        import_error=None,
+        inputs=[
+            NodeInput(
+                name="a",
+                value=MISSING_DATA,
+                required=True,
+                description=None,
+                examples=None,
+            ),
+            NodeInput(
+                name="b",
+                value=MISSING_DATA,
+                required=True,
+                description=None,
+                examples=None,
+            ),
+            NodeInput(
+                name="e", value=5, required=True, description=None, examples=None
+            ),
+            NodeInput(
+                name="g",
+                value=MISSING_DATA,
+                required=True,
+                description=None,
+                examples=None,
+            ),
+            NodeInput(
+                name="c", value=-1, required=False, description=None, examples=None
+            ),
+            NodeInput(
+                name="d", value=-2, required=False, description=None, examples=None
+            ),
+            NodeInput(
+                name="f", value=-3, required=False, description=None, examples=None
+            ),
+        ],
+        outputs=["return_value"],
+    )
+    _assert_node_signature_equal(signature, expected)
+
+
+def test_node_signature_non_existing_class():
+    graph = create_graph()
+    signature = inputs.node_signature("task4", graph.graph.nodes["task4"])
+    expected = NodeSignature(
+        id="task4",
+        label=None,
+        task_identifier="does.not.exists.NonExistingClass",
+        import_error=ModuleNotFoundError("No module named 'does'"),
+        inputs=[
+            NodeInput(
+                name="guess", value=999, required=True, description=None, examples=None
+            ),
+        ],
+        outputs=[],
+    )
+    _assert_node_signature_equal(signature, expected)
 
 
 def test_graph_inputs_as_table():

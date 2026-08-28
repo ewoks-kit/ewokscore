@@ -36,12 +36,13 @@ class NodeInput:
 
 
 @dataclass
-class NodeInputs:
+class NodeSignature:
     id: NodeIdType
     label: Optional[str]
     task_identifier: str
     import_error: Optional[Exception]
     inputs: List[NodeInput]
+    outputs: List[str]
 
 
 @dataclass

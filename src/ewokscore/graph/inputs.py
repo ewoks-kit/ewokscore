@@ -23,7 +23,7 @@ from ..task import Task
 from .models import EwoksTaskTypeError
 from .models import GraphInput
 from .models import NodeInput
-from .models import NodeInputs
+from .models import NodeSignature
 from .taskgraph import TaskGraph
 
 _logger = logging.getLogger(__name__)
@@ -176,21 +176,21 @@ def _get_node_inputs(graph: networkx.DiGraph) -> List[GraphInput]:
     """
     all_node_inputs = []
     for node_id, node_attrs in graph.nodes.items():
-        inputs = node_inputs(node_id, node_attrs)
+        signature = node_signature(node_id, node_attrs)
         connected_input_names = _get_connected_input_names(graph, node_id)
         all_node_inputs += [
             GraphInput(
-                id=inputs.id,
-                label=inputs.label,
-                task_identifier=inputs.task_identifier,
+                id=signature.id,
+                label=signature.label,
+                task_identifier=signature.task_identifier,
                 name=node_input.name,
                 value=node_input.value,
                 required=node_input.required,
                 description=node_input.description,
                 examples=node_input.examples,
-                import_error=inputs.import_error,
+                import_error=signature.import_error,
             )
-            for node_input in inputs.inputs
+            for node_input in signature.inputs
             if node_input.name not in connected_input_names
         ]
     return all_node_inputs
@@ -217,49 +217,40 @@ def _get_connected_input_names(
 
         map_all_data = link_attrs.get("map_all_data", False)
         if map_all_data:
-            node_attrs = graph.nodes[predecessor_id]
-            task_type = node_attrs["task_type"]
-            task_identifier = node_attrs["task_identifier"]
-            output_names = _get_all_task_output_names(task_type, task_identifier)
-            connected_input_names.update(output_names)
+            signature = node_signature(
+                predecessor_id, node_attrs=graph.nodes[predecessor_id]
+            )
+            connected_input_names.update(signature.outputs)
     return connected_input_names
 
 
-def _get_all_node_inputs(
+def _get_node_signature(
     task_type: str,
     task_identifier: str,
     default_input_map: Dict[str, Any],
     task_generator: Optional[str],
-) -> List[NodeInput]:
+) -> Tuple[List[NodeInput], List[str]]:
 
     if task_type == "class":
         task_cls = import_utils.import_qualname(task_identifier)
-        return list(_node_inputs_from_class(task_cls, default_input_map))
+        return list(
+            _node_inputs_from_class(task_cls, default_input_map)
+        ), _task_output_names_from_class(task_cls)
     elif task_type == "generated":
         task_cls = get_dynamically_task_class(task_generator, task_identifier)
-        return list(_node_inputs_from_class(task_cls, default_input_map))
-    elif task_type in ("method", "ppfmethod"):
+        return list(
+            _node_inputs_from_class(task_cls, default_input_map)
+        ), _task_output_names_from_class(task_cls)
+    elif task_type == "method":
         task_method = import_utils.import_qualname(task_identifier)
-        return list(_node_inputs_from_method(task_method, default_input_map))
+        return list(_node_inputs_from_method(task_method, default_input_map)), [
+            "return_value"
+        ]
+    elif task_type == "ppfmethod":
+        task_method = import_utils.import_qualname(task_identifier)
+        return list(_node_inputs_from_method(task_method, default_input_map)), []
     else:
         raise EwoksTaskTypeError(f"Cannot get inputs from task type {task_type!r}")
-
-
-def _get_all_task_output_names(task_type: str, task_identifier: str) -> List[str]:
-    """
-    Return all the output parameter names of a task.
-    """
-    if task_type == "class":
-        try:
-            task_cls = import_utils.import_qualname(task_identifier)
-        except Exception:
-            return []
-        else:
-            return _task_output_names_from_class(task_cls)
-    elif task_type == "method":
-        return ["return_value"]
-    else:
-        return []
 
 
 def _node_inputs_from_class(
@@ -405,9 +396,9 @@ def _shorten_task_identifiers(task_identifiers: Sequence[str]) -> Dict[str, str]
     return {pid: ".".join(reversed(parts)) for pid, parts in reversed_parts.items()}
 
 
-def node_inputs(node_id: NodeIdType, node_attrs: Dict[str, Any]) -> NodeInputs:
+def node_signature(node_id: NodeIdType, node_attrs: Dict[str, Any]) -> NodeSignature:
     """
-    Return the input parameters of a node.
+    Return the input and output parameters of a node.
     """
     task_type = node_attrs["task_type"]
     task_identifier = node_attrs["task_identifier"]
@@ -415,7 +406,7 @@ def node_inputs(node_id: NodeIdType, node_attrs: Dict[str, Any]) -> NodeInputs:
     default_input_map = {item["name"]: item.get("value") for item in default_inputs}
 
     try:
-        inputs = _get_all_node_inputs(
+        inputs, outputs = _get_node_signature(
             task_type,
             task_identifier,
             default_input_map,
@@ -432,12 +423,14 @@ def node_inputs(node_id: NodeIdType, node_attrs: Dict[str, Any]) -> NodeInputs:
         else:
             _logger.warning(e, exc_info=True)
         inputs = list(_node_inputs_from_defaults(default_input_map))
+        outputs = []
         import_error = e
 
-    return NodeInputs(
+    return NodeSignature(
         id=node_id,
         label=node_attrs.get("label", None),
         task_identifier=task_identifier,
         import_error=import_error,
         inputs=inputs,
+        outputs=outputs,
     )
