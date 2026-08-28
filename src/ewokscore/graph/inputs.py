@@ -1,7 +1,6 @@
 import inspect
 import logging
 import textwrap
-from dataclasses import dataclass
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -18,37 +17,19 @@ from ewoksutils import import_utils
 
 from ..dynamictask import get_dynamically_task_class
 from ..missing_data import MISSING_DATA
-from ..missing_data import is_missing_data
 from ..model import BaseInputModel
 from ..node import NodeIdType
 from ..task import Task
+from .models import EwoksTaskTypeError
+from .models import GraphInput
+from .models import NodeInput
+from .models import NodeInputs
 from .taskgraph import TaskGraph
 
 _logger = logging.getLogger(__name__)
 
 
-@dataclass
-class NodeInput:
-    id: NodeIdType
-    label: Optional[str]
-    task_identifier: str
-    name: str
-    value: Any
-    required: Optional[bool]
-    description: Optional[str]
-    examples: Optional[List[Any]]
-    import_error: Optional[Exception]
-
-    @property
-    def has_value(self) -> bool:
-        return not is_missing_data(self.value)
-
-    @property
-    def required_without_value(self) -> bool:
-        return self.required and not self.has_value
-
-
-def graph_inputs(graph: TaskGraph) -> List[NodeInput]:
+def graph_inputs(graph: TaskGraph) -> List[GraphInput]:
     """
     Return a list of workflow inputs. These are all the task
     inputs that are not connected to task outputs from previous
@@ -83,7 +64,7 @@ def graph_inputs_as_table(
 
 
 def _graph_inputs_to_table(
-    node_inputs: List[NodeInput],
+    node_inputs: List[GraphInput],
     column_widths: Optional[Dict[str, Optional[int]]] = None,
 ) -> Tuple[List[str], List[List[str]], List[str]]:
     """
@@ -148,7 +129,7 @@ def _graph_inputs_to_table(
     return column_names, rows, footnotes
 
 
-def _get_row_value(node_input: NodeInput, column_name: str) -> Any:
+def _get_row_value(node_input: GraphInput, column_name: str) -> Any:
     value = getattr(node_input, column_name)
     if column_name == "name":
         if node_input.required_without_value:
@@ -188,18 +169,28 @@ def _wrap_bullet_list(items: List[str], width: int) -> str:
     return "\n".join(wrapper.fill(str(item)) for item in items)
 
 
-def _get_node_inputs(graph: networkx.DiGraph) -> List[NodeInput]:
+def _get_node_inputs(graph: networkx.DiGraph) -> List[GraphInput]:
     """
     Return all the task inputs that are not connected to task
     outputs from previous nodes in the workflow.
     """
     all_node_inputs = []
     for node_id, node_attrs in graph.nodes.items():
-        node_inputs = get_all_node_inputs(node_id, node_attrs)
+        inputs = node_inputs(node_id, node_attrs)
         connected_input_names = _get_connected_input_names(graph, node_id)
         all_node_inputs += [
-            node_input
-            for node_input in node_inputs
+            GraphInput(
+                id=inputs.id,
+                label=inputs.label,
+                task_identifier=inputs.task_identifier,
+                name=node_input.name,
+                value=node_input.value,
+                required=node_input.required,
+                description=node_input.description,
+                examples=node_input.examples,
+                import_error=inputs.import_error,
+            )
+            for node_input in inputs.inputs
             if node_input.name not in connected_input_names
         ]
     return all_node_inputs
@@ -229,79 +220,32 @@ def _get_connected_input_names(
             node_attrs = graph.nodes[predecessor_id]
             task_type = node_attrs["task_type"]
             task_identifier = node_attrs["task_identifier"]
-            output_names = get_all_task_output_names(task_type, task_identifier)
+            output_names = _get_all_task_output_names(task_type, task_identifier)
             connected_input_names.update(output_names)
     return connected_input_names
 
 
-def get_all_node_inputs(
-    node_id: NodeIdType, node_attrs: Dict[str, Any]
+def _get_all_node_inputs(
+    task_type: str,
+    task_identifier: str,
+    default_input_map: Dict[str, Any],
+    task_generator: Optional[str],
 ) -> List[NodeInput]:
-    """
-    Return all the input parameters of a node.
-    """
-    task_type = node_attrs["task_type"]
-    task_identifier = node_attrs["task_identifier"]
-    default_inputs = node_attrs.get("default_inputs", [])
-    default_input_map = {item["name"]: item.get("value") for item in default_inputs}
-
-    node_attrs = {
-        "id": node_id,
-        "label": node_attrs.get("label", None),
-        "task_identifier": task_identifier,
-    }
 
     if task_type == "class":
-        try:
-            task_cls = import_utils.import_qualname(task_identifier)
-        except Exception as import_error:
-            _logger.warning(f"Cannot import {task_identifier!r}: {import_error}")
-            node_input_iterator = _node_inputs_from_defaults(
-                default_input_map, node_attrs, import_error
-            )
-        else:
-            node_input_iterator = _node_inputs_from_class(
-                task_cls, default_input_map, node_attrs
-            )
+        task_cls = import_utils.import_qualname(task_identifier)
+        return list(_node_inputs_from_class(task_cls, default_input_map))
     elif task_type == "generated":
-        try:
-            task_cls = get_dynamically_task_class(
-                node_attrs.get("task_generator"), task_identifier
-            )
-        except Exception as import_error:
-            _logger.warning(f"Cannot import {task_identifier!r}: {import_error}")
-            node_input_iterator = _node_inputs_from_defaults(
-                default_input_map, node_attrs, import_error
-            )
-        else:
-            node_input_iterator = _node_inputs_from_class(
-                task_cls, default_input_map, node_attrs
-            )
+        task_cls = get_dynamically_task_class(task_generator, task_identifier)
+        return list(_node_inputs_from_class(task_cls, default_input_map))
     elif task_type in ("method", "ppfmethod"):
-        try:
-            task_method = import_utils.import_qualname(task_identifier)
-        except Exception as import_error:
-            _logger.warning(f"Cannot import {task_identifier!r}: {import_error}")
-            node_input_iterator = _node_inputs_from_defaults(
-                default_input_map, node_attrs, import_error
-            )
-        else:
-            node_input_iterator = _node_inputs_from_method(
-                task_method, default_input_map, node_attrs
-            )
+        task_method = import_utils.import_qualname(task_identifier)
+        return list(_node_inputs_from_method(task_method, default_input_map))
     else:
-        _logger.warning(
-            f"Task type {task_type!r} is not supported ({task_identifier!r}). Only using default values from the workflow."
-        )
-        import_error = TypeError(f"Cannot get inputs from task type {task_type!r}")
-        node_input_iterator = _node_inputs_from_defaults(
-            default_input_map, node_attrs, import_error
-        )
-
-    return list(node_input_iterator)
+        raise EwoksTaskTypeError(f"Cannot get inputs from task type {task_type!r}")
 
 
-def get_all_task_output_names(task_type: str, task_identifier: str) -> List[str]:
+def _get_all_task_output_names(task_type: str, task_identifier: str) -> List[str]:
     """
     Return all the output parameter names of a task.
     """
@@ -319,26 +263,21 @@ def get_all_task_output_names(task_type: str, task_identifier: str) -> List[str]
 
 
 def _node_inputs_from_class(
-    task_cls: Type[Task], default_input_map: Dict[str, Any], node_attrs: Dict[str, Any]
+    task_cls: Type[Task], default_input_map: Dict[str, Any]
 ) -> Generator[NodeInput, None, None]:
     """
     Return all task input parameters based on a task class.
     """
     input_model = task_cls.input_model()
     if input_model:
-        yield from _node_inputs_from_class_model(
-            input_model, default_input_map, node_attrs
-        )
+        yield from _node_inputs_from_class_model(input_model, default_input_map)
     else:
-        yield from _node_inputs_from_class_methods(
-            task_cls, default_input_map, node_attrs
-        )
+        yield from _node_inputs_from_class_methods(task_cls, default_input_map)
 
 
 def _node_inputs_from_class_model(
     input_model: BaseInputModel,
     default_input_map: Dict[str, Any],
-    node_attrs: Dict[str, Any],
 ) -> Generator[NodeInput, None, None]:
     """
     Return all task input parameters based on an input model.
@@ -360,18 +299,16 @@ def _node_inputs_from_class_model(
                 value = default
 
         yield NodeInput(
-            **node_attrs,
             name=name,
             required=required,
             value=value,
             description=field.description,
             examples=field.examples,
-            import_error=None,
         )
 
 
 def _node_inputs_from_class_methods(
-    task_cls: Type[Task], default_input_map: Dict[str, Any], node_attrs: Dict[str, Any]
+    task_cls: Type[Task], default_input_map: Dict[str, Any]
 ) -> Generator[NodeInput, None, None]:
     """
     Return all task input parameters based on a task class.
@@ -382,18 +319,16 @@ def _node_inputs_from_class_methods(
     for name, required in input_names:
         value = default_input_map.get(name, MISSING_DATA)
         yield NodeInput(
-            **node_attrs,
             name=name,
             required=required,
             value=value,
             description=None,
             examples=None,
-            import_error=None,
         )
 
 
 def _node_inputs_from_method(
-    task_method: Callable, default_input_map: Dict[str, Any], node_attrs: Dict[str, Any]
+    task_method: Callable, default_input_map: Dict[str, Any]
 ) -> Generator[NodeInput, None, None]:
     """
     Return all task input parameters based on a task method.
@@ -415,13 +350,11 @@ def _node_inputs_from_method(
             value = param.default
 
         yield NodeInput(
-            **node_attrs,
             name=name,
             required=required,
             value=value,
             description=None,
             examples=None,
-            import_error=None,
         )
 
 
@@ -431,18 +364,14 @@ def _task_output_names_from_class(task_cls) -> List[str]:
 
 def _node_inputs_from_defaults(
     default_input_map: Dict[str, Any],
-    node_attrs: Dict[str, Any],
-    import_error: Exception,
 ) -> Generator[NodeInput, None, None]:
     for name, value in default_input_map.items():
         yield NodeInput(
-            **node_attrs,
             name=name,
             required=True,
             value=value,
             description=None,
             examples=None,
-            import_error=import_error,
         )
 
 
@@ -474,3 +403,41 @@ def _shorten_task_identifiers(task_identifiers: Sequence[str]) -> Dict[str, str]
                 reversed_parts[tid] = reversed_parts[tid] + (full_tid_parts[i],)
 
     return {pid: ".".join(reversed(parts)) for pid, parts in reversed_parts.items()}
+
+
+def node_inputs(node_id: NodeIdType, node_attrs: Dict[str, Any]) -> NodeInputs:
+    """
+    Return the input parameters of a node.
+    """
+    task_type = node_attrs["task_type"]
+    task_identifier = node_attrs["task_identifier"]
+    default_inputs = node_attrs.get("default_inputs", [])
+    default_input_map = {item["name"]: item.get("value") for item in default_inputs}
+
+    try:
+        inputs = _get_all_node_inputs(
+            task_type,
+            task_identifier,
+            default_input_map,
+            task_generator=node_attrs.get("task_generator"),
+        )
+        import_error = None
+    except Exception as e:
+        if isinstance(e, ImportError):
+            _logger.warning(f"Cannot import {task_identifier!r}: {e}")
+        elif isinstance(e, EwoksTaskTypeError):
+            _logger.warning(
+                f"Task type {task_type!r} is not supported ({task_identifier!r}). Only using default values from the workflow."
+            )
+        else:
+            _logger.warning(e, exc_info=True)
+        inputs = list(_node_inputs_from_defaults(default_input_map))
+        import_error = e
+
+    return NodeInputs(
+        id=node_id,
+        label=node_attrs.get("label", None),
+        task_identifier=task_identifier,
+        import_error=import_error,
+        inputs=inputs,
+    )

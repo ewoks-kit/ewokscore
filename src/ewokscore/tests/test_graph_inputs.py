@@ -34,7 +34,7 @@ def test_graph_inputs():
     node_inputs = inputs.graph_inputs(graph)
 
     expected = [
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task1",
             label=None,
             task_identifier="ClassExample",
@@ -45,7 +45,7 @@ def test_graph_inputs():
             examples=None,
             import_error=None,
         ),
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task1",
             label=None,
             task_identifier="ClassExample",
@@ -56,7 +56,7 @@ def test_graph_inputs():
             examples=None,
             import_error=None,
         ),
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task1",
             label=None,
             task_identifier="ClassExample",
@@ -67,7 +67,7 @@ def test_graph_inputs():
             examples=None,
             import_error=None,
         ),
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task1",
             label=None,
             task_identifier="ClassExample",
@@ -78,7 +78,7 @@ def test_graph_inputs():
             examples=None,
             import_error=None,
         ),
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task2",
             label="task2 label",
             task_identifier="ClassExampleWithModel",
@@ -89,7 +89,7 @@ def test_graph_inputs():
             examples=None,
             import_error=None,
         ),
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task2",
             label="task2 label",
             task_identifier="ClassExampleWithModel",
@@ -100,7 +100,7 @@ def test_graph_inputs():
             examples=None,
             import_error=None,
         ),
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task2",
             label="task2 label",
             task_identifier="ClassExampleWithModel",
@@ -111,7 +111,7 @@ def test_graph_inputs():
             examples=[100, "word"],
             import_error=None,
         ),
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task3",
             label=None,
             task_identifier="method_example",
@@ -122,7 +122,7 @@ def test_graph_inputs():
             examples=None,
             import_error=None,
         ),
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task3",
             label=None,
             task_identifier="method_example",
@@ -133,7 +133,7 @@ def test_graph_inputs():
             examples=None,
             import_error=None,
         ),
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task3",
             label=None,
             task_identifier="method_example",
@@ -144,7 +144,7 @@ def test_graph_inputs():
             examples=None,
             import_error=None,
         ),
-        inputs.NodeInput(
+        inputs.GraphInput(
             id="task4",
             label=None,
             task_identifier="NonExistingClass",
