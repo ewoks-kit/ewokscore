@@ -15,8 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add new fields `workflow_input_schema` and `workflow_output_schema` to the spec.
 - `RedisEwoksEventHandler`: add `disconnect_on_error` and `timeout` argument.
-- `get_all_node_inputs` and `get_all_task_output_names` to respectively get all inputs from a
-  node_id and all output names from a task type and identifier.
 - `Sqlite3EwoksEventHandler`: add `retry_period` argument (see `ewoksutils.logging_utils.sqlite3.Sqlite3Handler`).
 
 ### Fixed
