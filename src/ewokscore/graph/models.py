@@ -19,7 +19,7 @@ class EwoksTaskTypeError(TypeError):
 
 
 @dataclass
-class NodeInput:
+class NodePort:
     name: str
     value: Any
     required: Optional[bool]
@@ -41,12 +41,12 @@ class NodeSignature:
     label: Optional[str]
     task_identifier: str
     import_error: Optional[Exception]
-    inputs: List[NodeInput]
-    outputs: List[str]
+    inputs: List[NodePort]
+    outputs: List[NodePort]
 
 
 @dataclass
-class GraphInput(NodeInput):
+class GraphInput(NodePort):
     id: NodeIdType
     label: Optional[str]
     task_identifier: str

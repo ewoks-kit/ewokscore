@@ -11,6 +11,7 @@ from typing import Sequence
 from typing import Set
 from typing import Tuple
 from typing import Type
+from typing import Union
 
 import networkx
 from ewoksutils import import_utils
@@ -18,11 +19,13 @@ from ewoksutils import import_utils
 from ..dynamictask import get_dynamically_task_class
 from ..missing_data import MISSING_DATA
 from ..model import BaseInputModel
+from ..model import BaseOutputModel
 from ..node import NodeIdType
+from ..ppftasks import PPF_DICT_ARGUMENT
 from ..task import Task
 from .models import EwoksTaskTypeError
 from .models import GraphInput
-from .models import NodeInput
+from .models import NodePort
 from .models import NodeSignature
 from .taskgraph import TaskGraph
 
@@ -220,7 +223,7 @@ def _get_connected_input_names(
             signature = node_signature(
                 predecessor_id, node_attrs=graph.nodes[predecessor_id]
             )
-            connected_input_names.update(signature.outputs)
+            connected_input_names.update([output.name for output in signature.outputs])
     return connected_input_names
 
 
@@ -229,56 +232,72 @@ def _get_node_signature(
     task_identifier: str,
     default_input_map: Dict[str, Any],
     task_generator: Optional[str],
-) -> Tuple[List[NodeInput], List[str]]:
+) -> Tuple[List[NodePort], List[NodePort]]:
 
     if task_type == "class":
         task_cls = import_utils.import_qualname(task_identifier)
-        return list(
-            _node_inputs_from_class(task_cls, default_input_map)
-        ), _task_output_names_from_class(task_cls)
+        inputs = list(_node_inputs_from_class(task_cls, default_input_map))
+        outputs = list(_node_outputs_from_class(task_cls))
     elif task_type == "generated":
         task_cls = get_dynamically_task_class(task_generator, task_identifier)
-        return list(
-            _node_inputs_from_class(task_cls, default_input_map)
-        ), _task_output_names_from_class(task_cls)
+        inputs = list(_node_inputs_from_class(task_cls, default_input_map))
+        outputs = list(_node_outputs_from_class(task_cls))
     elif task_type == "method":
         task_method = import_utils.import_qualname(task_identifier)
-        return list(_node_inputs_from_method(task_method, default_input_map)), [
-            "return_value"
+        inputs = list(_node_inputs_from_method(task_method, default_input_map))
+        outputs = [
+            NodePort(
+                name="return_value",
+                value=MISSING_DATA,
+                required=None,
+                description=None,
+                examples=None,
+            )
         ]
     elif task_type == "ppfmethod":
         task_method = import_utils.import_qualname(task_identifier)
-        return list(_node_inputs_from_method(task_method, default_input_map)), []
+        inputs = list(_node_inputs_from_method(task_method, default_input_map))
+        outputs = [
+            NodePort(
+                name=PPF_DICT_ARGUMENT,
+                value=MISSING_DATA,
+                required=None,
+                description=None,
+                examples=None,
+            )
+        ]
     else:
         raise EwoksTaskTypeError(f"Cannot get inputs from task type {task_type!r}")
+
+    return inputs, outputs
 
 
 def _node_inputs_from_class(
     task_cls: Type[Task], default_input_map: Dict[str, Any]
-) -> Generator[NodeInput, None, None]:
+) -> Generator[NodePort, None, None]:
     """
     Return all task input parameters based on a task class.
     """
     input_model = task_cls.input_model()
     if input_model:
-        yield from _node_inputs_from_class_model(input_model, default_input_map)
+        yield from _node_ports_from_class_model(input_model, default_input_map)
     else:
         yield from _node_inputs_from_class_methods(task_cls, default_input_map)
 
 
-def _node_inputs_from_class_model(
-    input_model: BaseInputModel,
-    default_input_map: Dict[str, Any],
-) -> Generator[NodeInput, None, None]:
+def _node_ports_from_class_model(
+    model: Union[BaseInputModel, BaseOutputModel],
+    default_values: Dict[str, Any],
+) -> Generator[NodePort, None, None]:
     """
-    Return all task input parameters based on an input model.
+    Return all task input or output parameters based on a model.
     """
-    for name, field in input_model.model_fields.items():
+    for name, field in model.model_fields.items():
         required = field.is_required()
 
-        if name in default_input_map:
-            # Default input overwrites model default (if any)
-            value = default_input_map[name]
+        if name in default_values:
+            # Default value overwrites model default (if any)
+            value = default_values[name]
         else:
             try:
                 default = field.get_default()
@@ -289,7 +308,7 @@ def _node_inputs_from_class_model(
                 # Field has a default value
                 value = default
 
-        yield NodeInput(
+        yield NodePort(
             name=name,
             required=required,
             value=value,
@@ -300,7 +319,7 @@ def _node_inputs_from_class_model(
 
 def _node_inputs_from_class_methods(
     task_cls: Type[Task], default_input_map: Dict[str, Any]
-) -> Generator[NodeInput, None, None]:
+) -> Generator[NodePort, None, None]:
     """
     Return all task input parameters based on a task class.
     """
@@ -309,7 +328,7 @@ def _node_inputs_from_class_methods(
 
     for name, required in input_names:
         value = default_input_map.get(name, MISSING_DATA)
-        yield NodeInput(
+        yield NodePort(
             name=name,
             required=required,
             value=value,
@@ -320,7 +339,7 @@ def _node_inputs_from_class_methods(
 
 def _node_inputs_from_method(
     task_method: Callable, default_input_map: Dict[str, Any]
-) -> Generator[NodeInput, None, None]:
+) -> Generator[NodePort, None, None]:
     """
     Return all task input parameters based on a task method.
     """
@@ -340,7 +359,7 @@ def _node_inputs_from_method(
             # Parameter has a default value
             value = param.default
 
-        yield NodeInput(
+        yield NodePort(
             name=name,
             required=required,
             value=value,
@@ -349,15 +368,33 @@ def _node_inputs_from_method(
         )
 
 
-def _task_output_names_from_class(task_cls) -> List[str]:
-    return sorted(task_cls.output_names())
+def _node_outputs_from_class(task_cls: Type[Task]) -> Generator[NodePort, None, None]:
+    """
+    Return all task output parameters based on a task class.
+    """
+    output_model = task_cls.output_model()
+    if output_model:
+        yield from _node_ports_from_class_model(output_model, dict())
+    else:
+        yield from _node_outputs_from_class_methods(task_cls)
+
+
+def _node_outputs_from_class_methods(task_cls) -> Generator[NodePort, None, None]:
+    for name in sorted(task_cls.output_names()):
+        yield NodePort(
+            name=name,
+            value=MISSING_DATA,
+            required=None,
+            description=None,
+            examples=None,
+        )
 
 
 def _node_inputs_from_defaults(
     default_input_map: Dict[str, Any],
-) -> Generator[NodeInput, None, None]:
+) -> Generator[NodePort, None, None]:
     for name, value in default_input_map.items():
-        yield NodeInput(
+        yield NodePort(
             name=name,
             required=True,
             value=value,
