@@ -1,5 +1,4 @@
 from ..graph import load_graph
-from ..graph.analysis import link_is_required
 
 
 def test_graph_link_is_required_conditions1():
@@ -36,15 +35,15 @@ def test_graph_link_is_required_conditions1():
     ]
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
 
-    assert link_is_required(taskgraph.graph, "start", "fan")
-    assert not link_is_required(taskgraph.graph, "fan", "on_false1")
-    assert not link_is_required(taskgraph.graph, "fan", "on_true1")
-    assert not link_is_required(taskgraph.graph, "on_false1", "on_false2")
-    assert not link_is_required(taskgraph.graph, "on_true1", "on_true2")
-    assert not link_is_required(taskgraph.graph, "on_false2", "merge")
-    assert not link_is_required(taskgraph.graph, "on_true2", "merge")
-    assert not link_is_required(
-        taskgraph.graph, "merge", "end"
+    assert taskgraph.analysis.link_is_required("start", "fan")
+    assert not taskgraph.analysis.link_is_required("fan", "on_false1")
+    assert not taskgraph.analysis.link_is_required("fan", "on_true1")
+    assert not taskgraph.analysis.link_is_required("on_false1", "on_false2")
+    assert not taskgraph.analysis.link_is_required("on_true1", "on_true2")
+    assert not taskgraph.analysis.link_is_required("on_false2", "merge")
+    assert not taskgraph.analysis.link_is_required("on_true2", "merge")
+    assert not taskgraph.analysis.link_is_required(
+        "merge", "end"
     )  # TODO: this should be True because branches merge again
 
 
@@ -77,15 +76,15 @@ def test_graph_link_is_required_conditions2():
     ]
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
 
-    assert link_is_required(taskgraph.graph, "start", "fan")
-    assert link_is_required(taskgraph.graph, "fan", "always1")
-    assert not link_is_required(taskgraph.graph, "fan", "on_true1")
-    assert link_is_required(taskgraph.graph, "always1", "always2")
-    assert not link_is_required(taskgraph.graph, "on_true1", "on_true2")
-    assert link_is_required(taskgraph.graph, "always2", "merge")
-    assert not link_is_required(taskgraph.graph, "on_true2", "merge")
-    assert not link_is_required(
-        taskgraph.graph, "merge", "end_always"
+    assert taskgraph.analysis.link_is_required("start", "fan")
+    assert taskgraph.analysis.link_is_required("fan", "always1")
+    assert not taskgraph.analysis.link_is_required("fan", "on_true1")
+    assert taskgraph.analysis.link_is_required("always1", "always2")
+    assert not taskgraph.analysis.link_is_required("on_true1", "on_true2")
+    assert taskgraph.analysis.link_is_required("always2", "merge")
+    assert not taskgraph.analysis.link_is_required("on_true2", "merge")
+    assert not taskgraph.analysis.link_is_required(
+        "merge", "end_always"
     )  # TODO: this should be True because branches merge again
 
 
@@ -168,13 +167,13 @@ def test_graph_link_is_required_conditions3():
 
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
 
-    assert link_is_required(taskgraph.graph, "required", "decider")
-    assert not link_is_required(taskgraph.graph, "metric1", "decider")
-    assert not link_is_required(taskgraph.graph, "metric2", "decider")
-    assert not link_is_required(taskgraph.graph, "metric3", "decider")
-    assert not link_is_required(taskgraph.graph, "timeout", "decider")
-    assert not link_is_required(taskgraph.graph, "decider", "good")
-    assert not link_is_required(taskgraph.graph, "decider", "bad")
+    assert taskgraph.analysis.link_is_required("required", "decider")
+    assert not taskgraph.analysis.link_is_required("metric1", "decider")
+    assert not taskgraph.analysis.link_is_required("metric2", "decider")
+    assert not taskgraph.analysis.link_is_required("metric3", "decider")
+    assert not taskgraph.analysis.link_is_required("timeout", "decider")
+    assert not taskgraph.analysis.link_is_required("decider", "good")
+    assert not taskgraph.analysis.link_is_required("decider", "bad")
 
 
 def test_graph_link_is_required_errors():
@@ -218,17 +217,17 @@ def test_graph_link_is_required_errors():
     ]
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
 
-    assert link_is_required(taskgraph.graph, "start", "fan")
-    assert link_is_required(taskgraph.graph, "fan", "always1")
-    assert not link_is_required(taskgraph.graph, "fan", "on_true1")
-    assert not link_is_required(taskgraph.graph, "fan", "on_error1")
-    assert link_is_required(taskgraph.graph, "always1", "always2")
-    assert not link_is_required(taskgraph.graph, "on_true1", "on_true2")
-    assert not link_is_required(taskgraph.graph, "on_error1", "on_error2")
-    assert link_is_required(taskgraph.graph, "always2", "merge")
-    assert not link_is_required(taskgraph.graph, "on_true2", "merge")
-    assert not link_is_required(taskgraph.graph, "on_error2", "merge")
-    assert not link_is_required(
-        taskgraph.graph, "merge", "end_always"
+    assert taskgraph.analysis.link_is_required("start", "fan")
+    assert taskgraph.analysis.link_is_required("fan", "always1")
+    assert not taskgraph.analysis.link_is_required("fan", "on_true1")
+    assert not taskgraph.analysis.link_is_required("fan", "on_error1")
+    assert taskgraph.analysis.link_is_required("always1", "always2")
+    assert not taskgraph.analysis.link_is_required("on_true1", "on_true2")
+    assert not taskgraph.analysis.link_is_required("on_error1", "on_error2")
+    assert taskgraph.analysis.link_is_required("always2", "merge")
+    assert not taskgraph.analysis.link_is_required("on_true2", "merge")
+    assert not taskgraph.analysis.link_is_required("on_error2", "merge")
+    assert not taskgraph.analysis.link_is_required(
+        "merge", "end_always"
     )  # TODO: this should be True because branches merge again
-    assert not link_is_required(taskgraph.graph, "on_error2", "end_on_error")
+    assert not taskgraph.analysis.link_is_required("on_error2", "end_on_error")
