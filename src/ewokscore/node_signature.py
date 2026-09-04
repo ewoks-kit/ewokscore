@@ -10,6 +10,7 @@ from typing import Tuple
 from typing import Type
 from typing import Union
 
+import networkx
 from ewoksutils import import_utils
 
 from ewokscore.model import BaseInputModel
@@ -241,3 +242,65 @@ def node_signature(node_id: NodeIdType, node_attrs: Dict[str, Any]) -> NodeSigna
         inputs=inputs,
         outputs=outputs,
     )
+
+
+def _get_connected_input_names(
+    node_id, graph: networkx.DiGraph, raw_signatures
+) -> Set[str]:
+    """
+    Return all input parameter names that are connected to an output from a previous task.
+    """
+    connected_input_names = set()
+    for predecessor_id in graph.predecessors(node_id):
+        link_attrs = graph.get_edge_data(predecessor_id, node_id)
+
+        if not link_attrs:
+            continue
+
+        data_mappings = link_attrs.get("data_mapping", [])
+        for mapping in data_mappings:
+            target_input = mapping.get("target_input")
+            if target_input:
+                connected_input_names.add(target_input)
+
+        map_all_data = link_attrs.get("map_all_data", False)
+        if map_all_data:
+            signature = raw_signatures[predecessor_id]
+            connected_input_names.update([output.name for output in signature.outputs])
+    return connected_input_names
+
+
+def _get_connected_output_names(node_id, graph: graph: networkx.DiGraph, raw_signatures) -> Set[str]:
+    """
+    Return all input parameter names that are connected to an output from a previous task.
+    """
+    connected_output_names = set()
+    for successor_id in graph.successors(node_id):
+        link_attrs = graph.get_edge_data(node_id, successor_id)
+
+        if not link_attrs:
+            continue
+
+        data_mappings = link_attrs.get("data_mapping", [])
+        for mapping in data_mappings:
+            source_output = mapping.get("source_output")
+            if source_output:
+                connected_output_names.add(source_output)
+
+        map_all_data = link_attrs.get("map_all_data", False)
+        if map_all_data:
+            signature = node_signature(
+                successor_id, node_attrs=graph.nodes[successor_id]
+            )
+            connected_output_names.update([output.name for output in signature.outputs])
+    return connected_output_names
+
+
+def node_signatures(graph: networkx.DiGraph):
+    raw_signatures = {
+        node_id: node_signature(node_id, node_attr)
+        for node_id, node_attr in graph.nodes.items()
+    }
+
+    for signature in raw_signatures.values():
+        _get_connected_signature(signature, graph, raw_signatures)

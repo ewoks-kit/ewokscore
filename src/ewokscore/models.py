@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any
 from typing import List
 from typing import Optional
+from typing import Tuple
 from typing import Union
 
 from .missing_data import is_missing_data
@@ -39,3 +40,7 @@ class NodeSignature:
     import_error: Optional[Exception]
     inputs: List[NodePort]
     outputs: List[NodePort]
+
+
+class NodeSignatureWithConnections(NodeSignature):
+    connections: List[Tuple[str, str]]

@@ -161,9 +161,14 @@ def _get_node_inputs(graph: networkx.DiGraph) -> List[GraphInput]:
     outputs from previous nodes in the workflow.
     """
     all_node_inputs = []
-    for node_id, node_attrs in graph.nodes.items():
-        signature = node_signature(node_id, node_attrs)
-        connected_input_names = _get_connected_input_names(graph, node_id)
+    signatures = [
+        node_signature(node_id, node_attrs)
+        for node_id, node_attrs in graph.nodes.items()
+    ]
+    for signature in signatures:
+        connected_input_names = _get_connected_input_names(
+            graph, signature.id, signatures
+        )
         all_node_inputs += [
             GraphInput(
                 id=signature.id,
@@ -203,10 +208,7 @@ def _get_connected_input_names(
 
         map_all_data = link_attrs.get("map_all_data", False)
         if map_all_data:
-            signature = node_signature(
-                predecessor_id, node_attrs=graph.nodes[predecessor_id]
-            )
-            connected_input_names.update([output.name for output in signature.outputs])
+            connected_input_names.update(_get_task_output_names(node_attrs))
     return connected_input_names
 
 
