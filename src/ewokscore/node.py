@@ -1,8 +1,8 @@
 from typing import Optional
 from typing import Union
 
-NodeIdType = Union[str, int, tuple]
-JsonNodeIdType = Union[int, str, list]
+from .models import JsonNodeIdType
+from .models import NodeIdType
 
 SEPARATOR = ":"
 

@@ -8,11 +8,11 @@ from ..bindings import execute_graph
 from ..bindings import load_graph
 from ..graph import inputs
 from ..graph.models import NodePort
-from ..graph.models import NodeSignature
 from ..graph.taskgraph import TaskGraph
 from ..missing_data import MISSING_DATA
 from ..model import BaseInputModel
 from ..model import BaseOutputModel
+from ..models import NodeSignature
 from ..task import Task
 
 
