@@ -10,7 +10,7 @@ from .types import CustomType
 def assert_deserialized_data(
     deserialized_data: Dict[str, Any], original_data: Dict[str, Any]
 ):
-    actual = _data_for_comparison(_remove_hdf5_attrs(deserialized_data))
+    actual = _data_for_comparison(deserialized_data)
     expected = _data_for_comparison(original_data)
 
     assert actual == expected
@@ -23,14 +23,6 @@ def assert_serialized_data(
     expected = _expected_data_for_serialized_comparison(original_data)
 
     assert actual == expected
-
-
-def _remove_hdf5_attrs(deserialized_data: dict) -> None:
-    return {
-        k: _remove_hdf5_attrs(v) if isinstance(v, dict) else v
-        for k, v in deserialized_data.items()
-        if k not in ("@NX_class",)
-    }
 
 
 def _data_for_comparison(value: Any) -> Any:
