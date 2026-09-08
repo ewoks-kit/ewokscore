@@ -12,7 +12,9 @@ from collections.abc import Iterable
 from collections.abc import Iterator
 from collections.abc import Mapping
 from collections.abc import Set
+from functools import singledispatch
 from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -23,6 +25,7 @@ import numpy
 from ewoksutils.import_utils import qualname
 
 from . import missing_data
+from .entry_points import entry_points
 
 
 class UniversalHash:
@@ -56,20 +59,61 @@ def uhash(value) -> UniversalHash:
     A type is universally hashable when it implements `__uhash__`, which returns
     either a `UniversalHash` or another universally hashable value.
     """
+    if not _LOADED_UHASH_REGISTRATIONS:
+        load_uhash_registrations()
+    return _uhash(value)
+
+
+def _unregistered_uhash(value: Any) -> Any:
+    """Placeholder for types without a registered universal hash."""
+    raise TypeError(f"universal unhashable type: {type(value)}")
+
+
+# Dispatches base on the type of the first argument, the value.
+_REGISTERED_UHASH = singledispatch(_unregistered_uhash)
+
+
+# Avoids the dispatch when nothing is registered
+_HAS_REGISTERED_UHASH = False
+
+
+def register_uhash(cls: Type, method: Callable[[Any], Any]) -> None:
+    """Make instances of `cls` universally hashable, for types that cannot
+    implement `__uhash__` themselves. `method` returns either a `UniversalHash`
+    or another universally hashable value.
+    """
+    global _HAS_REGISTERED_UHASH
+    _REGISTERED_UHASH.register(cls, method)
+    _HAS_REGISTERED_UHASH = True
+
+
+_LOADED_UHASH_REGISTRATIONS = False
+
+
+def load_uhash_registrations() -> None:
+    """Apply the registrations of the `ewoks.hashing` entry point group."""
+    global _LOADED_UHASH_REGISTRATIONS
+    # Set before loading: a registration is allowed to hash values itself
+    _LOADED_UHASH_REGISTRATIONS = True
+    for entrypoint in entry_points("ewoks.hashing"):
+        entrypoint.load()()
+
+
+# `_uhash` serializes a value to a byte stream and hashes that stream with
+# SHA-256. The stream is a depth-first walk over the value in which
+#
+#  * a scalar contributes its type name followed by its data
+#  * a container contributes its type name, then its items, then `)`
+#  * a container that occurs inside itself contributes `^` followed by the
+#    number of levels up to that container
+#
+# The stream has to be unambiguous, or values collide. The closing `)` is what
+# separates `[1, [2]]` from `[[1, 2]]`, and data of an arbitrary length is
+# prefixed with that length so it cannot pose as the data around it.
+def _uhash(value) -> UniversalHash:
     if isinstance(value, UniversalHash):
         return value
 
-    # `uhash` serializes a value to a byte stream and hashes that stream with
-    # SHA-256. The stream is a depth-first walk over the value in which
-    #
-    #  * a scalar contributes its type name followed by its data
-    #  * a container contributes its type name, then its items, then `)`
-    #  * a container that occurs inside itself contributes `^` followed by the
-    #    number of levels up to that container
-    #
-    # The stream has to be unambiguous, or values collide. The closing `)` is what
-    # separates `[1, [2]]` from `[[1, 2]]`, and data of an arbitrary length is
-    # prefixed with that length so it cannot pose as the data around it.
     _hash = hashlib.sha256()
     # What is left to serialize, in reverse order because the stack is LIFO
     stack: List[Any] = [value]
@@ -94,8 +138,14 @@ def uhash(value) -> UniversalHash:
             _hash.update(str(len(open_depths) - depth).encode())
             continue
 
-        # Universal hash method to apply to value
+        # Universal hash method to apply to value: __uhash__
         uhash_method = getattr(type(value), "__uhash__", None)
+
+        # Universal hash method to apply to value: registered for the value type
+        if uhash_method is None and _HAS_REGISTERED_UHASH:
+            uhash_method = _REGISTERED_UHASH.dispatch(type(value))
+            if uhash_method is _unregistered_uhash:
+                uhash_method = None
 
         # Apply universal hash method to the value
         if uhash_method is not None:
@@ -362,7 +412,9 @@ class UniversalHashable(HasUhash):
         supercls_data = subcls.class_nonce()
         subcls.__VERSION = version
         subcls_data = subcls.class_nonce_data()
-        subcls.__CLASS_NONCE = str(uhash((subcls_data, supercls_data)))
+        # `_uhash` and not `uhash`: a class nonce contains no registered types
+        # and is computed while the module defining the subclass is imported
+        subcls.__CLASS_NONCE = str(_uhash((subcls_data, supercls_data)))
 
     def set_uhash_init(
         self,
