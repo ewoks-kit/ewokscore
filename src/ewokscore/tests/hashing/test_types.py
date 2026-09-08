@@ -61,6 +61,39 @@ def test_hashing_uncomparable_keys():
     assert hashing.uhash(aset) == hashing.uhash(set(aset))
 
 
+def test_hashing_ndarray():
+    andarray = numpy.arange(6)
+
+    assert hashing.uhash(andarray) == hashing.uhash(andarray.copy())
+    assert hashing.uhash(andarray) != hashing.uhash(andarray.tolist())
+
+    # The shape and the data type are part of the universal hash
+    assert hashing.uhash(andarray) != hashing.uhash(andarray.reshape(2, 3))
+    assert hashing.uhash(andarray) == hashing.uhash(numpy.asfortranarray(andarray))
+    assert hashing.uhash(andarray[::2]) == hashing.uhash(andarray[::2].copy())
+    assert hashing.uhash(numpy.array([1, 0, 0, 0], dtype="int8")) != hashing.uhash(
+        numpy.array([1], dtype="int32")
+    )
+
+
+def test_hashing_ndarray_of_objects():
+    def andarray(value):
+        return numpy.array([{"a": value}, {"b": 2}], dtype=object)
+
+    # The buffer of an object array contains pointers
+    assert hashing.uhash(andarray(1)) == hashing.uhash(andarray(1))
+    assert hashing.uhash(andarray(1)) != hashing.uhash(andarray(2))
+    assert hashing.uhash(andarray(1)) != hashing.uhash(list(andarray(1)))
+
+    # Zero-dimensional
+    assert hashing.uhash(numpy.array({"a": 1}, dtype=object)) == hashing.uhash(
+        numpy.array({"a": 1}, dtype=object)
+    )
+
+    with pytest.raises(TypeError):
+        hashing.uhash(numpy.array([object()], dtype=object))
+
+
 def test_hashing_iterator():
     """An iterator is consumed by hashing it, so it has no reproducible hash."""
     with pytest.raises(TypeError):

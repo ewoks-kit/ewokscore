@@ -124,8 +124,18 @@ def uhash(value) -> UniversalHash:
             _hash.update(hex(value).encode())
         elif isinstance(value, float):
             _hash.update(value.hex().encode())
-        elif isinstance(value, (numpy.ndarray, numpy.number)):
-            _hash.update(value.tobytes())
+        elif isinstance(value, (numpy.ndarray, numpy.generic)):
+            # `tobytes` contains neither the data type nor the shape, which
+            # together determine the length of the data
+            _update_data(_hash, str(value.dtype).encode())
+            _update_data(_hash, str(value.shape).encode())
+            if value.dtype.hasobject:
+                # `tobytes` contains pointers, which differ between processes
+                _expand(stack, open_depths, value, value.flat)
+            elif isinstance(value, numpy.ndarray) and value.flags.c_contiguous:
+                _hash.update(value)  # `tobytes` would copy the array
+            else:
+                _hash.update(value.tobytes())
         elif isinstance(value, Mapping):
             items = _multitype_sorted(value.items(), key=lambda item: item[0])
             if items:

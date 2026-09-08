@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Values with a different nesting could have the same universal hash.
 - Values containing `bytes` or `str` of an arbitrary length could have the same universal hash.
+- The universal hash of a numpy array did not include its shape and data type.
+- The universal hash of a numpy array with `dtype=object` was different in every process.
 - Universal hashing raised `RecursionError` for deeply nested values and circular references.
 - Universal hashing raised `TypeError` for mappings and sets with uncomparable keys or items.
 - Universal hashing an iterator consumed it.
