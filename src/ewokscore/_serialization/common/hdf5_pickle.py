@@ -201,6 +201,11 @@ def post_deserialize(obj: Any) -> Any:
                 t.assign(current)
             continue
 
+        if isinstance(current, numpy.generic):
+            # silx/h5py returns numpy scalars for dataset items
+            t.assign(current.item())
+            continue
+
         # --- list ---
         if isinstance(current, list):
             new_list = [None] * len(current)

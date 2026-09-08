@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `NexusProxy`: a `list`, `tuple` or `set` with items of a different type could not be saved
   (e.g. `["a", 1]`) or was saved with a different item type (e.g. `[1, 2.5]` became `[1.0, 2.5]`).
   Such sequences are now pickled.
+- `NexusProxy`: items of a `list`, `tuple` or `set` loaded from HDF5 are python scalars again
+  instead of numpy scalars.
 
 ## [5.1.0rc3] - 2026-09-08
 

@@ -32,8 +32,16 @@ def _data_for_comparison(value: Any) -> Any:
     if isinstance(value, dict):
         return {k: _data_for_comparison(v) for k, v in value.items()}
     if isinstance(value, (list, tuple, set)):
-        return type(value)(_data_for_comparison(v) for v in value)
+        return type(value)(_item_for_comparison(v) for v in value)
     return value
+
+
+def _item_for_comparison(value: Any) -> Any:
+    """Sequence items are compared with their type because storage can silently
+    change it (e.g. `int` to `float`)."""
+    if isinstance(value, (numpy.ndarray, dict, list, tuple, set)):
+        return _data_for_comparison(value)
+    return type(value), value
 
 
 def _actual_data_for_serialized_comparison(serialized_data: Any) -> Any:
