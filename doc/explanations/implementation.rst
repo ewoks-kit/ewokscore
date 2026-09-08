@@ -24,8 +24,65 @@ Hash implementation
 
 The *universal hashing* in *ewoks* is currently based on SHA-256. The `UniversalHash` class
 representation a *universal hash* at runtime. Several builtin python types are *universally hasheable*:
-strings, numbers, mappings, sets and iterables. Custom types that are *universally hasheable* should
-derive from `UniversalHashable`.
+strings, numbers, mappings, sets, iterables, numpy arrays, dates and times, paths, UUID's and
+enumerations. Any other type becomes *universally hasheable* by
+implementing `__uhash__`, which returns either a `UniversalHash` or another *universally hasheable*
+value:
+
+.. code:: python
+
+   class MyClass:
+       def __init__(self, data):
+           self.data = data
+
+       def __uhash__(self):
+           return self.data
+
+Types that cannot implement `__uhash__` themselves, such as types from a third-party library,
+are registered instead. Like `__uhash__`, the registered method receives an instance of the type
+and returns either a `UniversalHash` or another *universally hasheable* value
+
+.. code:: python
+
+   from ewokscore.hashing import register_uhash
+
+   register_uhash(pandas.DataFrame, lambda df: (list(df.columns), df.to_numpy()))
+
+Registration takes precedence over the builtin handling of a type, so a `DataFrame` is no longer
+hashed as an iterable of column names.
+
+Registrations are applied before the first value is hashed when they are declared in the entry
+point group `"ewoks.hashing"`, in analogy to task and workflow discovery
+
+.. code:: toml
+
+   [project.entry-points."ewoks.hashing"]
+   "pandas" = "myproject.hashing:register_pandas"
+   "h5py" = "myproject.hashing:register_h5py"
+
+where every entry point is a function without arguments that calls `register_uhash` for each
+type it provides
+
+.. code:: python
+
+   import h5py
+   import pandas
+
+   from ewokscore.hashing import register_uhash
+
+
+   def register_pandas() -> None:
+       register_uhash(pandas.DataFrame, lambda df: (list(df.columns), df.to_numpy()))
+       register_uhash(pandas.Series, lambda series: (series.name, series.to_numpy()))
+
+
+   def register_h5py() -> None:
+       register_uhash(h5py.Dataset, lambda dset: dset[()])
+
+Note that the *universal hash* of a value changes when its type becomes registered.
+
+Custom types with a *universal hash* that is fixed, randomized or derived from another
+*universally hasheable* object should derive from `UniversalHashable`.
 
 Tasks and task inputs and outputs are *universally hasheable* and are implementation as described
 in this class diagram:

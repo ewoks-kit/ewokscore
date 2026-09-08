@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Universal hashing of custom types with `__uhash__`.
+- New function `hashing.register_uhash`.
+- New entry-point group `"ewoks.hashing"`.
+- Universal hashing of `complex`, `bytearray`, `datetime.datetime`, `datetime.date`,
+  `datetime.time`, `datetime.timedelta`, `pathlib.PurePath`, `uuid.UUID`, `enum.Enum`,
+  `numpy.bool_` and `numpy.datetime64`.
+
+### Fixed
+
+- Values with a different nesting could have the same universal hash.
+- Values containing `bytes` or `str` of an arbitrary length could have the same universal hash.
+- The universal hash of a numpy array did not include its shape and data type.
+- The universal hash of a numpy array with `dtype=object` was different in every process.
+- Universal hashing raised `RecursionError` for deeply nested values and circular references.
+- Universal hashing raised `TypeError` for mappings and sets with uncomparable keys or items.
+- Universal hashing an iterator consumed it.
+
+### Changed
+
+- **Breaking**: universal hashes changed for everything except `None`, `bool`, `int` and `float`.
+- **Breaking**: `HasUhash` is abstract and requires `__uhash__` instead of the `uhash` property.
+- **Breaking**: comparing a `HasUhash` object with a universally hashable value returns `False`
+  instead of raising `TypeError`.
+
+### Removed
+
+- `hashing.classhashdata` and `hashing.multitype_sorted`.
 
 ## [5.1.0rc3] - 2026-09-08
 
