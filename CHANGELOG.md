@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Universal hashing of custom types with `__uhash__`.
+- Universal hashing of `complex`, `bytearray`, `datetime.datetime`, `datetime.date`,
+  `datetime.time`, `datetime.timedelta`, `pathlib.PurePath`, `uuid.UUID`, `enum.Enum`,
+  `numpy.bool_` and `numpy.datetime64`.
 
 ### Fixed
 

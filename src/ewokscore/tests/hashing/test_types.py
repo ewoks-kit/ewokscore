@@ -1,4 +1,8 @@
+import datetime
+import enum
 import itertools
+import pathlib
+import uuid
 
 import numpy
 import pytest
@@ -59,6 +63,82 @@ def test_hashing_uncomparable_keys():
 
     aset = {(1, 2), (1, "b")}
     assert hashing.uhash(aset) == hashing.uhash(set(aset))
+
+
+def test_hashing_numbers():
+    assert hashing.uhash(1j) != hashing.uhash(complex(1, 0))
+    assert hashing.uhash(numpy.bool_(True)) != hashing.uhash(numpy.bool_(False))
+    assert hashing.uhash(numpy.datetime64("2026-01-01")) != hashing.uhash(
+        numpy.datetime64("2026-01-02")
+    )
+
+
+def test_hashing_bytearray():
+    assert hashing.uhash(bytearray(b"ab")) == hashing.uhash(bytearray(b"ab"))
+    assert hashing.uhash(bytearray(b"ab")) != hashing.uhash(bytearray(b"ac"))
+    assert hashing.uhash(bytearray(b"ab")) != hashing.uhash(b"ab")
+
+
+def test_hashing_datetime():
+    naive = datetime.datetime(2026, 1, 1, 12)
+    utc = naive.replace(tzinfo=datetime.timezone.utc)
+    plus1 = datetime.datetime(
+        2026, 1, 1, 13, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+    )
+
+    # Aware datetimes referring to the same instant are equal
+    assert utc == plus1
+    assert hashing.uhash(utc) == hashing.uhash(plus1)
+
+    assert hashing.uhash(utc) != hashing.uhash(utc + datetime.timedelta(hours=1))
+    assert hashing.uhash(naive) != hashing.uhash(utc)
+    assert hashing.uhash(naive) != hashing.uhash(naive.replace(microsecond=1))
+    assert hashing.uhash(naive) != hashing.uhash(naive.date())
+
+
+def test_hashing_date_time_timedelta():
+    assert hashing.uhash(datetime.date(2026, 1, 1)) != hashing.uhash(
+        datetime.date(2026, 1, 2)
+    )
+    assert hashing.uhash(datetime.time(12, 30)) != hashing.uhash(datetime.time(12, 31))
+
+    # Equal timedeltas are normalized by the constructor
+    assert hashing.uhash(datetime.timedelta(days=1)) == hashing.uhash(
+        datetime.timedelta(hours=24)
+    )
+    assert hashing.uhash(datetime.timedelta(days=1)) != hashing.uhash(
+        datetime.timedelta(days=2)
+    )
+
+
+def test_hashing_path_and_uuid():
+    assert hashing.uhash(pathlib.PurePosixPath("a//b/")) == hashing.uhash(
+        pathlib.PurePosixPath("a/b")
+    )
+    assert hashing.uhash(pathlib.PurePosixPath("a")) != hashing.uhash(
+        pathlib.PurePosixPath("b")
+    )
+
+    auuid = uuid.uuid4()
+    assert hashing.uhash(auuid) == hashing.uhash(uuid.UUID(str(auuid)))
+    assert hashing.uhash(auuid) != hashing.uhash(uuid.uuid4())
+
+
+def test_hashing_enum():
+    class Colour(enum.Enum):
+        RED = 1
+        BLUE = 2
+
+    class Flags(enum.Flag):
+        A = enum.auto()
+        B = enum.auto()
+
+    assert hashing.uhash(Colour.RED) == hashing.uhash(Colour(1))
+    assert hashing.uhash(Colour.RED) != hashing.uhash(Colour.BLUE)
+    assert hashing.uhash(Colour.RED) != hashing.uhash(1)
+
+    # A combination of flags has no name
+    assert hashing.uhash(Flags.A | Flags.B) != hashing.uhash(Flags.A)
 
 
 def test_hashing_ndarray():

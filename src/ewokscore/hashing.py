@@ -1,7 +1,11 @@
 """Universal hashing independent of the current process"""
 
+import datetime
+import enum
 import hashlib
+import pathlib
 import secrets
+import uuid
 from abc import ABC
 from abc import abstractmethod
 from collections.abc import Iterable
@@ -116,14 +120,45 @@ def uhash(value) -> UniversalHash:
             pass
         elif isinstance(value, UniversalHash):
             _hash.update(repr(value).encode())
-        elif isinstance(value, bytes):
-            _update_data(_hash, value)
+        elif isinstance(value, enum.Enum):
+            # The name identifies the member, except for a combination of flags
+            _expand(stack, open_depths, value, (value.name, value.value))
+        elif isinstance(value, (bytes, bytearray)):
+            _update_data(_hash, bytes(value))
         elif isinstance(value, str):
             _update_data(_hash, value.encode())
         elif isinstance(value, int):
             _hash.update(hex(value).encode())
         elif isinstance(value, float):
             _hash.update(value.hex().encode())
+        elif isinstance(value, complex):
+            _hash.update(value.real.hex().encode())
+            _hash.update(value.imag.hex().encode())
+        elif isinstance(value, datetime.datetime):
+            # Equal datetimes have equal universal hashes: aware datetimes are
+            # equal when they refer to the same instant, naive datetimes when
+            # they have the same wall clock time
+            offset = value.utcoffset()
+            if offset is None:
+                _hash.update(b"naive")
+                _update_data(_hash, value.isoformat().encode())
+            else:
+                _hash.update(b"aware")
+                utc = value.replace(tzinfo=None) - offset
+                _update_data(_hash, utc.isoformat().encode())
+        elif isinstance(value, datetime.date):
+            _update_data(_hash, value.isoformat().encode())
+        elif isinstance(value, datetime.time):
+            _update_data(_hash, value.isoformat().encode())
+        elif isinstance(value, datetime.timedelta):
+            # Normalized by the constructor
+            _update_data(
+                _hash, f"{value.days}:{value.seconds}:{value.microseconds}".encode()
+            )
+        elif isinstance(value, uuid.UUID):
+            _hash.update(value.bytes)
+        elif isinstance(value, pathlib.PurePath):
+            _update_data(_hash, str(value).encode())
         elif isinstance(value, (numpy.ndarray, numpy.generic)):
             # `tobytes` contains neither the data type nor the shape, which
             # together determine the length of the data
