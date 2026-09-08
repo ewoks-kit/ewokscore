@@ -9,6 +9,7 @@ How-to Guides
     howtoguides/workflow_conversion
     howtoguides/events
     howtoguides/task_discovery
+    howtoguides/function_task
     howtoguides/workflow_discovery
     howtoguides/notebook_task
     howtoguides/change_schema

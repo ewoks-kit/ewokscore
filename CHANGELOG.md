@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Task inputs and outputs of a `"method"` task are validated and coerced with its type annotations.
+- Task discovery reports the outputs of a `"method"` task.
+
+### Changed
+
+- **Breaking**: a `"method"` task has one output per field of its return type, instead of a single
+  `return_value`, when the return type is a pydantic model, dataclass, named tuple or typed dict.
 
 ## [5.1.0rc3] - 2026-09-08
 
