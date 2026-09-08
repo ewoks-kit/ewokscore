@@ -1,7 +1,14 @@
 from typing import Any
 
+import numpy
+
 from ..._serialization import common
 from ..._serialization.common import types
+
+
+def test_numpy_bool():
+    result = _pre_serialize(numpy.bool_(True))
+    assert result is True
 
 
 def test_none():

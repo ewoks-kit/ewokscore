@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Such sequences are now pickled.
 - `NexusProxy`: items of a `list`, `tuple` or `set` loaded from HDF5 are python scalars again
   instead of numpy scalars.
+- `JsonProxy` and `NexusProxy`: `numpy.bool_` was saved as an integer instead of a boolean.
 
 ## [5.1.0rc3] - 2026-09-08
 
