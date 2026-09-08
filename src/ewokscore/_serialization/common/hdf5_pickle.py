@@ -33,7 +33,12 @@ def pre_serialize(obj: Any) -> Any:
         current = t.current
 
         # --- primitives ---
-        if current is None or isinstance(current, (str, bool)):
+        if current is None:
+            # HDF5 has no representation for `None`
+            t.assign({constants.EWOKS_KEY: "none"})
+            continue
+
+        if isinstance(current, (str, bool)):
             t.assign(current)
             continue
 
@@ -140,6 +145,10 @@ def post_deserialize(obj: Any) -> Any:
                 continue
 
             tag = current[constants.EWOKS_KEY].item()
+
+            if tag == "none":
+                t.assign(None)
+                continue
 
             if tag == "bytes":
                 t.assign(base64.b64decode(current["data"].item()))

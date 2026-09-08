@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `NexusProxy`: a dictionary loaded from HDF5 no longer contains an extra `@NX_class` key.
+- `NexusProxy`: `None` inside a dictionary was lost when saving to HDF5.
 
 ## [5.1.0rc3] - 2026-09-08
 

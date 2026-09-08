@@ -67,6 +67,8 @@ def _expected_data_for_serialized_comparison(original_data: Any) -> Any:
     """
     :param original_data: original python data before serialization
     """
+    if original_data is None:
+        return {"__test_compare__": "none"}
     if isinstance(original_data, (list, tuple, set)) and _is_scalar_sequence(
         original_data
     ):
