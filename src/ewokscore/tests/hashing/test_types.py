@@ -48,6 +48,17 @@ def test_hashing_arbitrary_length_data():
     assert hashing.uhash(["A", "B"]) != hashing.uhash(["Abuiltins.strB"])
 
 
+def test_hashing_uncomparable_keys():
+    """Mapping keys and set items need no total order between them."""
+    adict = {(1, 2): "a", (1, "b"): "c"}
+
+    assert hashing.uhash(adict) == hashing.uhash(dict(reversed(adict.items())))
+    assert hashing.uhash({(1, 2): "a"}) != hashing.uhash({(1, "b"): "a"})
+
+    aset = {(1, 2), (1, "b")}
+    assert hashing.uhash(aset) == hashing.uhash(set(aset))
+
+
 def test_hashing_unhashable():
     class Myclass:
         pass

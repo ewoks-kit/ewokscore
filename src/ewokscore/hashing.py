@@ -200,25 +200,24 @@ def _classhashdata(cls: Type) -> bytes:
 
 
 def _multitype_sorted(sequence: Iterable, key=None) -> list:
+    """Sort a sequence of which the items are not necessarily comparable."""
     try:
         return sorted(sequence, key=key)
     except TypeError:
         pass
+
+    # The universal hash provides a total order for any set of values
     if key is None:
 
-        def key(item):
-            return item
+        def uhash_key(item):
+            return str(uhash(item))
 
-    adict = dict()
-    for item in sequence:
-        typename = type(key(item)).__name__
-        adict.setdefault(typename, list()).append(item)
+    else:
 
-    return [
-        item
-        for _, items in sorted(adict.items(), key=lambda tpl: tpl[0])
-        for item in sorted(items, key=key)
-    ]
+        def uhash_key(item):
+            return str(uhash(key(item)))
+
+    return sorted(sequence, key=uhash_key)
 
 
 class HasUhash(ABC):
