@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Values containing `bytes` or `str` of an arbitrary length could have the same universal hash.
 - Universal hashing raised `RecursionError` for deeply nested values and circular references.
 - Universal hashing raised `TypeError` for mappings and sets with uncomparable keys or items.
+- Universal hashing an iterator consumed it.
 
 ### Changed
 

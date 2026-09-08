@@ -1,3 +1,5 @@
+import itertools
+
 import numpy
 import pytest
 
@@ -57,6 +59,20 @@ def test_hashing_uncomparable_keys():
 
     aset = {(1, 2), (1, "b")}
     assert hashing.uhash(aset) == hashing.uhash(set(aset))
+
+
+def test_hashing_iterator():
+    """An iterator is consumed by hashing it, so it has no reproducible hash."""
+    with pytest.raises(TypeError):
+        hashing.uhash(iter([1, 2, 3]))
+
+    with pytest.raises(TypeError):
+        hashing.uhash(itertools.count())
+
+    # Views can be iterated more than once
+    adict = {"a": 1}
+    assert hashing.uhash(adict.keys()) == hashing.uhash(adict.keys())
+    assert hashing.uhash(adict.values()) == hashing.uhash(adict.values())
 
 
 def test_hashing_unhashable():

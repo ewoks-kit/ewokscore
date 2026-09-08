@@ -5,6 +5,7 @@ import secrets
 from abc import ABC
 from abc import abstractmethod
 from collections.abc import Iterable
+from collections.abc import Iterator
 from collections.abc import Mapping
 from collections.abc import Set
 from typing import Any
@@ -134,6 +135,9 @@ def uhash(value) -> UniversalHash:
             _expand(stack, open_depths, value, (keys, values))
         elif isinstance(value, Set):
             _expand(stack, open_depths, value, _multitype_sorted(value))
+        elif isinstance(value, Iterator):
+            # Hashing consumes an iterator, so its hash is not reproducible
+            raise TypeError(f"universal unhashable iterator: {type(value)}")
         elif isinstance(value, Iterable):
             # Ordered
             _expand(stack, open_depths, value, value)
