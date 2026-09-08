@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Universal hashing of custom types with `__uhash__`.
+
+### Fixed
+
+- Values with a different nesting could have the same universal hash.
+- Universal hashing raised `RecursionError` for deeply nested values and circular references.
+
+### Changed
+
+- **Breaking**: universal hashes changed for everything except `None`, `bool`, `int` and `float`.
+- **Breaking**: `HasUhash` is abstract and requires `__uhash__` instead of the `uhash` property.
+- **Breaking**: comparing a `HasUhash` object with a universally hashable value returns `False`
+  instead of raising `TypeError`.
+
+### Removed
+
+- `hashing.classhashdata` and `hashing.multitype_sorted`.
 
 ## [5.1.0rc3] - 2026-09-08
 

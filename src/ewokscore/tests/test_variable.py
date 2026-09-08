@@ -371,6 +371,22 @@ def test_variable_fixed_uhash():
     assert var2.uhash == var3.uhash
 
 
+def test_variable_custom_uhash():
+    class MyClass:
+        def __init__(self, data):
+            self.data = data
+
+        def __uhash__(self):
+            return self.data
+
+    var1 = Variable(value=MyClass(1), varinfo={"enable_hashing": True})
+    var2 = Variable(value=MyClass(1), varinfo={"enable_hashing": True})
+    var3 = Variable(value=MyClass(2), varinfo={"enable_hashing": True})
+
+    assert var1.uhash == var2.uhash
+    assert var1.uhash != var3.uhash
+
+
 def test_variable_uri(tmp_path):
     var1 = Variable(value=10, varinfo={"root_uri": str(tmp_path)})
     var1.dump()

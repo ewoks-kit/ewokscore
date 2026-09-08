@@ -1,4 +1,5 @@
 import numpy
+import pytest
 
 from ... import hashing
 
@@ -39,3 +40,22 @@ def test_hashing_unique():
     adict = {-i: v for i, v in enumerate(unique_values, 1)}
     assert hashing.uhash(adict) == hashing.uhash(adict)
     assert hashing.uhash(adict) == hashing.uhash(dict(sorted(adict.items())))
+
+
+def test_hashing_unhashable():
+    class Myclass:
+        pass
+
+    with pytest.raises(TypeError, match="Myclass"):
+        hashing.uhash(Myclass())
+
+    # A class is not universally hashable and is identified by its own name,
+    # not by its metaclass
+    with pytest.raises(TypeError, match="Myclass"):
+        hashing.uhash(Myclass)
+
+    class MyHashable(hashing.UniversalHashable):
+        pass
+
+    with pytest.raises(TypeError, match="MyHashable"):
+        hashing.uhash(MyHashable)

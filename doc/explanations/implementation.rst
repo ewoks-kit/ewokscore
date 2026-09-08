@@ -24,8 +24,21 @@ Hash implementation
 
 The *universal hashing* in *ewoks* is currently based on SHA-256. The `UniversalHash` class
 representation a *universal hash* at runtime. Several builtin python types are *universally hasheable*:
-strings, numbers, mappings, sets and iterables. Custom types that are *universally hasheable* should
-derive from `UniversalHashable`.
+strings, numbers, mappings, sets and iterables. Any other type becomes *universally hasheable* by
+implementing `__uhash__`, which returns either a `UniversalHash` or another *universally hasheable*
+value:
+
+.. code:: python
+
+   class MyClass:
+       def __init__(self, data):
+           self.data = data
+
+       def __uhash__(self):
+           return self.data
+
+Custom types with a *universal hash* that is fixed, randomized or derived from another
+*universally hasheable* object should derive from `UniversalHashable`.
 
 Tasks and task inputs and outputs are *universally hasheable* and are implementation as described
 in this class diagram:
