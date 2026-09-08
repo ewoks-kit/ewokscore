@@ -62,8 +62,9 @@ def uhash(value) -> UniversalHash:
     #  * a container that occurs inside itself contributes `^` followed by the
     #    number of levels up to that container
     #
-    # The closing `)` is what makes the stream unambiguous: without it `[1, [2]]`
-    # and `[[1, 2]]` would both serialize to `list int 1 list int 2`.
+    # The stream has to be unambiguous, or values collide. The closing `)` is what
+    # separates `[1, [2]]` from `[[1, 2]]`, and data of an arbitrary length is
+    # prefixed with that length so it cannot pose as the data around it.
     _hash = hashlib.sha256()
     # What is left to serialize, in reverse order because the stack is LIFO
     stack: List[Any] = [value]
@@ -115,9 +116,9 @@ def uhash(value) -> UniversalHash:
         elif isinstance(value, UniversalHash):
             _hash.update(repr(value).encode())
         elif isinstance(value, bytes):
-            _hash.update(value)
+            _update_data(_hash, value)
         elif isinstance(value, str):
-            _hash.update(value.encode())
+            _update_data(_hash, value.encode())
         elif isinstance(value, int):
             _hash.update(hex(value).encode())
         elif isinstance(value, float):
@@ -186,6 +187,12 @@ def _expand(
     # and the items are pushed in reverse so they come off in order
     stack.append(_EndOfNesting(value))
     stack.extend(reversed(list(nested)))
+
+
+def _update_data(_hash, data: bytes) -> None:
+    """Hash data of an arbitrary length, prefixed with that length."""
+    _hash.update(b"%d:" % len(data))
+    _hash.update(data)
 
 
 def _classhashdata(cls: Type) -> bytes:

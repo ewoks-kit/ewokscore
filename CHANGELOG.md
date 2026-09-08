@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Values with a different nesting could have the same universal hash.
+- Values containing `bytes` or `str` of an arbitrary length could have the same universal hash.
 - Universal hashing raised `RecursionError` for deeply nested values and circular references.
 
 ### Changed

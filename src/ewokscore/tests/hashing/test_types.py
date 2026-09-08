@@ -42,6 +42,12 @@ def test_hashing_unique():
     assert hashing.uhash(adict) == hashing.uhash(dict(sorted(adict.items())))
 
 
+def test_hashing_arbitrary_length_data():
+    """Data of an arbitrary length cannot pose as the data around it."""
+    assert hashing.uhash([b"A", b"B"]) != hashing.uhash([b"Abuiltins.bytesB"])
+    assert hashing.uhash(["A", "B"]) != hashing.uhash(["Abuiltins.strB"])
+
+
 def test_hashing_unhashable():
     class Myclass:
         pass
