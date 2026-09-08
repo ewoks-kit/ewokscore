@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `NexusProxy`: a dictionary loaded from HDF5 no longer contains an extra `@NX_class` key.
 - `NexusProxy`: `None` inside a dictionary was lost when saving to HDF5.
+- `NexusProxy`: a `list`, `tuple` or `set` with items of a different type could not be saved
+  (e.g. `["a", 1]`) or was saved with a different item type (e.g. `[1, 2.5]` became `[1.0, 2.5]`).
+  Such sequences are now pickled.
 
 ## [5.1.0rc3] - 2026-09-08
 

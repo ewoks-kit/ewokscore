@@ -20,6 +20,8 @@ def generate_example_data() -> Dict[str, Any]:
         "empty_set": set(),
         "empty_dict": {},
         "list": [-1, -2, -3],
+        "mixed_scalar_list": ["a", 1],
+        "int_float_list": [1, 2.5],
         "list_with_none": [1, None],
         "dict_with_none": {"a": None, "b": 1},
         "tuple": (1, 2, 3),

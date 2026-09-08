@@ -9,6 +9,19 @@ def test_none():
     assert _pre_serialize({"a": None}) == {"a": {"__ewoks__": "none"}}
 
 
+def test_scalar_sequence():
+    assert _pre_serialize([1, 2]) == {"__ewoks__": "list", "items": [1, 2]}
+    assert _pre_serialize((1, 2)) == {"__ewoks__": "tuple", "items": [1, 2]}
+    assert _pre_serialize([]) == {"__ewoks__": "list", "items": []}
+
+
+def test_non_scalar_sequence():
+    """Sequences that cannot be stored as a single HDF5 dataset without changing
+    the type of their items."""
+    for obj in (["a", 1], [1, 2.5], [True, 1], [1, None], [[1], [2]], [{"a": 1}]):
+        assert _pre_serialize(obj)["__ewoks__"] == "pickle", obj
+
+
 _SERIALIZE_INFO = dict(serializer="hdf5_pickle", serializer_version="1.0.0")
 
 

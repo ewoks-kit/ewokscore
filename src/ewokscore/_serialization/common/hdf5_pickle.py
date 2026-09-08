@@ -5,17 +5,18 @@ Serialized objects and handle types as follows
 - `int`: preserve
 - `float`: preserve
 - `bool`: preserve
-- `list`: preserve
 - `dict`: preserve
 - `None`: preserve
 - `numpy.ndarray`: preserve
 - `numpy.generic`: preserve if integer or float
+- `list`, `tuple`, `set`: preserve when all items are scalars of the same kind, pickle otherwise
 - Else: pickle
 """
 
 import base64
 import pickle
 from typing import Any
+from typing import Optional
 
 import numpy
 
@@ -219,6 +220,34 @@ def post_deserialize(obj: Any) -> Any:
 
 
 def _is_scalar_sequence(value: Any) -> bool:
-    return all(
-        isinstance(item, (str, bytes, int, float, numpy.generic)) for item in value
-    )
+    """Whether the sequence can be stored as a single HDF5 dataset without
+    changing the type of its items."""
+    kind = None
+    for item in value:
+        item_kind = _scalar_storage_kind(item)
+        if item_kind is None:
+            return False
+        if kind is None:
+            kind = item_kind
+        elif item_kind != kind:
+            return False
+    return True
+
+
+def _scalar_storage_kind(value: Any) -> Optional[str]:
+    """HDF5 dataset kind in which the scalar can be stored, `None` when it has no
+    scalar representation."""
+    if isinstance(value, (bool, numpy.bool_)):
+        return "bool"
+    if isinstance(value, str):
+        return "text"
+    if isinstance(value, (bytes, bytearray)):
+        return "bytes"
+    if isinstance(value, numpy.generic):
+        # "b" is excluded above, "U" and "S" are `str` and `bytes` subclasses
+        return {"i": "int", "u": "int", "f": "float"}.get(value.dtype.kind)
+    if isinstance(value, int):
+        return "int"
+    if isinstance(value, float):
+        return "float"
+    return None
