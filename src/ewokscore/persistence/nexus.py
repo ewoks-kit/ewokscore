@@ -26,6 +26,15 @@ def h5_item_exists(path, item):
         return False
 
 
+def _remove_nx_class(data: dict) -> None:
+    """Remove the NeXus class attributes added when dumping."""
+    stack = [data]
+    while stack:
+        adict = stack.pop()
+        adict.pop("@NX_class", None)
+        stack.extend(value for value in adict.values() if isinstance(value, dict))
+
+
 class NexusProxy(FileProxy):
     SCHEME = "nexus"
     EXTENSIONS = [".nx", "nxs", ".h5", ".hdf5", ".nexus"]
@@ -104,6 +113,7 @@ class NexusProxy(FileProxy):
         h5name = self.path_in_file_name
 
         adict = nxtodict(h5file=str(path), path=h5group, **kw)
+        _remove_nx_class(adict)
 
         def _pop_serialize_info(data: dict, key: str) -> Optional[types.SerializeInfo]:
             parent = data

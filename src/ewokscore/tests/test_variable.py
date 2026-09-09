@@ -287,18 +287,9 @@ def test_variable_container_metadata(scheme, root_uri_type, tmp_path):
         container.get_variable_transfer_data() == ref_uri.get_variable_transfer_data()
     )
 
-    # Check metadata
-    if scheme == "nexus":
-        if root_uri_type == "path_in_file":
-            assert ref_uri.metadata["@NX_class"] == "NXcollection"
-        else:
-            assert ref_uri.metadata["@NX_class"] == "NXprocess"
-
-    assert ref_uri.metadata["myvalue"] == 999
-
-    if scheme == "nexus":
-        assert ref_uri["var1"].metadata["@NX_class"] == "NXcollection"
-    assert ref_uri["var1"].metadata["myvalue"] == 888
+    # Check metadata (storage details such as NeXus classes must not leak into it)
+    assert ref_uri.metadata == container.metadata
+    assert ref_uri["var1"].metadata == container["var1"].metadata
 
 
 def test_variable_cleanup_references():

@@ -10,7 +10,7 @@ from .types import CustomType
 def assert_deserialized_data(
     deserialized_data: Dict[str, Any], original_data: Dict[str, Any]
 ):
-    actual = _data_for_comparison(_remove_hdf5_attrs(deserialized_data))
+    actual = _data_for_comparison(deserialized_data)
     expected = _data_for_comparison(original_data)
 
     assert actual == expected
@@ -25,14 +25,6 @@ def assert_serialized_data(
     assert actual == expected
 
 
-def _remove_hdf5_attrs(deserialized_data: dict) -> None:
-    return {
-        k: _remove_hdf5_attrs(v) if isinstance(v, dict) else v
-        for k, v in deserialized_data.items()
-        if k not in ("@NX_class",)
-    }
-
-
 def _data_for_comparison(value: Any) -> Any:
     if isinstance(value, numpy.ndarray):
         return {
@@ -43,8 +35,16 @@ def _data_for_comparison(value: Any) -> Any:
     if isinstance(value, dict):
         return {k: _data_for_comparison(v) for k, v in value.items()}
     if isinstance(value, (list, tuple, set)):
-        return type(value)(_data_for_comparison(v) for v in value)
+        return type(value)(_item_for_comparison(v) for v in value)
     return value
+
+
+def _item_for_comparison(value: Any) -> Any:
+    """Sequence items are compared with their type because storage can silently
+    change it (e.g. `int` to `float`)."""
+    if isinstance(value, (numpy.ndarray, dict, list, tuple, set)):
+        return _data_for_comparison(value)
+    return type(value), value
 
 
 def _actual_data_for_serialized_comparison(serialized_data: Any) -> Any:
@@ -75,6 +75,8 @@ def _expected_data_for_serialized_comparison(original_data: Any) -> Any:
     """
     :param original_data: original python data before serialization
     """
+    if original_data is None:
+        return {"__test_compare__": "none"}
     if isinstance(original_data, (list, tuple, set)) and _is_scalar_sequence(
         original_data
     ):

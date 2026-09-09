@@ -35,6 +35,11 @@ def test_numpy_int():
     assert _pre_serialize(val) == expected
 
 
+def test_numpy_bool():
+    result = _pre_serialize(numpy.bool_(True))["data"]
+    assert result is True
+
+
 def test_numpy_float():
     expected = {"data": 3.5, "__ewoks_serialize__": _SERIALIZE_INFO}
 

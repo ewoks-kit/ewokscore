@@ -8,6 +8,7 @@ Serialized objects and handle types as follows
 - `list`: preserve
 - `dict`: preserve
 - `None`: preserve
+- `numpy.generic`: preserve if boolean, integer or float
 - Else: pickle
 """
 
@@ -33,6 +34,11 @@ def pre_serialize(obj: Any) -> Any:
         # --- primitives ---
         if current is None or isinstance(current, (str, bool)):
             t.assign(current)
+            continue
+
+        if isinstance(current, numpy.bool_):
+            # `numpy.bool_` is not an `int` so it would be stored as one below
+            t.assign(bool(current))
             continue
 
         if isinstance(current, numpy.generic):
