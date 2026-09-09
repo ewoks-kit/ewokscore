@@ -14,6 +14,7 @@ from ewoksutils.import_utils import import_module
 from ewoksutils.import_utils import qualname
 
 from .entry_points import entry_points
+from .methodtask import get_method_task
 from .task import Task
 
 
@@ -156,9 +157,18 @@ def _iter_method_tasks(
             if method_name.startswith("_"):
                 continue
 
+            task_identifier = qualname(method_qn)
+            task_class = get_method_task(task_identifier)
+            output_model = task_class.output_model()
             yield {
                 "task_type": "method",
-                **_common_method_task_fields(method_name, method_qn, mod),
+                **_method_arguments(getattr(mod, method_name)),
+                "task_identifier": task_identifier,
+                "output_names": sorted(task_class.output_names()),
+                "category": task_identifier.split(".")[0],
+                "description": task_class.__doc__,
+                "input_model": None,
+                "output_model": qualname(output_model) if output_model else None,
             }
 
 
