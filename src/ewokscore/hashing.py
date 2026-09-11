@@ -139,9 +139,9 @@ def _uhash(value) -> UniversalHash:
         value = stack.pop()
 
         if type(value) is _EndOfNesting:
-            # All items of `value.nested` are serialized, so close it
+            # All items of `value.parent` are serialized, so close it
             _hash.update(_END_OF_NESTING)
-            del open_depths[id(value.nested)]
+            del open_depths[id(value.parent)]
             continue
 
         depth = open_depths.get(id(value))
@@ -163,16 +163,17 @@ def _uhash(value) -> UniversalHash:
 
         # Apply universal hash method to the value
         if uhash_method is not None:
-            nested = uhash_method(value)
+            uhash_result = uhash_method(value)
 
             # The root value provides its universal hash directly
-            if at_root and isinstance(nested, UniversalHash):
-                return nested
+            if at_root and isinstance(uhash_result, UniversalHash):
+                return uhash_result
 
-            # Any other return value is the content of the value
+            # Any other value addes its type name and universal hash
+            # to the stream
             at_root = False
             _hash.update(_classhashdata(type(value)))
-            _expand(stack, open_depths, value, (nested,))
+            _expand(stack, open_depths, value, (uhash_result,))
             continue
 
         # No universal hash method: serialize the value by its type
@@ -264,30 +265,33 @@ _BACK_REFERENCE = b"^"
 
 
 class _EndOfNesting:
-    """Stack item that closes `nested` once all its items are serialized."""
+    """Stack item that closes `parent` once all its items are serialized."""
 
-    # Holds `nested` itself and not just its `id`: `uhash` recognizes the values
+    # Holds `parent` itself and not just its `id`: `uhash` recognizes the values
     # it is expanding by `id` and CPython can allocate a new object at the
     # address of a freed one
-    __slots__ = ("nested",)
+    __slots__ = ("parent",)
 
-    def __init__(self, nested: Any) -> None:
-        self.nested = nested
+    def __init__(self, parent: Any) -> None:
+        self.parent = parent
 
 
 def _expand(
-    stack: List[Any], open_depths: Dict[int, int], value: Any, nested: Iterable
+    stack: List[Any],
+    open_depths: Dict[int, int],
+    parent: Any,
+    parent_items: Iterable,
 ) -> None:
-    """Schedule the items of `value` for serialization, followed by the item that
-    closes `value`.
+    """Schedule the items of `parent` for serialization, followed by the item
+    that closes `parent`.
     """
-    # `value` becomes the innermost value being expanded, so its depth is the
+    # `parent` becomes the innermost value being expanded, so its depth is the
     # number of values already being expanded
-    open_depths[id(value)] = len(open_depths)
+    open_depths[id(parent)] = len(open_depths)
     # The stack is LIFO: the closing item is pushed first so it comes off last
     # and the items are pushed in reverse so they come off in order
-    stack.append(_EndOfNesting(value))
-    stack.extend(reversed(list(nested)))
+    stack.append(_EndOfNesting(parent))
+    stack.extend(reversed(list(parent_items)))
 
 
 def _update_data(_hash, data: bytes) -> None:
