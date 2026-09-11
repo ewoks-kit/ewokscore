@@ -412,8 +412,10 @@ class UniversalHashable(HasUhash):
         supercls_data = subcls.class_nonce()
         subcls.__VERSION = version
         subcls_data = subcls.class_nonce_data()
-        # `_uhash` and not `uhash`: a class nonce contains no registered types
-        # and is computed while the module defining the subclass is imported
+        # `_uhash` and not `uhash`: loading the `ewoks.hashing` entry points
+        # when hashing a class nonce causes a circular import. The
+        # registrations are not needed: a class nonce contains no types that
+        # can be registered.
         subcls.__CLASS_NONCE = str(_uhash((subcls_data, supercls_data)))
 
     def set_uhash_init(

@@ -99,7 +99,9 @@ def test_uhash_entry_points(mock_uhash_entry_points):
 
 
 def test_uhash_entry_points_not_loaded_on_import(mock_uhash_entry_points):
-    """Class nonces are hashed while ewokscore is imported."""
+    """Class nonces are hashed while ewokscore is imported, so hashing them
+    must not load the `ewoks.hashing` entry points (circular import).
+    """
     groups = mock_uhash_entry_points()
 
     class Test(hashing.UniversalHashable, version=1):
