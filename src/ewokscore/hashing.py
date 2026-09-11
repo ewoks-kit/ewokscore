@@ -110,6 +110,20 @@ def load_uhash_registrations() -> None:
 # The stream has to be unambiguous, or values collide. The closing `)` is what
 # separates `[1, [2]]` from `[[1, 2]]`, and data of an arbitrary length is
 # prefixed with that length so it cannot pose as the data around it.
+#
+# The walk pops values from a stack until it is empty. Expanding a value
+# replaces it by the marker `)` that closes it, followed by its items in
+# reverse, so that the items are popped in order and the marker last. Hashing
+# `[1, [2]]`:
+#
+#   iter  stack      popped value  hashed
+#   ----  ---------  ------------  --------------------
+#   1     [1, [2]]   [1, [2]]      "builtins.list"
+#   2     ), [2], 1  1             "builtins.int", "0x1"
+#   3     ), [2]     [2]           "builtins.list"
+#   4     ), ), 2    2             "builtins.int", "0x2"
+#   5     ), )       )             ")"
+#   6     )          )             ")"
 def _uhash(value) -> UniversalHash:
     if isinstance(value, UniversalHash):
         return value
@@ -261,18 +275,6 @@ class _EndOfNesting:
         self.nested = nested
 
 
-# Hashing `[1, [2]]` pops values from the stack until it is empty. Expanding a
-# value replaces it by the marker `)` that closes it, followed by its items in
-# reverse, so that the items are popped in order and the marker last:
-#
-#   stack (top last)  popped value  hashed
-#   ----------------  ------------  --------------------
-#   [1, [2]]          [1, [2]]      "builtins.list"
-#   ), [2], 1         1             "builtins.int", "0x1"
-#   ), [2]            [2]           "builtins.list"
-#   ), ), 2           2             "builtins.int", "0x2"
-#   ), )              )             ")"
-#   )                 )             ")"
 def _expand(
     stack: List[Any], open_depths: Dict[int, int], value: Any, nested: Iterable
 ) -> None:
