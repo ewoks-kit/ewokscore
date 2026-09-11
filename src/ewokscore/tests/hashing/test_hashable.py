@@ -96,7 +96,7 @@ def test_uhash_fixing():
 
 
 def test_hashable_cleanup_references():
-    class Myclass(hashing.UniversalHashable):
+    class MyClass(hashing.UniversalHashable):
         def __init__(self, data, **kw):
             self.data = data
             super().__init__(**kw)
@@ -104,9 +104,9 @@ def test_hashable_cleanup_references():
         def _uhash_data(self):
             return self.data
 
-    obj1 = Myclass(10)
+    obj1 = MyClass(10)
     nref_start = len(gc.get_referrers(obj1))
-    obj2 = Myclass(10, pre_uhash=obj1)
+    obj2 = MyClass(10, pre_uhash=obj1)
     assert len(gc.get_referrers(obj1)) > nref_start
 
     obj1.data += 1

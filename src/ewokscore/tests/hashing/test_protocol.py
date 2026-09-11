@@ -4,11 +4,11 @@ from ... import hashing
 
 
 def test_has_uhash_is_abstract():
-    class Myclass(hashing.HasUhash):
+    class MyClass(hashing.HasUhash):
         pass
 
     with pytest.raises(TypeError):
-        Myclass()
+        MyClass()
 
 
 def test_uhash_method():
@@ -16,32 +16,32 @@ def test_uhash_method():
     without deriving from `HasUhash`.
     """
 
-    class Myclass:
+    class MyClass:
         def __init__(self, data):
             self.data = data
 
         def __uhash__(self):
             return self.data
 
-    assert hashing.uhash(Myclass(1)) == hashing.uhash(Myclass(1))
-    assert hashing.uhash(Myclass(1)) != hashing.uhash(Myclass(2))
-    assert hashing.uhash(Myclass(1)) != hashing.uhash(1)
-    assert hashing.uhash([Myclass(1)]) != hashing.uhash([1])
+    assert hashing.uhash(MyClass(1)) == hashing.uhash(MyClass(1))
+    assert hashing.uhash(MyClass(1)) != hashing.uhash(MyClass(2))
+    assert hashing.uhash(MyClass(1)) != hashing.uhash(1)
+    assert hashing.uhash([MyClass(1)]) != hashing.uhash([1])
 
     # The class itself is not universally hashable
-    with pytest.raises(TypeError, match="Myclass"):
-        hashing.uhash(Myclass)
+    with pytest.raises(TypeError, match="MyClass"):
+        hashing.uhash(MyClass)
 
 
 def test_uhash_method_returns_uhash():
-    class Myclass:
+    class MyClass:
         def __init__(self, data):
             self.data = hashing.uhash(data)
 
         def __uhash__(self):
             return self.data
 
-    obj = Myclass(1)
+    obj = MyClass(1)
     assert hashing.uhash(obj) == obj.__uhash__()
     assert hashing.uhash([obj]) != hashing.uhash([obj.__uhash__()])
 
@@ -49,17 +49,17 @@ def test_uhash_method_returns_uhash():
 def test_has_uhash_returns_hashable_value():
     """`__uhash__` can return a universally hashable value instead of a `UniversalHash`."""
 
-    class Myclass(hashing.HasUhash):
+    class MyClass(hashing.HasUhash):
         def __init__(self, data):
             self.data = data
 
         def __uhash__(self):
             return self.data
 
-    obj = Myclass([1, 2])
+    obj = MyClass([1, 2])
     assert isinstance(obj.uhash, hashing.UniversalHash)
     assert obj.uhash == hashing.uhash(obj)
-    assert obj.uhash != Myclass([2, 1]).uhash
+    assert obj.uhash != MyClass([2, 1]).uhash
     assert obj == obj.uhash
 
     obj.data = None

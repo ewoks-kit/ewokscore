@@ -189,16 +189,16 @@ def test_hashing_iterator():
 
 
 def test_hashing_unhashable():
-    class Myclass:
+    class MyClass:
         pass
 
-    with pytest.raises(TypeError, match="Myclass"):
-        hashing.uhash(Myclass())
+    with pytest.raises(TypeError, match="MyClass"):
+        hashing.uhash(MyClass())
 
     # A class is not universally hashable and is identified by its own name,
     # not by its metaclass
-    with pytest.raises(TypeError, match="Myclass"):
-        hashing.uhash(Myclass)
+    with pytest.raises(TypeError, match="MyClass"):
+        hashing.uhash(MyClass)
 
     class MyHashable(hashing.UniversalHashable):
         pass
