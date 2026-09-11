@@ -43,7 +43,7 @@ def test_hashing_unique():
     assert hashing.uhash(andarray) == hashing.uhash(andarray.copy())
     assert hashing.uhash(andarray) != hashing.uhash(andarray.tolist())
 
-    adict = {-i: v for i, v in enumerate(unique_values, 1)}
+    adict = {i: v for i, v in reversed(list(enumerate(unique_values)))}
     assert hashing.uhash(adict) == hashing.uhash(adict)
     assert hashing.uhash(adict) == hashing.uhash(dict(sorted(adict.items())))
 
