@@ -41,7 +41,7 @@ def test_hashing_circular_reference():
     assert hashing.uhash(selfdict(1)) != hashing.uhash(selfdict(2))
     assert hashing.uhash(selflist(1)) != hashing.uhash(selfdict(1))
 
-    # The value a circular reference points to matters
+    # Hashes differ when circular references point to a different nesting level
     inner = list()
     inner.append(inner)
     refers_to_inner = [inner]
