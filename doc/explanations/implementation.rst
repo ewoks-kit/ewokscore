@@ -23,7 +23,7 @@ Hash implementation
 -------------------
 
 The *universal hashing* in *ewoks* is currently based on SHA-256. The `UniversalHash` class
-representation a *universal hash* at runtime. Several builtin python types are *universally hasheable*:
+represents a *universal hash* at runtime. Several builtin python types are *universally hasheable*:
 strings, numbers, mappings, sets, iterables, numpy arrays, dates and times, paths, UUID's and
 enumerations. Any other type becomes *universally hasheable* by
 implementing `__uhash__`, which returns either a `UniversalHash` or another *universally hasheable*
@@ -39,7 +39,7 @@ value:
            return self.data
 
 Types that cannot implement `__uhash__` themselves, such as types from a third-party library,
-are registered instead. Like `__uhash__`, the registered method receives an instance of the type
+are registered instead with `register_uhash`. Like `__uhash__`, the registered method receives an instance of the type
 and returns either a `UniversalHash` or another *universally hasheable* value
 
 .. code:: python
