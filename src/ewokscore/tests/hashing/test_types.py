@@ -55,7 +55,7 @@ def test_hashing_arbitrary_length_data():
 
 
 def test_hashing_uncomparable_keys():
-    """Mapping keys and set items need no total order between them."""
+    """Mapping keys and set items need not be comparable to each other."""
     adict = {(1, 2): "a", (1, "b"): "c"}
 
     assert hashing.uhash(adict) == hashing.uhash(dict(reversed(adict.items())))
