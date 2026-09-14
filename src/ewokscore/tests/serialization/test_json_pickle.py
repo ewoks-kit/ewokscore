@@ -7,7 +7,7 @@ import pytest
 
 from ..._serialization import common
 from ..._serialization.common import types
-from .example_data.compare_json import assert_deserialized_data
+from .example_data.compare import assert_deserialized_data
 
 
 def test_primitives():
