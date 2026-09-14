@@ -7,18 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- `NexusProxy`: a dictionary loaded from HDF5 no longer contains an extra `@NX_class` key.
-- `NexusProxy`: `None` inside a dictionary was lost when saving to HDF5.
-- `NexusProxy`: a `list`, `tuple` or `set` with items of a different type could not be saved
-  (e.g. `["a", 1]`) or was saved with a different item type (e.g. `[1, 2.5]` became `[1.0, 2.5]`).
-  Such sequences are now pickled.
-- `NexusProxy`: items of a `list`, `tuple` or `set` loaded from HDF5 are python scalars again
-  instead of numpy scalars.
-- `JsonProxy` and `NexusProxy`: `numpy.bool_` was saved as an integer instead of a boolean.
-
-## [5.1.0rc3] - 2026-09-08
+## [5.1.0rc4] - 2026-09-14
 
 ### Added
 
@@ -34,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bug in removing default error handlers that have no predecessor in `connect_default_error_handlers`.
 - A node that is already connected to a global error handler should not be reconnected
   to the global error handler in `connect_default_error_handlers`.
+- `NexusProxy`: a dictionary loaded from HDF5 no longer contains an extra `@NX_class` key.
+- `NexusProxy`: `None` inside a dictionary was lost when saving to HDF5.
+- `NexusProxy`: a `list`, `tuple` or `set` with items of a different type could not be saved
+  (e.g. `["a", 1]`) or was saved with a different item type (e.g. `[1, 2.5]` became `[1.0, 2.5]`).
+  Such sequences are now pickled.
+- `NexusProxy`: items of a `list`, `tuple` or `set` loaded from HDF5 are python scalars again
+  instead of numpy scalars.
+- `JsonProxy` and `NexusProxy`: `numpy.bool_` was saved as an integer instead of a boolean.
 
 ## [5.0.0] - 2026-07-01
 
@@ -436,8 +433,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `execute_graph` for naive task scheduling in a single thread.
 - Execution events based on python's logging facility.
 
-[unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.1.0rc3...HEAD
-[5.1.0rc3]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...v5.1.0rc3
+[unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.1.0rc4...HEAD
+[5.1.0rc4]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...v5.1.0rc4
 [5.0.0]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.2...v5.0.0
 [4.0.2]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.0...v4.0.1
