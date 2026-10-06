@@ -1,12 +1,21 @@
 from collections import defaultdict
+from typing import Any
 from typing import Dict
 from typing import Iterator
+from typing import List
 from typing import Set
+from typing import Tuple
 
 import networkx
 
 from ..inittask import get_task_class
 from ..node import NodeIdType
+from .conditions import COMPLEMENTARY_CONDITION_OPERATORS
+from .conditions import DEFAULT_CONDITION_OPERATOR
+from .conditions import condition_value_for_set
+from .conditions import condition_values_equal
+from .conditions import is_condition_collection_value
+from .conditions import normalize_condition
 
 
 def graph_is_cyclic(graph: networkx.DiGraph) -> bool:
@@ -283,26 +292,87 @@ def node_condition_values(
     condition_values = defaultdict(set)
     for target_id in node_successors(graph, source_id, link_has_conditions=True):
         for condition in graph[source_id][target_id]["conditions"]:
-            varname = condition["source_output"]
-            value = condition["value"]
-            condition_values[varname].add(value)
+            varname, _, value = normalize_condition(condition)
+            condition_values[varname].add(condition_value_for_set(value))
     return condition_values
+
+
+def _node_condition_predicates(
+    graph: networkx.DiGraph, source_id: NodeIdType
+) -> Dict[str, List[Tuple[str, Any]]]:
+    condition_predicates = defaultdict(list)
+    for target_id in node_successors(graph, source_id, link_has_conditions=True):
+        for condition in graph[source_id][target_id]["conditions"]:
+            varname, operator_name, value = normalize_condition(condition)
+            condition_predicates[varname].append((operator_name, value))
+    return condition_predicates
+
+
+def _has_condition_predicate(
+    predicates: List[Tuple[str, Any]], operator_name: str, value: Any
+) -> bool:
+    return any(
+        other_operator_name == operator_name
+        and condition_values_equal(other_value, value)
+        for other_operator_name, other_value in predicates
+    )
+
+
+def _condition_predicates_are_covered(predicates: List[Tuple[str, Any]]) -> bool:
+    for operator_name, value in predicates:
+        complement_operator = COMPLEMENTARY_CONDITION_OPERATORS.get(operator_name)
+        if complement_operator is None:
+            continue
+        if _has_condition_predicate(predicates, complement_operator, value):
+            return True
+
+    return any(
+        operator_name == "not_in"
+        and _not_in_predicate_is_covered(predicates, value)
+        for operator_name, value in predicates
+    ) or _boolean_condition_values_are_covered(predicates)
+
+
+def _boolean_condition_values_are_covered(
+    predicates: List[Tuple[str, Any]]
+) -> bool:
+    return _has_condition_predicate(
+        predicates, DEFAULT_CONDITION_OPERATOR, True
+    ) and _has_condition_predicate(predicates, DEFAULT_CONDITION_OPERATOR, False)
+
+
+def _not_in_predicate_is_covered(
+    predicates: List[Tuple[str, Any]], values: Any
+) -> bool:
+    if not is_condition_collection_value(values):
+        return False
+    return all(_value_is_covered(predicates, value) for value in values)
+
+
+def _value_is_covered(predicates: List[Tuple[str, Any]], value: Any) -> bool:
+    for operator_name, other_value in predicates:
+        if operator_name == DEFAULT_CONDITION_OPERATOR and condition_values_equal(
+            value, other_value
+        ):
+            return True
+        if operator_name == "in" and _collection_contains_value(other_value, value):
+            return True
+    return False
+
+
+def _collection_contains_value(values: Any, value: Any) -> bool:
+    if not is_condition_collection_value(values):
+        return False
+    return any(condition_values_equal(value, candidate) for candidate in values)
 
 
 def node_has_noncovered_conditions(
     graph: networkx.DiGraph, source_id: NodeIdType
 ) -> bool:
-    conditions_else_value = graph.nodes[source_id].get("conditions_else_value", None)
-    complements = {
-        True: {False, conditions_else_value},
-        False: {True, conditions_else_value},
-    }
-    condition_values = node_condition_values(graph, source_id)
-    for values in condition_values.values():
-        for value in values:
-            cvalue = complements.get(value, conditions_else_value)
-            if cvalue not in values:
-                return True
+    condition_predicates = _node_condition_predicates(graph, source_id)
+    for predicates in condition_predicates.values():
+        if not _condition_predicates_are_covered(predicates):
+            return True
     return False
 
 
