@@ -231,14 +231,17 @@ After the node has executed at least once:
   - the last or newly arrived retained inputs
 
 Inputs from required links:
+
 - are always *cached* (i.e. participate in all subsequent executions)
 - overwrite the previously cached inputs for the same link
 
 Inputs from optional links with ``cache_if_optional=True``:
+
 - are *cached* (i.e. participate in all subsequent executions)
 - overwrite the previously cached inputs for the same link
 
 Inputs from optional links with ``cache_if_optional=False``:
+
 - are *retained*
 - overwrite the previously retained inputs, so only one such input is retained at any time
 
