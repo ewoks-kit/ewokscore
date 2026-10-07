@@ -1,3 +1,4 @@
+import pytest
 from ewoksutils.import_utils import qualname
 
 from ..bindings import execute_graph
@@ -123,7 +124,8 @@ def test_execute_graph_outputs():
     assert results == expected
 
     # Merge the results of all tasks
-    results = execute_graph(create_graph(), outputs=[{"all": True}])
+    with pytest.warns(UserWarning, match="are overwritten by node"):
+        results = execute_graph(create_graph(), outputs=[{"all": True}])
     expected = {"inputs": {"a": 10, "b": 6}, "result": 16, "label": "task6"}
     assert results == expected
 

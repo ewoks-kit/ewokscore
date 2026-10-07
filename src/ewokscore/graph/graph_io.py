@@ -1,9 +1,11 @@
 import logging
+import warnings
 from typing import Dict
 from typing import Iterator
 from typing import List
 from typing import Mapping
 from typing import Optional
+from typing import Set
 from typing import Union
 
 import networkx
@@ -234,6 +236,18 @@ def add_output_values(
     task_output_values = extract_output_values(node_id, task_or_outputs, outputs)
     if task_output_values is not None:
         if merge_outputs:
+            collisions = output_values.keys() & task_output_values.keys()
+            if collisions:
+                _warn_output_collisions(node_id, collisions)
             output_values.update(task_output_values)
         else:
             output_values[node_id] = task_output_values
+
+
+def _warn_output_collisions(node_id: NodeIdType, names: Set[Union[str, int]]) -> None:
+    message = (
+        f"Merged workflow outputs {sorted(names, key=str)} are overwritten by node {node_id!r}. "
+        "Rename them with 'new_name' in the 'outputs' items or use 'merge_outputs=False'."
+    )
+    logger.warning(message)
+    warnings.warn(message, UserWarning, stacklevel=3)

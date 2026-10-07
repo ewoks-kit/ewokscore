@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Log and emit a warning when merged workflow outputs have name collisions.
+
 ## [5.1.0rc4] - 2026-09-14
 
 ### Added

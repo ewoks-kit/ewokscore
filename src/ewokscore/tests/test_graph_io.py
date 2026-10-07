@@ -189,3 +189,27 @@ def test_parse_outputs(graph):
     expected = [{"id": "task4"}]
     outputs = graph_io.parse_outputs(graph, outputs)
     assert outputs == expected
+
+
+def test_add_output_values_collision(caplog):
+    outputs = [{"id": "task1"}, {"id": "task2"}]
+    output_values = dict()
+    graph_io.add_output_values(output_values, "task1", {"a": 1, "b": 2}, outputs)
+
+    with pytest.warns(UserWarning, match=r"\['a'\] are overwritten by node 'task2'"):
+        graph_io.add_output_values(output_values, "task2", {"a": 3, "c": 4}, outputs)
+
+    assert output_values == {"a": 3, "b": 2, "c": 4}
+    assert "are overwritten by node 'task2'" in caplog.text
+
+
+def test_add_output_values_no_collision(recwarn):
+    outputs = [{"id": "task1"}, {"id": "task2"}]
+    output_values = dict()
+    graph_io.add_output_values(output_values, "task1", {"a": 1}, outputs)
+    graph_io.add_output_values(
+        output_values, "task2", {"a": 3}, outputs, merge_outputs=False
+    )
+    graph_io.add_output_values(output_values, "task3", {"a": 5}, outputs)
+
+    assert not recwarn.list
