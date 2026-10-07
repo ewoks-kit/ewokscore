@@ -846,9 +846,24 @@ class Task(Registered, UniversalHashable, register=False):
         """To be implemented by the derived classes"""
         raise NotImplementedError
 
-    def cancel(self):
+    def abort(self):
         """
-        Function called when a task is cancelled.
+        Function called when a task must be aborted.
         To be implemented by the derived classes
         """
+        if type(self).cancel is not Task.cancel:
+            # Backward compatibility: derived class still implements 'cancel'
+            warnings.warn(
+                f"{type(self).__name__} implements the deprecated method 'cancel'. Please implement 'abort' instead. Backward compatibility will be removed in version 6.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return self.cancel()
         raise NotImplementedError
+
+    @deprecated(
+        "the method 'cancel' is deprecated in favor of the method 'abort'. Will be remove in version 6"
+    )
+    def cancel(self):
+        """DEPRECATED"""
+        return self.abort()

@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [5.1.0rc5] - 2026-10-07
+## [5.1.0rc5] - unreleased
+
+### Changed
+
+- ``Task``: `cancel` function is deprecated and replaced by`abort`.
+
+### Deprecated
+
+- `Task.cancel` is deprecated in favor of `Task.abort`.
 
 ### Changed
 
