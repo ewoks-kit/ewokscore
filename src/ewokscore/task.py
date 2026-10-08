@@ -862,7 +862,7 @@ class Task(Registered, UniversalHashable, register=False):
         raise NotImplementedError
 
     @deprecated(
-        "the method 'cancel' is deprecated in favor of the method 'abort'. Will be remove in version 6"
+        "the method 'cancel' is deprecated in favor of the method 'abort'. Will be removed in version 6"
     )
     def cancel(self):
         """DEPRECATED"""
