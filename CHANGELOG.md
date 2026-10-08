@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.1.0rc5] - unreleased
+
+### Added
+
+- `Task`: `request_stop` function to replace the deprecated `cancel` function. It sets `stop_requested` and calls `on_stop_requested`.
+- `Task`: `on_stop_requested` hook to be implemented by derived classes to react to a stop request.
+- `Task`: `stop_requested` property to replace the deprecated `cancelled` property.
+
+### Deprecated
+
+- `Task.cancel` is deprecated in favor of `Task.request_stop`.
+- `Task.cancelled` is deprecated in favor of `Task.stop_requested`.
+
 ### Changed
 
 - Log and emit a warning when merged workflow outputs have name collisions.
@@ -437,8 +450,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `execute_graph` for naive task scheduling in a single thread.
 - Execution events based on python's logging facility.
 
-[unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.1.0rc4...HEAD
-[5.1.0rc4]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...v5.1.0rc4
+[unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.1.0rc5...HEAD
+[5.1.0rc5]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...v5.1.0rc5
 [5.0.0]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.2...v5.0.0
 [4.0.2]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.0...v4.0.1

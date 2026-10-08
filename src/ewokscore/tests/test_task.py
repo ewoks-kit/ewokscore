@@ -247,7 +247,10 @@ def test_task_cleanup_references():
     assert uhashes2 == task2.get_output_uhashes()
 
 
-def test_task_cancel(varinfo):
+def test_task_request_stop(varinfo):
     task = SumTask(inputs={"a": 10}, varinfo=varinfo)
-    with pytest.raises(NotImplementedError):
-        task.cancel()
+    assert not task.stop_requested
+    task.request_stop()
+    assert task.stop_requested
+    task.reset_state()
+    assert not task.stop_requested

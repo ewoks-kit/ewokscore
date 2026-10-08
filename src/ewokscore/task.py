@@ -97,7 +97,7 @@ class Task(Registered, UniversalHashable, register=False):
         # Misc
         self.__exception = None
         self.__succeeded = None
-        self._cancelled = False
+        self._stop_requested = False
         self._profile_directory = profile_directory or dict()
 
         # The output hash will update dynamically if any of the input
@@ -686,13 +686,25 @@ class Task(Registered, UniversalHashable, register=False):
         return False
 
     @property
+    def stop_requested(self) -> bool:
+        """Return True if the user requested the task to stop"""
+        return self._stop_requested
+
+    @property
+    @deprecated(
+        "the property 'cancelled' is deprecated in favor of the property 'stop_requested'. Will be removed in version 6"
+    )
     def cancelled(self) -> bool:
-        """Return True if the task has been cancelled by the user"""
-        return self._cancelled
+        """DEPRECATED"""
+        return self.stop_requested
 
     @cancelled.setter
+    @deprecated(
+        "the property 'cancelled' is deprecated in favor of the property 'stop_requested'. Will be removed in version 6"
+    )
     def cancelled(self, cancelled: bool) -> None:
-        self._cancelled = cancelled
+        """DEPRECATED"""
+        self._stop_requested = cancelled
 
     def assert_ready_to_execute(self):
         lst = list(self._iter_missing_input_values())
@@ -728,7 +740,7 @@ class Task(Registered, UniversalHashable, register=False):
         )
 
     def reset_state(self):
-        self._cancelled = False
+        self._stop_requested = False
         self.__exception = None
         self.__succeeded = None
         self.__outputs.reset()
@@ -846,9 +858,33 @@ class Task(Registered, UniversalHashable, register=False):
         """To be implemented by the derived classes"""
         raise NotImplementedError
 
+    def request_stop(self) -> None:
+        """
+        Request the task to stop. Sets :attr:`stop_requested` and calls :meth:`on_stop_requested`.
+        Derived classes should implement :meth:`on_stop_requested` instead of overriding this method.
+        """
+        self._stop_requested = True
+        if type(self).cancel is not Task.cancel:
+            # Backward compatibility: derived class still implements 'cancel'
+            warnings.warn(
+                f"{type(self).__name__} implements the deprecated method 'cancel'. Please implement 'on_stop_requested' instead. Backward compatibility will be removed in version 6.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.cancel()
+            return
+        self.on_stop_requested()
+
+    def on_stop_requested(self) -> None:
+        """
+        Function called when the task is requested to stop.
+        To be implemented by the derived classes (e.g. interrupt a blocking call).
+        """
+        pass
+
+    @deprecated(
+        "the method 'cancel' is deprecated in favor of the methods 'request_stop' (to request a stop) and 'on_stop_requested' (to implement). Will be removed in version 6"
+    )
     def cancel(self):
-        """
-        Function called when a task is cancelled.
-        To be implemented by the derived classes
-        """
-        raise NotImplementedError
+        """DEPRECATED"""
+        return self.request_stop()
