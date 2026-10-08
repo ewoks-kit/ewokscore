@@ -449,7 +449,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [unreleased]: https://github.com/ewoks-kit/ewokscore/compare/v5.1.0rc5...HEAD
 [5.1.0rc5]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...v5.1.0rc5
-[5.1.0rc4]: https://github.com/ewoks-kit/ewokscore/compare/v5.0.0...v5.1.0rc4
 [5.0.0]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.2...v5.0.0
 [4.0.2]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/ewoks-kit/ewokscore/compare/v4.0.0...v4.0.1
