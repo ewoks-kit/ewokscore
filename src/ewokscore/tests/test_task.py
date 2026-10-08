@@ -249,5 +249,8 @@ def test_task_cleanup_references():
 
 def test_task_request_stop(varinfo):
     task = SumTask(inputs={"a": 10}, varinfo=varinfo)
-    with pytest.raises(NotImplementedError):
-        task.request_stop()
+    assert not task.stop_requested
+    task.request_stop()
+    assert task.stop_requested
+    task.reset_state()
+    assert not task.stop_requested

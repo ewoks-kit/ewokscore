@@ -690,10 +690,6 @@ class Task(Registered, UniversalHashable, register=False):
         """Return True if the user requested the task to stop"""
         return self._stop_requested
 
-    @stop_requested.setter
-    def stop_requested(self, stop_requested: bool) -> None:
-        self._stop_requested = stop_requested
-
     @property
     @deprecated(
         "the property 'cancelled' is deprecated in favor of the property 'stop_requested'. Will be removed in version 6"
@@ -708,7 +704,7 @@ class Task(Registered, UniversalHashable, register=False):
     )
     def cancelled(self, cancelled: bool) -> None:
         """DEPRECATED"""
-        self.stop_requested = cancelled
+        self._stop_requested = cancelled
 
     def assert_ready_to_execute(self):
         lst = list(self._iter_missing_input_values())
@@ -862,23 +858,32 @@ class Task(Registered, UniversalHashable, register=False):
         """To be implemented by the derived classes"""
         raise NotImplementedError
 
-    def request_stop(self):
+    def request_stop(self) -> None:
         """
-        Function called when the task is requested to stop.
-        To be implemented by the derived classes
+        Request the task to stop. Sets :attr:`stop_requested` and calls :meth:`on_stop_requested`.
+        Derived classes should implement :meth:`on_stop_requested` instead of overriding this method.
         """
+        self._stop_requested = True
         if type(self).cancel is not Task.cancel:
             # Backward compatibility: derived class still implements 'cancel'
             warnings.warn(
-                f"{type(self).__name__} implements the deprecated method 'cancel'. Please implement 'request_stop' instead. Backward compatibility will be removed in version 6.",
+                f"{type(self).__name__} implements the deprecated method 'cancel'. Please implement 'on_stop_requested' instead. Backward compatibility will be removed in version 6.",
                 DeprecationWarning,
                 stacklevel=2,
             )
-            return self.cancel()
-        raise NotImplementedError
+            self.cancel()
+            return
+        self.on_stop_requested()
+
+    def on_stop_requested(self) -> None:
+        """
+        Function called when the task is requested to stop.
+        To be implemented by the derived classes (e.g. interrupt a blocking call).
+        """
+        pass
 
     @deprecated(
-        "the method 'cancel' is deprecated in favor of the method 'request_stop'. Will be removed in version 6"
+        "the method 'cancel' is deprecated in favor of the methods 'request_stop' (to request a stop) and 'on_stop_requested' (to implement). Will be removed in version 6"
     )
     def cancel(self):
         """DEPRECATED"""

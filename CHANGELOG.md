@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `Task`: `request_stop` function to replace the deprecated `cancel` function.
+- `Task`: `request_stop` function to replace the deprecated `cancel` function. It sets `stop_requested` and calls `on_stop_requested`.
+- `Task`: `on_stop_requested` hook to be implemented by derived classes to react to a stop request.
 - `Task`: `stop_requested` property to replace the deprecated `cancelled` property.
 
 ### Deprecated
