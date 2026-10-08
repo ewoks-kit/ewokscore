@@ -251,21 +251,3 @@ def test_task_request_stop(varinfo):
     task = SumTask(inputs={"a": 10}, varinfo=varinfo)
     with pytest.raises(NotImplementedError):
         task.request_stop()
-
-
-def test_task_cancel_deprecated(varinfo):
-    task = SumTask(inputs={"a": 10}, varinfo=varinfo)
-    with pytest.warns(DeprecationWarning, match="'cancel' is deprecated"):
-        with pytest.raises(NotImplementedError):
-            task.cancel()
-
-
-def test_task_request_stop_calls_deprecated_cancel_implementation(varinfo):
-    class CancelTask(SumTask):
-        def cancel(self):
-            self.stop_requested = True
-
-    task = CancelTask(inputs={"a": 10}, varinfo=varinfo)
-    with pytest.warns(DeprecationWarning, match="Please implement 'request_stop'"):
-        task.request_stop()
-    assert task.stop_requested
