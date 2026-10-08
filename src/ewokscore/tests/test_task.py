@@ -247,10 +247,10 @@ def test_task_cleanup_references():
     assert uhashes2 == task2.get_output_uhashes()
 
 
-def test_task_abort(varinfo):
+def test_task_request_stop(varinfo):
     task = SumTask(inputs={"a": 10}, varinfo=varinfo)
     with pytest.raises(NotImplementedError):
-        task.abort()
+        task.request_stop()
 
 
 def test_task_cancel_deprecated(varinfo):
@@ -260,12 +260,12 @@ def test_task_cancel_deprecated(varinfo):
             task.cancel()
 
 
-def test_task_abort_calls_deprecated_cancel_implementation(varinfo):
+def test_task_request_stop_calls_deprecated_cancel_implementation(varinfo):
     class CancelTask(SumTask):
         def cancel(self):
-            self.cancelled = True
+            self.stop_requested = True
 
     task = CancelTask(inputs={"a": 10}, varinfo=varinfo)
-    with pytest.warns(DeprecationWarning, match="Please implement 'abort'"):
-        task.abort()
-    assert task.cancelled
+    with pytest.warns(DeprecationWarning, match="Please implement 'request_stop'"):
+        task.request_stop()
+    assert task.stop_requested

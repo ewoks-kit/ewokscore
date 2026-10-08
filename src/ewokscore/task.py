@@ -97,7 +97,7 @@ class Task(Registered, UniversalHashable, register=False):
         # Misc
         self.__exception = None
         self.__succeeded = None
-        self._cancelled = False
+        self._stop_requested = False
         self._profile_directory = profile_directory or dict()
 
         # The output hash will update dynamically if any of the input
@@ -686,13 +686,29 @@ class Task(Registered, UniversalHashable, register=False):
         return False
 
     @property
+    def stop_requested(self) -> bool:
+        """Return True if the user requested the task to stop"""
+        return self._stop_requested
+
+    @stop_requested.setter
+    def stop_requested(self, stop_requested: bool) -> None:
+        self._stop_requested = stop_requested
+
+    @property
+    @deprecated(
+        "the property 'cancelled' is deprecated in favor of the property 'stop_requested'. Will be removed in version 6"
+    )
     def cancelled(self) -> bool:
-        """Return True if the task has been cancelled by the user"""
-        return self._cancelled
+        """DEPRECATED"""
+        return self.stop_requested
 
     @cancelled.setter
+    @deprecated(
+        "the property 'cancelled' is deprecated in favor of the property 'stop_requested'. Will be removed in version 6"
+    )
     def cancelled(self, cancelled: bool) -> None:
-        self._cancelled = cancelled
+        """DEPRECATED"""
+        self.stop_requested = cancelled
 
     def assert_ready_to_execute(self):
         lst = list(self._iter_missing_input_values())
@@ -728,7 +744,7 @@ class Task(Registered, UniversalHashable, register=False):
         )
 
     def reset_state(self):
-        self._cancelled = False
+        self._stop_requested = False
         self.__exception = None
         self.__succeeded = None
         self.__outputs.reset()
@@ -846,15 +862,15 @@ class Task(Registered, UniversalHashable, register=False):
         """To be implemented by the derived classes"""
         raise NotImplementedError
 
-    def abort(self):
+    def request_stop(self):
         """
-        Function called when a task must be aborted.
+        Function called when the task is requested to stop.
         To be implemented by the derived classes
         """
         if type(self).cancel is not Task.cancel:
             # Backward compatibility: derived class still implements 'cancel'
             warnings.warn(
-                f"{type(self).__name__} implements the deprecated method 'cancel'. Please implement 'abort' instead. Backward compatibility will be removed in version 6.",
+                f"{type(self).__name__} implements the deprecated method 'cancel'. Please implement 'request_stop' instead. Backward compatibility will be removed in version 6.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -862,8 +878,8 @@ class Task(Registered, UniversalHashable, register=False):
         raise NotImplementedError
 
     @deprecated(
-        "the method 'cancel' is deprecated in favor of the method 'abort'. Will be removed in version 6"
+        "the method 'cancel' is deprecated in favor of the method 'request_stop'. Will be removed in version 6"
     )
     def cancel(self):
         """DEPRECATED"""
-        return self.abort()
+        return self.request_stop()
