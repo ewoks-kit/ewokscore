@@ -860,30 +860,32 @@ class Task(Registered, UniversalHashable, register=False):
 
     def request_stop(self) -> None:
         """
-        Request the task to stop. Sets :attr:`stop_requested` and calls :meth:`on_stop_requested`.
-        Derived classes should implement :meth:`on_stop_requested` instead of overriding this method.
+        Request the task to stop. Sets :attr:`stop_requested` and calls :meth:`_on_stop_requested`.
+        Derived classes should implement :meth:`_on_stop_requested` instead of overriding this method.
         """
         self._stop_requested = True
         if type(self).cancel is not Task.cancel:
             # Backward compatibility: derived class still implements 'cancel'
             warnings.warn(
-                f"{type(self).__name__} implements the deprecated method 'cancel'. Please implement 'on_stop_requested' instead. Backward compatibility will be removed in version 6.",
+                f"{type(self).__name__} implements the deprecated method 'cancel'. Please implement '_on_stop_requested' instead. Backward compatibility will be removed in version 6.",
                 DeprecationWarning,
                 stacklevel=2,
             )
             self.cancel()
             return
-        self.on_stop_requested()
+        self._on_stop_requested()
 
-    def on_stop_requested(self) -> None:
+    def _on_stop_requested(self) -> None:
         """
         Function called when the task is requested to stop.
         To be implemented by the derived classes (e.g. interrupt a blocking call).
         """
-        pass
+        raise NotImplementedError(
+            "Derived classes should implement '_on_stop_requested' to handle stop requests."
+        )
 
     @deprecated(
-        "the method 'cancel' is deprecated in favor of the methods 'request_stop' (to request a stop) and 'on_stop_requested' (to implement). Will be removed in version 6"
+        "the method 'cancel' is deprecated in favor of the methods 'request_stop' (to request a stop) and '_on_stop_requested' (to implement). Will be removed in version 6"
     )
     def cancel(self):
         """DEPRECATED"""
