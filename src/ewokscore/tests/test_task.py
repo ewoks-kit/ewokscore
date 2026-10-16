@@ -153,7 +153,7 @@ def test_task_storage(tmp_path, varinfo):
 
 
 def test_task_required_positional_inputs():
-    class MyTask(Task, n_required_positional_inputs=1):
+    class MyTask(Task, n_required_positional_inputs=1, tags=["test"]):
         pass
 
     with pytest.raises(TaskInputError):
@@ -161,7 +161,7 @@ def test_task_required_positional_inputs():
 
 
 def test_task_unexpected_input_warning_ignores_positional_inputs():
-    class MyTask(Task, n_required_positional_inputs=1):
+    class MyTask(Task, n_required_positional_inputs=1, tags=["test"]):
         pass
 
     with warnings.catch_warnings():
@@ -173,13 +173,13 @@ def test_init_subclass_rejects_input_name_typo():
     # test that the wrong name appears in the error statement
     with pytest.raises(TaskInputError, match=re.escape("input")):
 
-        class Bad1(Task, input=["reason"]):
+        class Bad1(Task, input=["reason"], tags=["test"]):
             pass
 
     # test that the correct name appears somewhere in the error statement
     with pytest.raises(TaskInputError, match=re.escape("input_names")):
 
-        class Bad2(Task, input=["reason"]):
+        class Bad2(Task, input=["reason"], tags=["test"]):
             pass
 
 
@@ -187,13 +187,13 @@ def test_init_subclass_rejects_optional_input_names_typo():
     # test that the wrong name appears in the error statement
     with pytest.raises(TaskInputError, match=re.escape("optinal_input_names")):
 
-        class Bad1(Task, optinal_input_names=["reason"]):
+        class Bad1(Task, optinal_input_names=["reason"], tags=["test"]):
             pass
 
     # test that the correct name appears somewhere in the error statement
     with pytest.raises(TaskInputError, match=re.escape("optinal_input_names")):
 
-        class Bad2(Task, optinal_input_names=["reason"]):
+        class Bad2(Task, optinal_input_names=["reason"], tags=["test"]):
             pass
 
 
@@ -201,24 +201,26 @@ def test_init_subclass_rejects_output_name_typo():
     # test that the wrong name appears in the error statement
     with pytest.raises(TaskInputError, match="output_name"):
 
-        class Bad1(Task, output_name=["reason"]):
+        class Bad1(Task, output_name=["reason"], tags=["test"]):
             pass
 
     # test that the correct name appears in the error statement
     with pytest.raises(TaskInputError, match="output_names"):
 
-        class Bad2(Task, output_name=["reason"]):
+        class Bad2(Task, output_name=["reason"], tags=["test"]):
             pass
 
 
 def test_init_subclass_accepts_valid_params():
     # Should not raise an error
-    class Good(Task, input_names=["reason"], output_names=["result", "reason"]):
+    class Good(
+        Task, input_names=["reason"], output_names=["result", "reason"], tags=["test"]
+    ):
         pass
 
 
 def test_task_cleanup_references():
-    class MyTask(Task, input_names=["mylist"], output_names=["mylist"]):
+    class MyTask(Task, input_names=["mylist"], output_names=["mylist"], tags=["test"]):
         def run(self):
             self.outputs.mylist = self.inputs.mylist + [len(self.inputs.mylist)]
 
@@ -255,3 +257,23 @@ def test_task_request_stop(varinfo):
     assert task.stop_requested
     task.reset_state()
     assert not task.stop_requested
+
+
+def test_task_tags():
+    class TaggedTask(Task, tags=["xrf", "imaging"], register=False):
+        pass
+
+    class DerivedTaggedTask(TaggedTask, tags=["demo"], register=False):
+        pass
+
+    assert Task.tags() == set()
+    assert TaggedTask.tags() == {"xrf", "imaging"}
+    assert DerivedTaggedTask.tags() == {"xrf", "imaging", "demo"}
+
+
+@pytest.mark.parametrize("tags", ["demo", ["demo", 1]])
+def test_task_invalid_tags(tags):
+    with pytest.raises(TypeError):
+
+        class InvalidTaggedTask(Task, tags=tags, register=False):
+            pass

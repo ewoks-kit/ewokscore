@@ -10,6 +10,7 @@ class SumTask(
     input_names=["a"],
     optional_input_names=["b"],
     output_names=["result", "inputs", "label"],
+    tags=["test"],
 ):
     def run(self):
         result = self.inputs.a

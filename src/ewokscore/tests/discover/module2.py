@@ -8,6 +8,7 @@ class MyTask3(
     input_names=["z", "c"],
     optional_input_names=["x", "d"],
     output_names=["result", "error"],
+    tags=["test"],
 ):
     """Test 3"""
 
@@ -31,7 +32,7 @@ class Task4Inputs(BaseInputModel):
     d: str = "DEFAULT"
 
 
-class MyTask4(Task, input_model=Task4Inputs):
+class MyTask4(Task, input_model=Task4Inputs, tags=["test"]):
     pass
 
 
@@ -42,5 +43,5 @@ class Task5Outputs(BaseOutputModel):
     d: str = "DEFAULT"
 
 
-class MyTask5(Task, output_model=Task5Outputs):
+class MyTask5(Task, output_model=Task5Outputs, tags=["test"]):
     pass

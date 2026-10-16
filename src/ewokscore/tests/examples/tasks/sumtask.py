@@ -8,6 +8,7 @@ class SumTask(
     input_names=["a"],
     optional_input_names=["b", "delay"],
     output_names=["result"],
+    tags=["demo"],
 ):
     """Add two numbers with a delay"""
 
