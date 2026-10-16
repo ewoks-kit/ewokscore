@@ -51,6 +51,23 @@ could discover task classes such as
 The wildcard `"*"` matches exactly one package or module name component.
 
 
+How to tag tasks
+----------------
+
+Task classes can declare free-form tags. Tags are inherited by derived task classes and
+are included in the discovered task description under the `"tags"` key.
+
+.. code-block:: python
+
+    from ewokscore import Task
+
+    class MyTask(Task, input_names=["a"], output_names=["result"], tags=["xrf", "imaging"]):
+        def run(self):
+            self.outputs.result = self.inputs.a
+
+Method and ppfmethod tasks have no tags.
+
+
 How to declare tasks to be discovered
 -------------------------------------
 

@@ -41,6 +41,7 @@ def test_all_tasks_discovery():
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": ["demo"],
         },
         {
             "category": "ewokscore",
@@ -53,6 +54,7 @@ def test_all_tasks_discovery():
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": ["demo"],
         },
         {
             "category": "ewokscore",
@@ -65,6 +67,7 @@ def test_all_tasks_discovery():
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": ["demo"],
         },
         {
             "category": "ewokscore",
@@ -77,6 +80,7 @@ def test_all_tasks_discovery():
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": ["demo"],
         },
         {
             "category": "ewokscore",
@@ -89,6 +93,7 @@ def test_all_tasks_discovery():
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": ["demo"],
         },
         {
             "category": "ewokscore",
@@ -101,6 +106,7 @@ def test_all_tasks_discovery():
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": [],
         },
         {
             "category": "ewokscore",
@@ -113,6 +119,7 @@ def test_all_tasks_discovery():
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": [],
         },
         {
             "category": "ewokscore",
@@ -125,6 +132,7 @@ def test_all_tasks_discovery():
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": [],
         },
     ]
 

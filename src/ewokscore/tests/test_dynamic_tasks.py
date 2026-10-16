@@ -9,7 +9,9 @@ def task_class_generator(qualname):
     if registry_name in Task.get_subclass_names():
         return Task.get_subclass(qualname)
 
-    class DynamicTask(Task, output_names=["result"], registry_name=registry_name):
+    class DynamicTask(
+        Task, output_names=["result"], registry_name=registry_name, tags=["test"]
+    ):
         def run(self):
             self.outputs.result = qualname
 

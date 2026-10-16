@@ -64,6 +64,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": ["test"],
         },
         {
             "task_type": "class",
@@ -76,6 +77,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": ["test"],
         },
         {
             "task_type": "class",
@@ -88,6 +90,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 2,
+            "tags": ["test"],
         },
         {
             "task_type": "class",
@@ -100,6 +103,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": ["test"],
         },
         {
             "task_type": "class",
@@ -112,6 +116,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": "ewokscore.tests.discover.module2.Task4Inputs",
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": ["test"],
         },
         {
             "task_type": "class",
@@ -124,6 +129,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": "ewokscore.tests.discover.module2.Task5Outputs",
             "n_required_positional_inputs": 0,
+            "tags": ["test"],
         },
     ]
 
@@ -139,6 +145,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": [],
         },
         {
             "task_type": "method",
@@ -151,6 +158,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": [],
         },
         {
             "task_type": "method",
@@ -163,6 +171,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 2,
+            "tags": [],
         },
         {
             "task_type": "method",
@@ -175,6 +184,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": [],
         },
         {
             "task_type": "method",
@@ -187,6 +197,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": [],
         },
     ]
 
@@ -202,6 +213,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": [],
         },
         {
             "task_type": "ppfmethod",
@@ -214,6 +226,7 @@ def expected_tasks(module=None, task_type=None):
             "input_model": None,
             "output_model": None,
             "n_required_positional_inputs": 0,
+            "tags": [],
         },
     ]
 
