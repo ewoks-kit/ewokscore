@@ -8,6 +8,7 @@ class SumList(
     input_names=["list"],
     optional_input_names=["delay"],
     output_names=["sum"],
+    tags=["demo"],
 ):
     """Add items from a list"""
 

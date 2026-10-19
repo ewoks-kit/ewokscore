@@ -2,7 +2,11 @@ from ...task import Task
 
 
 class MyTask1(
-    Task, input_names=["a"], optional_input_names=["b"], output_names=["result"]
+    Task,
+    input_names=["a"],
+    optional_input_names=["b"],
+    output_names=["result"],
+    tags=["test"],
 ):
     """Test 1"""
 
@@ -11,13 +15,17 @@ class MyTask1(
 
 
 class MyTask2(
-    Task, input_names=["a"], optional_input_names=["b"], output_names=["result"]
+    Task,
+    input_names=["a"],
+    optional_input_names=["b"],
+    output_names=["result"],
+    tags=["test"],
 ):
     def run(self):
         pass
 
 
-class MyTask3(Task, n_required_positional_inputs=2):
+class MyTask3(Task, n_required_positional_inputs=2, tags=["test"]):
     def run(self):
         pass
 
@@ -39,11 +47,11 @@ def _myfunc(a, b=None):
     pass
 
 
-class _MyTask2(Task):
+class _MyTask2(Task, tags=["test"]):
     def run(self):
         pass
 
 
-class UnregisteredTask(Task, register=False):
+class UnregisteredTask(Task, register=False, tags=["test"]):
     def run(self):
         pass

@@ -105,6 +105,7 @@ class MyTask(
     input_names=["ctr"],
     optional_input_names=["error_msg", "delay"],
     output_names=["ctr"],
+    tags=["test"],
 ):
     def run(self):
         if self.inputs.error_msg:

@@ -18,7 +18,11 @@ class User(BaseOutputModel):
 
 
 class PassThroughTask(
-    Task, input_names=["id"], optional_input_names=["name", "age"], output_model=User
+    Task,
+    input_names=["id"],
+    optional_input_names=["name", "age"],
+    output_model=User,
+    tags=["test"],
 ):
     def run(self):
         self.outputs.id = self.inputs.id
@@ -36,7 +40,9 @@ def test_error_if_output_model_does_not_derive_from_base_model():
         match=r"output_model should be a subclass of ewokscore.model.BaseOutputModel",
     ):
 
-        class WrongPassThroughTask(Task, output_model=WrongBaseModelUser):
+        class WrongPassThroughTask(
+            Task, output_model=WrongBaseModelUser, tags=["test"]
+        ):
             pass
 
 
@@ -45,7 +51,9 @@ def test_error_if_output_model_used_with_output_names():
         TypeError, match="output_model cannot be used with output_names"
     ):
 
-        class WrongPassThroughTask(Task, output_model=User, output_names=["user"]):
+        class WrongPassThroughTask(
+            Task, output_model=User, output_names=["user"], tags=["test"]
+        ):
             pass
 
 
@@ -194,7 +202,9 @@ def test_dataclass_field_stays_dataclass():
     class Outputs(BaseOutputModel):
         address: Address
 
-    class CheckAddress(Task, input_names=["address"], output_model=Outputs):
+    class CheckAddress(
+        Task, input_names=["address"], output_model=Outputs, tags=["test"]
+    ):
         def run(self):
             self.outputs.address = self.inputs.address
 

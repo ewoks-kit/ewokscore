@@ -60,6 +60,7 @@ class Task(Registered, UniversalHashable, register=False):
     _N_REQUIRED_POSITIONAL_INPUTS: int = 0
     _INPUT_MODEL: Optional[Type[BaseInputModel]] = None
     _OUTPUT_MODEL: Optional[Type[BaseOutputModel]] = None
+    _TAGS: Set[str] = set()
 
     def __init__(
         self,
@@ -228,6 +229,7 @@ class Task(Registered, UniversalHashable, register=False):
         n_required_positional_inputs: int = 0,
         input_model: Union[Type[BaseInputModel], None] = None,
         output_model: Union[Type[BaseInputModel], None] = None,
+        tags: Sequence[str] = tuple(),
         **kwargs,
     ):
         # Hard code the parameters to __init_subclass__ to check for misspellings
@@ -238,6 +240,7 @@ class Task(Registered, UniversalHashable, register=False):
             "n_required_positional_inputs",
             "input_model",
             "output_model",
+            "tags",
         }
 
         # Use difflib to find potential typos in kwargs
@@ -285,6 +288,7 @@ class Task(Registered, UniversalHashable, register=False):
         subclass._N_REQUIRED_POSITIONAL_INPUTS = n_required_positional_inputs
         subclass._INPUT_MODEL = input_model
         subclass._OUTPUT_MODEL = output_model
+        subclass._TAGS = subclass._TAGS | _validate_tags(tags)
 
     @classmethod
     def _generate_inputs_sets(
@@ -441,6 +445,10 @@ class Task(Registered, UniversalHashable, register=False):
     @classmethod
     def output_model(cls) -> Optional[Type[BaseOutputModel]]:
         return cls._OUTPUT_MODEL
+
+    @classmethod
+    def tags(cls) -> Set[str]:
+        return cls._TAGS
 
     @classmethod
     def n_required_positional_inputs(cls) -> int:
@@ -890,3 +898,12 @@ class Task(Registered, UniversalHashable, register=False):
     def cancel(self):
         """DEPRECATED"""
         return self.request_stop()
+
+
+def _validate_tags(tags: Sequence[str]) -> Set[str]:
+    if isinstance(tags, str):
+        raise TypeError("tags must be a sequence of strings, not a string")
+    for tag in tags:
+        if not isinstance(tag, str):
+            raise TypeError(f"task tags must be strings, got {tag!r}")
+    return set(tags)

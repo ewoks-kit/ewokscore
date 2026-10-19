@@ -439,6 +439,7 @@ class ClassExample(
     input_names=["a", "b"],
     optional_input_names=["c", "d"],
     output_names=["a", "b", "c", "d"],
+    tags=["test"],
 ):
     def run(self):
         self.outputs.a = self.inputs.a
@@ -465,6 +466,7 @@ class ClassExampleWithModel(
     Task,
     input_model=InputModel,
     output_model=OutputModel,
+    tags=["test"],
 ):
     def run(self):
         self.outputs.a = self.inputs.a

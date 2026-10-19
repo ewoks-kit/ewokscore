@@ -2,7 +2,10 @@ from ....task import Task
 
 
 class ErrorSumTask(
-    Task, optional_input_names=["a", "b", "raise_error"], output_names=["result"]
+    Task,
+    optional_input_names=["a", "b", "raise_error"],
+    output_names=["result"],
+    tags=["demo"],
 ):
     """Add two number with intentional exception"""
 

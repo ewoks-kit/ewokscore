@@ -23,7 +23,7 @@ class User(BaseInputModel):
     name: str = "Jane Doe"
 
 
-class PassThroughTask(Task, input_model=User, output_names=["result"]):
+class PassThroughTask(Task, input_model=User, output_names=["result"], tags=["test"]):
     def run(self):
         self.outputs.result = self.get_input_values()
 
@@ -38,7 +38,7 @@ def test_error_if_input_model_does_not_derive_from_base_model():
         match=r"input_model should be a subclass of ewokscore.model.BaseInputModel",
     ):
 
-        class WrongPassThroughTask(Task, input_model=WrongBaseModelUser):
+        class WrongPassThroughTask(Task, input_model=WrongBaseModelUser, tags=["test"]):
             pass
 
 
@@ -46,7 +46,11 @@ def test_error_if_input_model_used_with_input_names():
     with pytest.raises(TypeError, match="input_model cannot be used with input_names"):
 
         class WrongPassThroughTask(
-            Task, input_model=User, input_names=["age"], output_names=["result"]
+            Task,
+            input_model=User,
+            input_names=["age"],
+            output_names=["result"],
+            tags=["test"],
         ):
             pass
 
@@ -179,14 +183,16 @@ def test_subclass():
 
 
 def test_missing_data():
-    class RegularTask(Task, input_names=["one"], optional_input_names=["two"]):
+    class RegularTask(
+        Task, input_names=["one"], optional_input_names=["two"], tags=["test"]
+    ):
         pass
 
     class Model(BaseInputModel):
         one: int
         two: Union[int, MissingData] = MISSING_DATA
 
-    class ModelTask(Task, input_model=Model):
+    class ModelTask(Task, input_model=Model, tags=["test"]):
         pass
 
     regular_task = RegularTask(inputs={"one": 1})
@@ -212,7 +218,7 @@ class UserWithTypeCoercion(User):
         return value
 
 
-class TaskWithTypeCoercion(Task, input_model=UserWithTypeCoercion):
+class TaskWithTypeCoercion(Task, input_model=UserWithTypeCoercion, tags=["test"]):
     def run(self):
         pass
 
@@ -304,7 +310,7 @@ def test_dataclass_field_stays_dataclass():
     class Inputs(BaseInputModel):
         address: Address
 
-    class CheckAddress(Task, input_model=Inputs):
+    class CheckAddress(Task, input_model=Inputs, tags=["test"]):
         def run(self):
             address = self.inputs.address
             assert isinstance(address, Address)
@@ -319,7 +325,7 @@ class DeprecatedInput(BaseInputModel):
     a: int = Field(2, deprecated="deprecated")
 
 
-class MyTaskWithDeprecatedInput(Task, input_model=DeprecatedInput):
+class MyTaskWithDeprecatedInput(Task, input_model=DeprecatedInput, tags=["test"]):
     def run(self):
         pass
 

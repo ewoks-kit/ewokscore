@@ -30,6 +30,7 @@ class _CommonTaskFields(_TaskInputs):
     description: Optional[str]
     input_model: Optional[str]
     output_model: Optional[str]
+    tags: List[str]
 
 
 class TaskDict(_CommonTaskFields):
@@ -135,6 +136,7 @@ def _iter_registered_tasks(*filter_modules: str) -> Generator[TaskDict, None, No
             "input_model": qualname(input_model) if input_model else None,
             "output_model": qualname(output_model) if output_model else None,
             "n_required_positional_inputs": cls.n_required_positional_inputs(),
+            "tags": sorted(cls.tags()),
         }
 
 
@@ -318,4 +320,5 @@ def _common_method_task_fields(
         "description": method.__doc__,
         "input_model": None,
         "output_model": None,
+        "tags": [],
     }
