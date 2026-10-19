@@ -65,7 +65,7 @@ are included in the discovered task description under the `"tags"` key.
         def run(self):
             self.outputs.result = self.inputs.a
 
-Method and ppfmethod tasks have no tags.
+Only class tasks can declare tags.
 
 
 How to declare tasks to be discovered

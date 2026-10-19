@@ -448,7 +448,6 @@ class Task(Registered, UniversalHashable, register=False):
 
     @classmethod
     def tags(cls) -> Set[str]:
-        """Free-form task labels."""
         return cls._TAGS
 
     @classmethod

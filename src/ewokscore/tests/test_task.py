@@ -271,9 +271,13 @@ def test_task_tags():
     assert DerivedTaggedTask.tags() == {"xrf", "imaging", "demo"}
 
 
-@pytest.mark.parametrize("tags", ["demo", ["demo", 1]])
-def test_task_invalid_tags(tags):
+def test_task_invalid_tags():
     with pytest.raises(TypeError):
 
-        class InvalidTaggedTask(Task, tags=tags, register=False):
+        class InvalidStringTask(Task, tags="demo", register=False):
+            pass
+
+    with pytest.raises(TypeError):
+
+        class InvalidTypedTagTask(Task, tags=["demo", 1], register=False):
             pass
