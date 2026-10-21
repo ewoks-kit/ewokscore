@@ -1,7 +1,9 @@
 from collections import defaultdict
 from typing import Dict
+from typing import Iterable
 from typing import Iterator
 from typing import Set
+from typing import Tuple
 
 import networkx
 
@@ -244,8 +246,70 @@ def link_is_required(
     if link_is_conditional(graph, source_id, target_id):
         return False
 
-    # By default, links with at least one non-required link upstream become non-required
-    return not node_has_ancestors(graph, source_id, link_is_required=False)
+    # By default, links become optional when the target can be executed
+    # while the source is not, due to an optional link upstream
+    return not _target_can_bypass_upstream_optional_links(graph, source_id, target_id)
+
+
+def _link_is_intrinsically_optional(
+    graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
+) -> bool:
+    """Optional regardless of the links upstream."""
+    if link_is_explicitly_required(graph, source_id, target_id):
+        return False
+    if link_is_explicitly_optional(graph, source_id, target_id):
+        return True
+    return link_is_conditional(graph, source_id, target_id)
+
+
+def _target_can_bypass_upstream_optional_links(
+    graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
+) -> bool:
+    """Returns True when the target can be reached from the start nodes without
+    passing through one of the optional links upstream of the source. If the target
+    can only be reached through those optional links, it will only be executed when
+    they fire, in which case the source is executed as well.
+    """
+    upstream_nodes = networkx.ancestors(graph, source_id) | {source_id}
+    optional_links = [
+        (upstream_source_id, upstream_target_id)
+        for upstream_target_id in upstream_nodes
+        for upstream_source_id in graph.predecessors(upstream_target_id)
+        if _link_is_intrinsically_optional(
+            graph, upstream_source_id, upstream_target_id
+        )
+    ]
+    if not optional_links:
+        return False
+
+    starts = [node_id for node_id in graph.nodes if node_is_start_node(graph, node_id)]
+    if not starts:
+        return True  # cannot be determined
+
+    return any(
+        _node_is_reachable_without_link(graph, starts, target_id, link)
+        for link in optional_links
+    )
+
+
+def _node_is_reachable_without_link(
+    graph: networkx.DiGraph,
+    starts: Iterable[NodeIdType],
+    node_id: NodeIdType,
+    excluded_link: Tuple[NodeIdType, NodeIdType],
+) -> bool:
+    visited = set(starts)
+    queue = list(visited)
+    while queue:
+        current_id = queue.pop()
+        if current_id == node_id:
+            return True
+        for next_id in graph.successors(current_id):
+            if (current_id, next_id) == excluded_link or next_id in visited:
+                continue
+            visited.add(next_id)
+            queue.append(next_id)
+    return False
 
 
 def node_has_error_handlers(graph: networkx.DiGraph, node_id: NodeIdType):
