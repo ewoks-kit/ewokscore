@@ -265,3 +265,34 @@ def test_graph_link_is_required_conditional_upstream():
     assert link_is_required(taskgraph.graph, "start", "down")
     assert link_is_required(taskgraph.graph, "up", "end")
     assert link_is_required(taskgraph.graph, "down", "end")
+
+
+def test_graph_link_is_required_on_error_merge_after_conditional_link():
+    graph = {"id": "test", "schema_version": "1.1"}
+    nodes = [
+        {"id": "start0", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "start", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "A", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "s", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "E", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "t", "task_type": "method", "task_identifier": "dummy"},
+    ]
+    links = [
+        {
+            "source": "start0",
+            "target": "start",
+            "map_all_data": True,
+            "conditions": [{"source_output": "a", "value": 1}],
+        },
+        {"source": "start", "target": "A", "map_all_data": True},
+        {"source": "A", "target": "s", "map_all_data": True},
+        {"source": "A", "target": "E", "map_all_data": True, "on_error": True},
+        {"source": "s", "target": "t", "map_all_data": True},
+        {"source": "E", "target": "t", "map_all_data": True},
+    ]
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
+
+    assert not link_is_required(taskgraph.graph, "s", "t")
+
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links[1:]})
+    assert link_is_required(taskgraph.graph, "s", "t")

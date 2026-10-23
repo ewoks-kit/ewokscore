@@ -1,9 +1,9 @@
+from collections import OrderedDict
 from collections import defaultdict
 from typing import Dict
 from typing import Iterable
 from typing import Iterator
 from typing import Set
-from typing import Tuple
 
 import networkx
 
@@ -236,20 +236,155 @@ def link_is_conditional(
 def link_is_required(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
 ) -> bool:
-    # Explicitly required or optional
-    if link_is_explicitly_required(graph, source_id, target_id):
-        return True
-    if link_is_explicitly_optional(graph, source_id, target_id):
-        return False
+    return _LinkRequirementAnalysis(graph).link_is_required(source_id, target_id)
 
-    # By default, conditional links are optional
-    if link_is_conditional(graph, source_id, target_id):
-        return False
 
-    # By default, links become optional when the target can be executed
-    # while the source is not, due to an optional link upstream
-    return not _target_can_bypass_upstream_optional_links(graph, source_id, target_id)
+class _LinkRequirementAnalysis:
+    def __init__(self, graph: networkx.DiGraph):
+        self.graph = graph
+        self._ancestors = OrderedDict()
+        self._upstream_optional_links = OrderedDict()
+        self._starts = None
+        self._dominators = None
+        self._dominator_intervals = None
 
+    def link_is_required(
+        self, source_id: NodeIdType, target_id: NodeIdType
+    ) -> bool:
+        graph = self.graph
+
+        # Explicitly required or optional
+        if link_is_explicitly_required(graph, source_id, target_id):
+            return True
+        if link_is_explicitly_optional(graph, source_id, target_id):
+            return False
+
+        # By default, conditional links are optional
+        if link_is_conditional(graph, source_id, target_id):
+            return False
+
+        return not self._target_can_bypass_upstream_optional_links(
+            source_id, target_id
+        )
+
+    def required_predecessors(self, target_id: NodeIdType) -> Iterator[NodeIdType]:
+        for source_id in node_predecessors(self.graph, target_id):
+            if self.link_is_required(source_id, target_id):
+                yield source_id
+
+    def _target_can_bypass_upstream_optional_links(
+        self, source_id: NodeIdType, target_id: NodeIdType
+    ) -> bool:
+        graph = self.graph
+        upstream_nodes, optional_links = self._get_upstream_optional_links(source_id)
+        if not optional_links:
+            return False
+
+        starts = self._start_nodes()
+        if not starts:
+            return True  # cannot be determined
+
+        if any(
+            not self._edge_dominates_target(link, target_id, starts)
+            for link in optional_links
+        ):
+            return True
+
+        # An on-error handler can reach the merge target even though its path still
+        # passes through an upstream conditional link.
+        target_ancestors = self._ancestors_of(target_id) | {target_id}
+        return any(
+            _link_is_intrinsically_optional(graph, error_source, error_target)
+            and link_has_on_error(graph, error_source, error_target)
+            and error_target not in upstream_nodes
+            and error_target in target_ancestors
+            for error_source in upstream_nodes
+            for error_target in graph.successors(error_source)
+        )
+
+    def _get_upstream_optional_links(self, source_id):
+        upstream_nodes = self._ancestors_of(source_id) | {source_id}
+        optional_links = self._upstream_optional_links.pop(source_id, None)
+        if optional_links is None:
+            optional_links = [
+                (upstream_source_id, upstream_target_id)
+                for upstream_target_id in upstream_nodes
+                for upstream_source_id in self.graph.predecessors(upstream_target_id)
+                if _link_is_intrinsically_optional(
+                    self.graph, upstream_source_id, upstream_target_id
+                )
+            ]
+        self._upstream_optional_links[source_id] = optional_links
+        if len(self._upstream_optional_links) > 128:
+            self._upstream_optional_links.popitem(last=False)
+        return upstream_nodes, optional_links
+
+    def _start_nodes(self):
+        if self._starts is None:
+            self._starts = [
+                node_id
+                for node_id in self.graph.nodes
+                if node_is_start_node(self.graph, node_id)
+            ]
+        return self._starts
+
+    def _ancestors_of(self, node_id: NodeIdType) -> Set[NodeIdType]:
+        ancestors = self._ancestors.pop(node_id, None)
+        if ancestors is None:
+            ancestors = networkx.ancestors(self.graph, node_id)
+        self._ancestors[node_id] = ancestors
+        if len(self._ancestors) > 128:
+            self._ancestors.popitem(last=False)
+        return ancestors
+
+    def _edge_dominates_target(
+        self, edge, target_id: NodeIdType, starts: Iterable[NodeIdType]
+    ) -> bool:
+        if self._dominators is None:
+            root = object()
+            expanded_graph = networkx.DiGraph()
+            expanded_graph.add_node(root)
+            for node_id in self.graph.nodes:
+                expanded_graph.add_node(node_id)
+            for node_id in starts:
+                expanded_graph.add_edge(root, node_id)
+            self._edge_nodes = dict()
+            for source_id, edge_target_id in self.graph.edges:
+                edge_node = object()
+                self._edge_nodes[(source_id, edge_target_id)] = edge_node
+                expanded_graph.add_edge(source_id, edge_node)
+                expanded_graph.add_edge(edge_node, edge_target_id)
+            self._root = root
+            self._dominators = networkx.immediate_dominators(expanded_graph, root)
+            dominator_children = defaultdict(list)
+            for node_id, dominator_id in self._dominators.items():
+                if node_id != root:
+                    dominator_children[dominator_id].append(node_id)
+            intervals = dict()
+            clock = 0
+            stack = [(root, False)]
+            while stack:
+                node_id, exiting = stack.pop()
+                if exiting:
+                    intervals[node_id] = (intervals[node_id][0], clock)
+                    continue
+                intervals[node_id] = (clock, None)
+                clock += 1
+                stack.append((node_id, True))
+                stack.extend(
+                    (child_id, False)
+                    for child_id in reversed(dominator_children[node_id])
+                )
+            self._dominator_intervals = intervals
+
+        edge_node = self._edge_nodes.get(edge)
+        edge_interval = self._dominator_intervals.get(edge_node)
+        target_interval = self._dominator_intervals.get(target_id)
+        return (
+            edge_interval is not None
+            and target_interval is not None
+            and edge_interval[0] <= target_interval[0] < edge_interval[1]
+        )
 
 def _link_is_intrinsically_optional(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
@@ -262,56 +397,6 @@ def _link_is_intrinsically_optional(
     return link_is_conditional(graph, source_id, target_id)
 
 
-def _target_can_bypass_upstream_optional_links(
-    graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
-) -> bool:
-    """Returns True when the target can be reached from the start nodes without
-    passing through one of the optional links upstream of the source. If the target
-    can only be reached through those optional links, it will only be executed when
-    they fire, in which case the source is executed as well.
-    """
-    upstream_nodes = networkx.ancestors(graph, source_id) | {source_id}
-    optional_links = [
-        (upstream_source_id, upstream_target_id)
-        for upstream_target_id in upstream_nodes
-        for upstream_source_id in graph.predecessors(upstream_target_id)
-        if _link_is_intrinsically_optional(
-            graph, upstream_source_id, upstream_target_id
-        )
-    ]
-    if not optional_links:
-        return False
-
-    starts = [node_id for node_id in graph.nodes if node_is_start_node(graph, node_id)]
-    if not starts:
-        return True  # cannot be determined
-
-    return any(
-        _node_is_reachable_without_link(graph, starts, target_id, link)
-        for link in optional_links
-    )
-
-
-def _node_is_reachable_without_link(
-    graph: networkx.DiGraph,
-    starts: Iterable[NodeIdType],
-    node_id: NodeIdType,
-    excluded_link: Tuple[NodeIdType, NodeIdType],
-) -> bool:
-    visited = set(starts)
-    queue = list(visited)
-    while queue:
-        current_id = queue.pop()
-        if current_id == node_id:
-            return True
-        for next_id in graph.successors(current_id):
-            if (current_id, next_id) == excluded_link or next_id in visited:
-                continue
-            visited.add(next_id)
-            queue.append(next_id)
-    return False
-
-
 def node_has_error_handlers(graph: networkx.DiGraph, node_id: NodeIdType):
     return node_has_successors(graph, node_id, link_has_on_error=True)
 
@@ -319,9 +404,7 @@ def node_has_error_handlers(graph: networkx.DiGraph, node_id: NodeIdType):
 def required_predecessors(
     graph: networkx.DiGraph, target_id: NodeIdType
 ) -> Iterator[NodeIdType]:
-    for source_id in node_predecessors(graph, target_id):
-        if link_is_required(graph, source_id, target_id):
-            yield source_id
+    yield from _LinkRequirementAnalysis(graph).required_predecessors(target_id)
 
 
 def has_required_predecessors(graph: networkx.DiGraph, node_id: NodeIdType) -> bool:
