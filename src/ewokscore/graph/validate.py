@@ -2,7 +2,7 @@ import networkx
 from packaging.version import parse as parse_version
 
 from ..inittask import validate_task_executable
-from .analysis import required_predecessors
+from .analysis import _LinkRequirementAnalysis
 from .schema import LATEST_VERSION
 from .schema import normalize_schema_version
 from .schema import update_graph_schema
@@ -17,6 +17,7 @@ def validate_graph(graph: networkx.DiGraph) -> None:
 
 
 def _validate_nodes(graph: networkx.DiGraph) -> None:
+    link_analysis = _LinkRequirementAnalysis(graph)
     for node_id, node_attrs in graph.nodes.items():
         validate_task_executable(node_id, node_attrs)
 
@@ -25,7 +26,7 @@ def _validate_nodes(graph: networkx.DiGraph) -> None:
         #    raise ValueError(f"Node {repr(node_id)} has no links")
 
         inputs_from_required = dict()
-        for source_id in required_predecessors(graph, node_id):
+        for source_id in link_analysis.required_predecessors(node_id):
             link_attrs = graph[source_id][node_id]
             arguments = link_attrs.get("data_mapping", list())
             for arg in arguments:

@@ -39,8 +39,8 @@ def test_graph_link_is_required_conditions1():
     assert link_is_required(taskgraph.graph, "start", "fan")
     assert not link_is_required(taskgraph.graph, "fan", "on_false1")
     assert not link_is_required(taskgraph.graph, "fan", "on_true1")
-    assert not link_is_required(taskgraph.graph, "on_false1", "on_false2")
-    assert not link_is_required(taskgraph.graph, "on_true1", "on_true2")
+    assert link_is_required(taskgraph.graph, "on_false1", "on_false2")
+    assert link_is_required(taskgraph.graph, "on_true1", "on_true2")
     assert not link_is_required(taskgraph.graph, "on_false2", "merge")
     assert not link_is_required(taskgraph.graph, "on_true2", "merge")
     assert not link_is_required(
@@ -81,7 +81,7 @@ def test_graph_link_is_required_conditions2():
     assert link_is_required(taskgraph.graph, "fan", "always1")
     assert not link_is_required(taskgraph.graph, "fan", "on_true1")
     assert link_is_required(taskgraph.graph, "always1", "always2")
-    assert not link_is_required(taskgraph.graph, "on_true1", "on_true2")
+    assert link_is_required(taskgraph.graph, "on_true1", "on_true2")
     assert link_is_required(taskgraph.graph, "always2", "merge")
     assert not link_is_required(taskgraph.graph, "on_true2", "merge")
     assert not link_is_required(
@@ -223,12 +223,76 @@ def test_graph_link_is_required_errors():
     assert not link_is_required(taskgraph.graph, "fan", "on_true1")
     assert not link_is_required(taskgraph.graph, "fan", "on_error1")
     assert link_is_required(taskgraph.graph, "always1", "always2")
-    assert not link_is_required(taskgraph.graph, "on_true1", "on_true2")
-    assert not link_is_required(taskgraph.graph, "on_error1", "on_error2")
+    assert link_is_required(taskgraph.graph, "on_true1", "on_true2")
+    assert link_is_required(taskgraph.graph, "on_error1", "on_error2")
     assert link_is_required(taskgraph.graph, "always2", "merge")
     assert not link_is_required(taskgraph.graph, "on_true2", "merge")
     assert not link_is_required(taskgraph.graph, "on_error2", "merge")
     assert not link_is_required(
         taskgraph.graph, "merge", "end_always"
     )  # TODO: this should be True because branches merge again
-    assert not link_is_required(taskgraph.graph, "on_error2", "end_on_error")
+    assert link_is_required(taskgraph.graph, "on_error2", "end_on_error")
+
+
+def test_graph_link_is_required_conditional_upstream():
+    """A conditional link upstream should not make the links of the
+    unconditional branches downstream optional when those branches merge
+    again (ewoksppf issue #23)."""
+    graph = {"id": "test", "schema_version": "1.1"}
+    nodes = [
+        {"id": "start0", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "start", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "up", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "down", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "end", "task_type": "method", "task_identifier": "dummy"},
+    ]
+    links = [
+        {
+            "source": "start0",
+            "target": "start",
+            "map_all_data": True,
+            "conditions": [{"source_output": "a", "value": 1}],
+        },
+        {"source": "start", "target": "up", "map_all_data": True},
+        {"source": "start", "target": "down", "map_all_data": True},
+        {"source": "up", "target": "end", "map_all_data": True},
+        {"source": "down", "target": "end", "map_all_data": True},
+    ]
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
+
+    assert not link_is_required(taskgraph.graph, "start0", "start")
+    assert link_is_required(taskgraph.graph, "start", "up")
+    assert link_is_required(taskgraph.graph, "start", "down")
+    assert link_is_required(taskgraph.graph, "up", "end")
+    assert link_is_required(taskgraph.graph, "down", "end")
+
+
+def test_graph_link_is_required_on_error_merge_after_conditional_link():
+    graph = {"id": "test", "schema_version": "1.1"}
+    nodes = [
+        {"id": "start0", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "start", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "A", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "s", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "E", "task_type": "method", "task_identifier": "dummy"},
+        {"id": "t", "task_type": "method", "task_identifier": "dummy"},
+    ]
+    links = [
+        {
+            "source": "start0",
+            "target": "start",
+            "map_all_data": True,
+            "conditions": [{"source_output": "a", "value": 1}],
+        },
+        {"source": "start", "target": "A", "map_all_data": True},
+        {"source": "A", "target": "s", "map_all_data": True},
+        {"source": "A", "target": "E", "map_all_data": True, "on_error": True},
+        {"source": "s", "target": "t", "map_all_data": True},
+        {"source": "E", "target": "t", "map_all_data": True},
+    ]
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
+
+    assert not link_is_required(taskgraph.graph, "s", "t")
+
+    taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links[1:]})
+    assert link_is_required(taskgraph.graph, "s", "t")

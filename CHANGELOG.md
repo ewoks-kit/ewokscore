@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve optional links when an upstream task's error handler merges into a downstream path after a conditional link.
+- Reuse graph dominator analysis while validating link requirements to avoid repeated reachability searches.
+
 ## [5.1.0rc6] - 2026-10-21
 
 ### Added
