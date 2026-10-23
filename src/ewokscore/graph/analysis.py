@@ -248,9 +248,7 @@ class _LinkRequirementAnalysis:
         self._dominators = None
         self._dominator_intervals = None
 
-    def link_is_required(
-        self, source_id: NodeIdType, target_id: NodeIdType
-    ) -> bool:
+    def link_is_required(self, source_id: NodeIdType, target_id: NodeIdType) -> bool:
         graph = self.graph
 
         # Explicitly required or optional
@@ -263,9 +261,7 @@ class _LinkRequirementAnalysis:
         if link_is_conditional(graph, source_id, target_id):
             return False
 
-        return not self._target_can_bypass_upstream_optional_links(
-            source_id, target_id
-        )
+        return not self._target_can_bypass_upstream_optional_links(source_id, target_id)
 
     def required_predecessors(self, target_id: NodeIdType) -> Iterator[NodeIdType]:
         for source_id in node_predecessors(self.graph, target_id):
@@ -385,6 +381,7 @@ class _LinkRequirementAnalysis:
             and target_interval is not None
             and edge_interval[0] <= target_interval[0] < edge_interval[1]
         )
+
 
 def _link_is_intrinsically_optional(
     graph: networkx.DiGraph, source_id: NodeIdType, target_id: NodeIdType
