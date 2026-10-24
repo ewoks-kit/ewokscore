@@ -55,6 +55,7 @@ doc = [
     "sphinx >=4.5",
     "sphinxcontrib-mermaid >=0.7",
     "sphinx-autodoc-typehints >=1.16",
+    "sphinx-design",
     "nbsphinx",
     # v0.21 incompatible with nbsphinx_link: https://github.com/vidartf/nbsphinx-link/issues/22
     "docutils < 0.21",

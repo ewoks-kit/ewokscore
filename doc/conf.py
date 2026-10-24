@@ -17,9 +17,11 @@ docstitle = f"{project} {version}"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinxcontrib.mermaid",
     "sphinx_autodoc_typehints",
+    "sphinx_design",
     "nbsphinx",
     "nbsphinx_link",
     "sphinx_copybutton",
@@ -32,6 +34,11 @@ always_document_param_types = True
 # mermaid does not render when nbsphinx is used
 # https://github.com/spatialaudio/nbsphinx/issues/678
 nbsphinx_requirejs_path = ""
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "pydantic": ("https://docs.pydantic.dev/latest", None),
+}
 
 autosummary_generate = True
 autodoc_default_flags = [
