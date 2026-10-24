@@ -180,9 +180,11 @@ def load(
     if not source:
         graph = networkx.DiGraph()
     elif isinstance(source, networkx.Graph):
-        graph = source
+        # Copy: `source` may be a `TaskGraph.graph`, which is frozen.
+        graph = networkx.DiGraph(source)
     elif hasattr(source, "graph") and isinstance(source.graph, networkx.Graph):
-        graph = source.graph
+        # Copy: `source.graph` may be a `TaskGraph.graph`, which is frozen.
+        graph = networkx.DiGraph(source.graph)
     elif representation == GraphRepresentation.json_dict:
         graph = _dict_to_networkx(source)
     elif representation == GraphRepresentation.json:
@@ -425,6 +427,10 @@ def _networkx_to_dict(graph: networkx.DiGraph) -> dict:
         graph_dict = networkx.readwrite.json_graph.node_link_data(graph)
     else:
         graph_dict = networkx.readwrite.json_graph.node_link_data(graph, edges="links")
+
+    # `node_link_data` embeds `graph.graph` by reference: copy it so this
+    # representation does not share a (possibly frozen) dict with `graph`.
+    graph_dict["graph"] = dict(graph_dict["graph"])
 
     # Remove fields that are not part of the Ewoks spec
     graph_dict.pop("directed")

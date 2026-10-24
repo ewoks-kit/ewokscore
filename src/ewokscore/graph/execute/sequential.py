@@ -12,8 +12,8 @@ from ...inittask import add_dynamic_inputs
 from ...inittask import instantiate_task as _instantiate_task
 from ...node import NodeIdType
 from ...task import Task
-from .. import analysis
 from .. import graph_io
+from .._analysis import GraphAnalysis
 
 
 def instantiate_task(graph: networkx.DiGraph, node_id: NodeIdType, **kw) -> Task:
@@ -33,11 +33,14 @@ def instantiate_task_static(
     execinfo: Optional[dict] = None,
     task_options: Optional[dict] = None,
     evict_result_counter: Optional[Dict[NodeIdType, int]] = None,
+    graph_analysis: Optional[GraphAnalysis] = None,
 ) -> Task:
     """Instantiate destination task while no access to the dynamic inputs.
     Side effect: `tasks` will contain all predecessors.
     """
-    if analysis.graph_is_cyclic(graph):
+    if graph_analysis is None:
+        graph_analysis = GraphAnalysis(graph)
+    if graph_analysis.graph_is_cyclic():
         raise RuntimeError("cannot execute cyclic graphs with ewokscore")
     if tasks is None:
         tasks = dict()
@@ -45,7 +48,7 @@ def instantiate_task_static(
         evict_result_counter = dict()
     # Input from previous tasks (instantiate them if needed)
     dynamic_inputs = dict()
-    for source_id in analysis.node_predecessors(graph, node_id):
+    for source_id in graph_analysis.node_predecessors(node_id):
         source_task = tasks.get(source_id, None)
         if source_task is None:
             source_task = instantiate_task_static(
@@ -56,6 +59,7 @@ def instantiate_task_static(
                 execinfo=execinfo,
                 task_options=task_options,
                 evict_result_counter=evict_result_counter,
+                graph_analysis=graph_analysis,
             )
         link_attrs = graph[source_id][node_id]
         add_dynamic_inputs(
@@ -99,6 +103,7 @@ def execute_graph(
     outputs: Optional[List[dict]] = None,
     merge_outputs: Optional[bool] = True,
     output_tasks: Optional[bool] = False,
+    graph_analysis: Optional[GraphAnalysis] = None,
 ) -> Union[Dict[NodeIdType, Task], Dict[str, Any]]:
     """Sequential execution of DAGs.
 
@@ -107,9 +112,11 @@ def execute_graph(
     This was introduced for testing.
     """
     with events.workflow_context(execinfo, workflow=graph) as execinfo:
-        if analysis.graph_is_cyclic(graph):
+        if graph_analysis is None:
+            graph_analysis = GraphAnalysis(graph)
+        if graph_analysis.graph_is_cyclic():
             raise RuntimeError("cannot execute cyclic graphs")
-        if analysis.graph_has_conditional_links(graph):
+        if graph_analysis.graph_has_conditional_links():
             raise RuntimeError("cannot execute graphs with conditional links")
 
         # Pepare containers for local state
@@ -118,12 +125,14 @@ def execute_graph(
             output_values = None
             evict_result_counter = None
         else:
-            outputs = graph_io.parse_outputs(graph, outputs)
+            outputs = graph_io.parse_outputs(
+                graph, outputs, graph_analysis=graph_analysis
+            )
             output_values = dict()
             evict_result_counter = successor_counter(graph)
 
         # Execute in topological order
-        for node_id in analysis.topological_sort(graph):
+        for node_id in graph_analysis.topological_sort():
             task = instantiate_task_static(
                 graph,
                 node_id,
@@ -132,6 +141,7 @@ def execute_graph(
                 execinfo=execinfo,
                 task_options=task_options,
                 evict_result_counter=evict_result_counter,
+                graph_analysis=graph_analysis,
             )
             task.execute(
                 raise_on_error=raise_on_error,

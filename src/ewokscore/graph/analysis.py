@@ -1,3 +1,11 @@
+"""Deprecated stateless graph analysis.
+
+Every function re-derives everything from the graph, so using more than one of
+them traverses the graph over and over. Use `TaskGraph.analysis` instead, which
+derives whole-graph properties at most once.
+"""
+
+import warnings
 from collections import defaultdict
 from typing import Dict
 from typing import Iterator
@@ -7,6 +15,12 @@ import networkx
 
 from ..inittask import get_task_class
 from ..node import NodeIdType
+
+warnings.warn(
+    "'ewokscore.graph.analysis' is deprecated, use 'TaskGraph.analysis' instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 def graph_is_cyclic(graph: networkx.DiGraph) -> bool:

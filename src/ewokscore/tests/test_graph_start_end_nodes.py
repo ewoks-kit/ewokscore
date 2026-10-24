@@ -1,6 +1,4 @@
 from ..graph import load_graph
-from ..graph.analysis import end_nodes
-from ..graph.analysis import start_nodes
 
 
 def test_graph_start_end_nodes():
@@ -55,5 +53,5 @@ def test_graph_start_end_nodes():
     ]
     taskgraph = load_graph({"graph": graph, "nodes": nodes, "links": links})
 
-    assert start_nodes(taskgraph.graph) == {"start1"}
-    assert end_nodes(taskgraph.graph) == {"end_always", "end_on_error"}
+    assert taskgraph.analysis.start_nodes() == {"start1"}
+    assert taskgraph.analysis.end_nodes() == {"end_always", "end_on_error"}
