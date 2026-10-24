@@ -37,12 +37,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             python-version: "3.8"
             enable-coverage: "false"
             extra-pytest-warnings: ""
 
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             python-version: "3.9"
             enable-coverage: "false"
             # https://github.com/networkx/networkx/issues/7372
