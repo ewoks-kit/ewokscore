@@ -24,3 +24,9 @@ def from_v1_1_to_v1_2(graph: networkx.DiGraph) -> None:
 def from_v1_2_to_v1_3(graph: networkx.DiGraph) -> None:
     """v1.3 adds `workflow_input_schema` and `workflow_output_schema`"""
     graph.graph["schema_version"] = "1.3"
+
+
+def from_v1_3_to_v1_4(graph: networkx.DiGraph) -> None:
+    """v1.4 allows the requirements of a package manager instead of a list of
+    requirements"""
+    graph.graph["schema_version"] = "1.4"
