@@ -11,19 +11,17 @@ from typing import Optional
 from typing import Sequence
 from typing import Union
 
+from packaging.requirements import Requirement
 from pydantic import Field
 from pydantic import model_serializer
 
+from ..environment import EWOKS_ENVIRONMENTS_ROOT
 from ..environment import Environment
 from . import process
 from .metadata import models
 from .metadata.from_python import current_requirements
 
 logger = logging.getLogger(__name__)
-
-EWOKS_ENVIRONMENTS_ROOT = Path("~", ".ewoks", "envs")
-"""Root directory of named environments for package managers that do not create
-them in a directory of their own."""
 
 
 class BaseManagerInfo(models.BaseModel):
@@ -129,7 +127,7 @@ class BaseManager:
             manager.install_distributions(requirements, environment)
 
     An implementation provides `version`, `is_active`, `create_environment`,
-    `_files_from_distributions`, `_install_files` and `_add_ewoks`. Package managers
+    `_files_from_distributions`, `_install_files` and `_add_distributions`. Package managers
     that can inspect a python environment also override `_gather_files`. Package
     managers with extra fields in their manager model also override
     `_gather_extra_fields`. Package managers that keep named environments in a
@@ -196,8 +194,7 @@ class BaseManager:
             files=files,
             **self._gather_extra_fields(),
         )
-        ewoks = dict(version=importlib.metadata.version("ewoks"))
-        return self.REQUIREMENTS_MODEL(ewoks=ewoks, manager=manager, **metadata)
+        return self.REQUIREMENTS_MODEL(ewoks=_ewoks_info(), manager=manager, **metadata)
 
     def environment(self, location: Union[str, Path]) -> Environment:
         """Environment the manager creates at this location."""
@@ -305,18 +302,27 @@ class BaseManager:
             )
             raise
 
-    def ensure_ewoks(
-        self, requirements: BaseRequirements, environment: Environment
+    def ensure_distributions(
+        self,
+        requirements: BaseRequirements,
+        environment: Environment,
+        specifiers: Sequence[str],
     ) -> None:
-        """Install ewoks in an existing environment without changing the versions
-        of the requirements.
+        """Install the distributions, described by PEP 508 specifiers, that an
+        existing environment does not have, without changing the versions of the
+        requirements.
 
         :raises RuntimeError: installation failed
         """
-        if environment.distribution_version("ewoks"):
+        missing = [
+            specifier
+            for specifier in specifiers
+            if not environment.distribution_version(Requirement(specifier).name)
+        ]
+        if not missing:
             return
-        logger.info("Add ewoks to %s", environment.location)
-        self._add_ewoks(requirements, environment)
+        logger.info("Add %s to %s", ", ".join(missing), environment.location)
+        self._add_distributions(requirements, environment, missing)
 
     def _owns(self, environment: Environment) -> bool:
         """The environment has the layout this package manager creates."""
@@ -359,11 +365,14 @@ class BaseManager:
         pass
 
     @abstractmethod
-    def _add_ewoks(
-        self, requirements: BaseRequirements, environment: Environment
+    def _add_distributions(
+        self,
+        requirements: BaseRequirements,
+        environment: Environment,
+        specifiers: Sequence[str],
     ) -> None:
-        """Install ewoks in an existing environment without changing the versions
-        of the requirements.
+        """Install distributions, described by PEP 508 specifiers, in an existing
+        environment without changing the versions of the requirements.
 
         :raises RuntimeError: installation failed
         """
@@ -382,3 +391,11 @@ class BaseManager:
         extra_env: Optional[Mapping[str, Optional[str]]] = None,
     ) -> None:
         process.check_call(*self._cmd_args, *args, extra_env=extra_env)
+
+
+def _ewoks_info() -> Optional[models.EwoksInfo]:
+    try:
+        version = importlib.metadata.version("ewoks")
+    except importlib.metadata.PackageNotFoundError:
+        return None
+    return models.EwoksInfo(version=version)

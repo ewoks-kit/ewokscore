@@ -6,8 +6,8 @@ import pytest
 
 from ...requirements._conda import CondaManager
 from ...requirements._conda import _environment_yml
-from ...requirements._utils.base_manager import EWOKS_ENVIRONMENTS_ROOT
 from ...requirements._utils.conda_channel import python_specifier
+from ...requirements.environment import EWOKS_ENVIRONMENTS_ROOT
 from .utils import PYTHON_VERSION
 from .utils import REQUIREMENTS
 

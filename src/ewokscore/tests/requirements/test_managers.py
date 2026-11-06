@@ -1,11 +1,9 @@
 """Tests that apply to all package managers."""
 
-import importlib.metadata
 from typing import Iterator
 
 import pytest
 
-from ...errors import AbortException
 from ...requirements import install_requirements
 from ...requirements._utils import base_manager
 from ...requirements._utils import detect
@@ -15,8 +13,9 @@ from ...requirements._utils.detect import get_manager
 from ...requirements._utils.parse import parse_requirements
 from ...requirements.environment import Environment
 from .managers import ManagerCase
+from .utils import DEPENDENCIES
+from .utils import DEPENDENT
 from .utils import DISTRIBUTIONS
-from .utils import EWOKS_DEPENDENCIES
 from .utils import PYTHON_MINOR_VERSION
 from .utils import PYTHON_VERSION
 from .utils import assert_installed
@@ -84,7 +83,6 @@ def test_gather_requirements(manager, manager_case, monkeypatch):
     requirements = manager.gather_requirements()
 
     assert isinstance(requirements, manager_case.MANAGER_CLS.REQUIREMENTS_MODEL)
-    assert requirements.ewoks.version == importlib.metadata.version("ewoks")
     assert requirements.manager.name == manager_case.NAME
     assert requirements.manager.version
     assert requirements.python.version == PYTHON_VERSION
@@ -170,9 +168,9 @@ def test_install_not_confirmed(fast_manager_case, env_root):
 
     def confirm(description: str) -> None:
         confirmations.append(description)
-        raise AbortException()
+        raise _Abort()
 
-    with pytest.raises(AbortException):
+    with pytest.raises(_Abort):
         install_requirements(
             requirements,
             env_name="environment",
@@ -236,29 +234,22 @@ def test_in_place_installer(manager_case, monkeypatch):
     assert not isinstance(manager, manager_case.MANAGER_CLS)
 
 
-def test_ewoks_already_installed(manager, manager_case):
-    """Ewoks is installed in the current python environment."""
-    requirements = parse_requirements(manager_requirements(manager_case.NAME))
-
-    manager.ensure_ewoks(requirements, Environment.current())
-
-
-def test_add_ewoks(fast_manager, fast_manager_case, fast_environment):
-    """Ewoks is added without changing the versions of the requirements it depends
-    on."""
+def test_add_distributions(fast_manager, fast_manager_case, fast_environment):
+    """A distribution is added without changing the versions of the requirements
+    it depends on."""
     requirements = parse_requirements(
         manager_requirements(
             fast_manager_case.NAME,
-            distributions=EWOKS_DEPENDENCIES,
+            distributions=DEPENDENCIES,
             python_version=PYTHON_VERSION,
         )
     )
     fast_manager.install_distributions(requirements, fast_environment)
 
-    fast_manager.ensure_ewoks(requirements, fast_environment)
+    fast_manager.ensure_distributions(requirements, fast_environment, [DEPENDENT])
 
-    assert fast_environment.distribution_version("ewoks")
-    assert_installed(fast_environment, EWOKS_DEPENDENCIES)
+    assert fast_environment.distribution_version("python-dateutil") == "2.9.0.post0"
+    assert_installed(fast_environment, DEPENDENCIES)
 
 
 def _requirements(manager_case: ManagerCase, native: bool):
@@ -277,3 +268,7 @@ def _requirements(manager_case: ManagerCase, native: bool):
             python_version=python_version,
         )
     )
+
+
+class _Abort(Exception):
+    pass

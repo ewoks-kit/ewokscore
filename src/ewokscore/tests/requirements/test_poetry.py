@@ -7,8 +7,8 @@ import pytest
 
 from ...requirements._poetry import PoetryManager
 from ...requirements._poetry import _pyproject
-from ...requirements._utils.base_manager import EWOKS_ENVIRONMENTS_ROOT
 from ...requirements._utils.files import write_files
+from ...requirements.environment import EWOKS_ENVIRONMENTS_ROOT
 from .utils import DISTRIBUTIONS
 from .utils import PYTHON_VERSION
 from .utils import REQUIREMENTS

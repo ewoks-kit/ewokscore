@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Callable
 from typing import Dict
 from typing import Optional
+from typing import Sequence
 from typing import Tuple
 from typing import Union
 
@@ -99,7 +100,7 @@ def install_requirements(
     manager_name: Optional[str] = None,
     manager_command: Tuple[str, ...] = tuple(),
     python_version: Optional[str] = None,
-    ensure_ewoks: bool = False,
+    extra_distributions: Sequence[str] = tuple(),
     clean: bool = False,
     confirm: Optional[Callable[[str], None]] = None,
 ) -> Environment:
@@ -109,7 +110,8 @@ def install_requirements(
     that already exists is installed in, or removed first when `clean`.
     The files of the package manager are installed when the requirements provide
     them, the installed python distributions otherwise or when that installation
-    failed. `ensure_ewoks` adds ewoks itself when the requirements do not contain it.
+    failed. `extra_distributions`, PEP 508 specifiers, are added when the environment
+    does not have them, without changing the versions of the requirements.
     `confirm` is called with a description of an installation or a removal before
     it starts.
 
@@ -214,8 +216,7 @@ def install_requirements(
     if not installed:
         manager.install_distributions(requirements, environment, python_version)
 
-    if ensure_ewoks:
-        manager.ensure_ewoks(requirements, environment)
+    manager.ensure_distributions(requirements, environment, extra_distributions)
 
     return environment
 

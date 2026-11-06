@@ -182,15 +182,18 @@ class PoetryManager(BaseManager):
             extra_env=_python_env(environment.python),
         )
 
-    def _add_ewoks(
-        self, requirements: BaseRequirements, environment: Environment
+    def _add_distributions(
+        self,
+        requirements: BaseRequirements,
+        environment: Environment,
+        specifiers: Sequence[str],
     ) -> None:
         # The project pins all versions so they cannot change
         self._check_call(
             "-C",
             environment.location,
             "add",
-            "ewoks",
+            *specifiers,
             extra_env=_python_env(environment.python),
         )
 

@@ -12,6 +12,10 @@ from ._utils import process
 
 logger = logging.getLogger(__name__)
 
+EWOKS_ENVIRONMENTS_ROOT = Path("~", ".ewoks", "envs")
+"""Root directory of named environments for package managers that do not create
+them in a directory of their own."""
+
 ENVIRONMENT_SUBDIRS: Tuple[str, ...] = (
     "",  # environment prefix, for example created by `python -m venv`
     ".venv",  # uv and poetry project

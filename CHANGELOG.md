@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ewokscore.requirements`: gather and install workflow requirements with pip+venv, uv, poetry, conda or pixi.
+
 ## [5.1.0rc6] - 2026-10-21
 
 ### Added
