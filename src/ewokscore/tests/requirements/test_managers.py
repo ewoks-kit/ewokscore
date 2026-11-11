@@ -256,25 +256,77 @@ def test_in_place_installer(manager_case, monkeypatch):
     assert not isinstance(manager, manager_case.MANAGER_CLS)
 
 
-def test_add_distributions(fast_manager, fast_manager_case, fast_environment):
+def test_add_distributions(manager, manager_case, environment):
     """A distribution is added to an environment without changing the versions of
     the requirements installed in it."""
     # The requirements: six, which python-dateutil depends on
+    requirements = _pinned_requirements(manager_case, "six", "1.16.0")
+    manager.install_distributions(requirements, environment)
+
+    manager.ensure_distributions(
+        requirements, environment, ["python-dateutil==2.9.0.post0"]
+    )
+
+    assert environment.distribution_version("python-dateutil") == "2.9.0.post0"
+    assert environment.distribution_version("six") == "1.16.0"
+
+
+def test_add_distributions_conflict(manager, manager_case, environment):
+    """A distribution that needs other versions of the requirements is not added."""
+    # The requirements: zipp 3.19.2, while importlib-metadata 8.5.0 needs zipp>=3.20
+    requirements = _pinned_requirements(manager_case, "zipp", "3.19.2")
+    manager.install_distributions(requirements, environment)
+
+    with pytest.raises(RuntimeError):
+        manager.ensure_distributions(
+            requirements, environment, ["importlib-metadata==8.5.0"]
+        )
+
+    assert environment.distribution_version("zipp") == "3.19.2"
+
+
+def test_add_distributions_unpinned_project(
+    fast_manager, fast_manager_case, fast_environment, caplog
+):
+    """A distribution added to a project that does not pin the requirements can
+    change their versions, which is logged as a warning."""
+    if fast_manager_case.NAME != "uv":
+        pytest.skip("the project is a uv project")
+    # The project depends on any zipp version and locks zipp 3.19.2, while
+    # importlib-metadata 8.5.0 needs zipp>=3.20
+    zipp = [models.Distribution(name="zipp", version="3.19.2")]
+    files = fast_manager._files_from_distributions(zipp, PYTHON_VERSION)
+    files["pyproject.toml"] = files["pyproject.toml"].replace(
+        '"zipp==3.19.2"', '"zipp"'
+    )
     requirements = parse_requirements(
         manager_requirements(
             fast_manager_case.NAME,
-            distributions=[models.Distribution(name="six", version="1.16.0")],
+            files=files,
+            distributions=zipp,
             python_version=PYTHON_VERSION,
         )
     )
-    fast_manager.install_distributions(requirements, fast_environment)
+    fast_manager.install_files(requirements, fast_environment)
+    assert fast_environment.distribution_version("zipp") == "3.19.2"
 
     fast_manager.ensure_distributions(
-        requirements, fast_environment, ["python-dateutil==2.9.0.post0"]
+        requirements, fast_environment, ["importlib-metadata==8.5.0"]
     )
 
-    assert fast_environment.distribution_version("python-dateutil") == "2.9.0.post0"
-    assert fast_environment.distribution_version("six") == "1.16.0"
+    assert fast_environment.distribution_version("zipp") != "3.19.2"
+    assert "zipp 3.19.2 -> " in caplog.text
+
+
+def _pinned_requirements(manager_case: ManagerCase, name: str, version: str):
+    """Requirements of one distribution, without the files of the package manager."""
+    return parse_requirements(
+        manager_requirements(
+            manager_case.NAME,
+            distributions=[models.Distribution(name=name, version=version)],
+            python_version=PYTHON_VERSION,
+        )
+    )
 
 
 def _requirements(manager_case: ManagerCase, native: bool):
