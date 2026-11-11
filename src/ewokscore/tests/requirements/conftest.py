@@ -15,20 +15,28 @@ _IDS = [case.NAME for case in MANAGER_CASES]
 _FAST_IDS = [case.NAME for case in FAST_MANAGER_CASES]
 
 
-@pytest.fixture(scope="package", autouse=True)
-def isolated_home(tmp_path_factory) -> Iterator[Path]:
+@pytest.fixture(scope="session")
+def package_manager_home(tmp_path_factory) -> Iterator[Path]:
     """Home directory of the package managers, in which they cache their downloads
     and store their configuration. It is inside the pytest temporary directory so a
     test run does not write anywhere else. The downside is that the caches are
     empty at the start of every test run.
     """
     home = tmp_path_factory.mktemp("home")
-    with pytest.MonkeyPatch.context() as monkeypatch:
-        for name, path in _home_variables(home).items():
-            monkeypatch.setenv(name, str(path))
-        yield home
+    yield home
     # The caches are not reused by the next test run and fill up the disk
     shutil.rmtree(home, ignore_errors=True)
+
+
+@pytest.fixture(autouse=True)
+def isolated_home(package_manager_home, monkeypatch) -> Path:
+    """Moves the home directory of the package managers to `package_manager_home`.
+    The environment is patched per test, so it never applies to tests outside this
+    package, whatever pytest's teardown order of higher-scoped fixtures.
+    """
+    for name, path in _home_variables(package_manager_home).items():
+        monkeypatch.setenv(name, str(path))
+    return package_manager_home
 
 
 def _home_variables(home: Path) -> Dict[str, Path]:
