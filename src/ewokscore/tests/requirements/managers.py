@@ -133,7 +133,6 @@ class PixiCase(ManagerCase):
     NAME = "pixi"
     MANAGER_CLS = PixiManager
     INSTALLER = "uv-pixi"  # pixi installs PyPI distributions with its own uv
-    SLOW = True
     CHANNEL_PYTHON = True
     CREATES_ENVIRONMENT = False
 
