@@ -1,22 +1,22 @@
 """Tests that apply to all package managers."""
 
-import importlib.metadata
 from typing import Iterator
 
 import pytest
 
-from ...errors import AbortException
+from ...graph import load_graph
+from ...requirements import add_requirements
 from ...requirements import install_requirements
 from ...requirements._utils import base_manager
 from ...requirements._utils import detect
 from ...requirements._utils._supported import get_supported_managers
 from ...requirements._utils.detect import get_in_place_installer
 from ...requirements._utils.detect import get_manager
+from ...requirements._utils.metadata import models
 from ...requirements._utils.parse import parse_requirements
 from ...requirements.environment import Environment
 from .managers import ManagerCase
 from .utils import DISTRIBUTIONS
-from .utils import EWOKS_DEPENDENCIES
 from .utils import PYTHON_MINOR_VERSION
 from .utils import PYTHON_VERSION
 from .utils import assert_installed
@@ -84,12 +84,32 @@ def test_gather_requirements(manager, manager_case, monkeypatch):
     requirements = manager.gather_requirements()
 
     assert isinstance(requirements, manager_case.MANAGER_CLS.REQUIREMENTS_MODEL)
-    assert requirements.ewoks.version == importlib.metadata.version("ewoks")
     assert requirements.manager.name == manager_case.NAME
     assert requirements.manager.version
     assert requirements.python.version == PYTHON_VERSION
     assert requirements.distributions == DISTRIBUTIONS
     assert isinstance(requirements.manager.files, dict)
+
+
+@pytest.mark.parametrize(
+    "bootstrap, expected",
+    [
+        (None, None),
+        (
+            {"ewoks": "7.0.0", "ewoksorange": "6.0.0"},
+            {"distributions": {"ewoks": "7.0.0", "ewoksorange": "6.0.0"}},
+        ),
+    ],
+)
+def test_add_requirements_bootstrap(bootstrap, expected, monkeypatch):
+    """The bootstrap distributions are recorded only when given."""
+    metadata = current_metadata(DISTRIBUTIONS, PYTHON_VERSION)
+    monkeypatch.setattr(base_manager, "current_requirements", lambda: metadata)
+    graph = load_graph({"graph": {"id": "test"}})
+
+    add_requirements(graph, manager_name="pip-venv", bootstrap=bootstrap)
+
+    assert graph.graph.graph["requirements"]["bootstrap"] == expected
 
 
 def test_create_environment(manager_case, environment):
@@ -170,9 +190,9 @@ def test_install_not_confirmed(fast_manager_case, env_root):
 
     def confirm(description: str) -> None:
         confirmations.append(description)
-        raise AbortException()
+        raise _Abort()
 
-    with pytest.raises(AbortException):
+    with pytest.raises(_Abort):
         install_requirements(
             requirements,
             env_name="environment",
@@ -236,29 +256,25 @@ def test_in_place_installer(manager_case, monkeypatch):
     assert not isinstance(manager, manager_case.MANAGER_CLS)
 
 
-def test_ewoks_already_installed(manager, manager_case):
-    """Ewoks is installed in the current python environment."""
-    requirements = parse_requirements(manager_requirements(manager_case.NAME))
-
-    manager.ensure_ewoks(requirements, Environment.current())
-
-
-def test_add_ewoks(fast_manager, fast_manager_case, fast_environment):
-    """Ewoks is added without changing the versions of the requirements it depends
-    on."""
+def test_add_distributions(fast_manager, fast_manager_case, fast_environment):
+    """A distribution is added to an environment without changing the versions of
+    the requirements installed in it."""
+    # The requirements: six, which python-dateutil depends on
     requirements = parse_requirements(
         manager_requirements(
             fast_manager_case.NAME,
-            distributions=EWOKS_DEPENDENCIES,
+            distributions=[models.Distribution(name="six", version="1.16.0")],
             python_version=PYTHON_VERSION,
         )
     )
     fast_manager.install_distributions(requirements, fast_environment)
 
-    fast_manager.ensure_ewoks(requirements, fast_environment)
+    fast_manager.ensure_distributions(
+        requirements, fast_environment, ["python-dateutil==2.9.0.post0"]
+    )
 
-    assert fast_environment.distribution_version("ewoks")
-    assert_installed(fast_environment, EWOKS_DEPENDENCIES)
+    assert fast_environment.distribution_version("python-dateutil") == "2.9.0.post0"
+    assert fast_environment.distribution_version("six") == "1.16.0"
 
 
 def _requirements(manager_case: ManagerCase, native: bool):
@@ -277,3 +293,7 @@ def _requirements(manager_case: ManagerCase, native: bool):
             python_version=python_version,
         )
     )
+
+
+class _Abort(Exception):
+    pass

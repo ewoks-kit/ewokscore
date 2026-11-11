@@ -7,8 +7,8 @@ import pytest
 
 from ...requirements._poetry import PoetryManager
 from ...requirements._poetry import _pyproject
-from ...requirements._utils.base_manager import EWOKS_ENVIRONMENTS_ROOT
 from ...requirements._utils.files import write_files
+from ...requirements.environment import EWOKS_ENVIRONMENTS_ROOT
 from .utils import DISTRIBUTIONS
 from .utils import PYTHON_VERSION
 from .utils import REQUIREMENTS
@@ -103,7 +103,7 @@ def test_create_environment_with_active_environment(variable, monkeypatch, tmp_p
 
 
 def test_environments_root_not_available(caplog):
-    """Environments of ewoks when poetry cannot provide its environment directory."""
+    """Named environments when poetry cannot provide its environment directory."""
     manager = PoetryManager("poetry-does-not-exist")
 
     assert manager.environments_root() == EWOKS_ENVIRONMENTS_ROOT

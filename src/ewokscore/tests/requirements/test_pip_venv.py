@@ -43,7 +43,7 @@ def test_gather_requirements_txt():
 
     lines = requirements.manager.files[REQUIREMENTS_FILENAME].splitlines()
     assert lines
-    assert any("ewoks" in requirement for requirement in lines)
+    assert any("ewokscore" in requirement for requirement in lines)
 
 
 def test_create_environment_python_version(env_root, caplog):

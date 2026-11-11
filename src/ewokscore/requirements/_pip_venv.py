@@ -104,11 +104,14 @@ class PipVenvManager(BaseManager):
         requirements = files[requirements_txt.REQUIREMENTS_FILENAME].splitlines()
         self._pip_install(requirements, environment)
 
-    def _add_ewoks(
-        self, requirements: BaseRequirements, environment: Environment
+    def _add_distributions(
+        self,
+        requirements: BaseRequirements,
+        environment: Environment,
+        specifiers: Sequence[str],
     ) -> None:
         self._pip_install(
-            ["ewoks"],
+            specifiers,
             environment,
             constraints=requirements_txt.version_constraints(
                 requirements.distributions

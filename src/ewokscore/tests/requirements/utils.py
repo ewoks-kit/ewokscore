@@ -44,13 +44,6 @@ versions that a package manager would not install by itself."""
 REQUIREMENTS = [f"{dist.name}=={dist.version}" for dist in DISTRIBUTIONS]
 """`DISTRIBUTIONS` as requirements."""
 
-EWOKS_DEPENDENCIES = [
-    _pinned("networkx", {(3, 8): "3.1", (3, 10): "3.4.2"}),
-    _pinned("packaging", {(3, 8): "24.1"}),
-]
-"""Older versions of distributions that ewoks depends on, to verify that adding
-ewoks to an environment does not change the versions of the requirements."""
-
 
 def assert_installed(
     environment: Environment, distributions: List[models.Distribution]

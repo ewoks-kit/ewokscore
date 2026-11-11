@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import sys
@@ -11,6 +12,10 @@ from typing import Union
 from ._utils import process
 
 logger = logging.getLogger(__name__)
+
+EWOKS_ENVIRONMENTS_ROOT = Path("~", ".ewoks", "envs")
+"""Root directory of named environments for package managers that do not create
+them in a directory of their own."""
 
 ENVIRONMENT_SUBDIRS: Tuple[str, ...] = (
     "",  # environment prefix, for example created by `python -m venv`
@@ -110,6 +115,17 @@ class Environment:
             "except m.PackageNotFoundError: pass"
         )
         return self._python_output(code) or None
+
+    def distribution_versions(self) -> Dict[str, str]:
+        """Versions of the installed distributions by name.
+
+        :raises RuntimeError: environment has no python interpreter
+        """
+        code = (
+            "import importlib.metadata as m, json\n"
+            "print(json.dumps({d.metadata['Name']: d.version for d in m.distributions()}))"
+        )
+        return json.loads(self._python_output(code))
 
     def _python_output(self, code: str) -> str:
         return process.check_output(self.python, "-c", code).strip()

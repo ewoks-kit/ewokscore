@@ -6,7 +6,9 @@ import shutil
 from pathlib import Path
 from typing import Callable
 from typing import Dict
+from typing import Mapping
 from typing import Optional
+from typing import Sequence
 from typing import Tuple
 from typing import Union
 
@@ -19,7 +21,7 @@ from ._utils.detect import get_in_place_installer
 from ._utils.detect import get_installer
 from ._utils.detect import get_manager
 from ._utils.metadata import last_resort
-from ._utils.metadata.models import EngineInfo
+from ._utils.metadata.models import BootstrapInfo
 from .environment import Environment
 
 logger = logging.getLogger(__file__)
@@ -49,16 +51,16 @@ def add_requirements(
     graph: TaskGraph,
     manager_name: Optional[str] = None,
     manager_command: Tuple[str, ...] = tuple(),
-    engine: Optional[Tuple[str, str]] = None,
+    bootstrap: Optional[Mapping[str, str]] = None,
 ) -> str:
     """Add requirements to a workflow definition in-place. Returns the name of the
-    package manager that generated them. `engine` is the name and version of the
-    distribution of the engine that saves the workflow.
+    package manager that generated them. `bootstrap` gives the version of each
+    distribution needed to load the workflow and install its requirements.
     """
     manager = get_manager(manager_name=manager_name, manager_command=manager_command)
     requirements = manager.gather_requirements()
-    if requirements.ewoks and engine:
-        requirements.ewoks.engine = EngineInfo(name=engine[0], version=engine[1])
+    if bootstrap:
+        requirements.bootstrap = BootstrapInfo(distributions=bootstrap)
     graph.graph.graph["requirements"] = requirements.model_dump()
     return manager.NAME
 
@@ -99,7 +101,7 @@ def install_requirements(
     manager_name: Optional[str] = None,
     manager_command: Tuple[str, ...] = tuple(),
     python_version: Optional[str] = None,
-    ensure_ewoks: bool = False,
+    extra_distributions: Sequence[str] = tuple(),
     clean: bool = False,
     confirm: Optional[Callable[[str], None]] = None,
 ) -> Environment:
@@ -109,7 +111,9 @@ def install_requirements(
     that already exists is installed in, or removed first when `clean`.
     The files of the package manager are installed when the requirements provide
     them, the installed python distributions otherwise or when that installation
-    failed. `ensure_ewoks` adds ewoks itself when the requirements do not contain it.
+    failed. `extra_distributions`, PEP 508 specifiers, are added when the environment
+    does not have them, which can change installed versions when the files of the
+    package manager allow it.
     `confirm` is called with a description of an installation or a removal before
     it starts.
 
@@ -214,8 +218,7 @@ def install_requirements(
     if not installed:
         manager.install_distributions(requirements, environment, python_version)
 
-    if ensure_ewoks:
-        manager.ensure_ewoks(requirements, environment)
+    manager.ensure_distributions(requirements, environment, extra_distributions)
 
     return environment
 

@@ -1,4 +1,3 @@
-import importlib.metadata
 import logging
 import platform
 from abc import abstractmethod
@@ -11,19 +10,17 @@ from typing import Optional
 from typing import Sequence
 from typing import Union
 
+from packaging.requirements import Requirement
 from pydantic import Field
 from pydantic import model_serializer
 
+from ..environment import EWOKS_ENVIRONMENTS_ROOT
 from ..environment import Environment
 from . import process
 from .metadata import models
 from .metadata.from_python import current_requirements
 
 logger = logging.getLogger(__name__)
-
-EWOKS_ENVIRONMENTS_ROOT = Path("~", ".ewoks", "envs")
-"""Root directory of named environments for package managers that do not create
-them in a directory of their own."""
 
 
 class BaseManagerInfo(models.BaseModel):
@@ -43,7 +40,7 @@ class BaseManagerInfo(models.BaseModel):
             "'environment.yml' for conda, 'pixi.toml' and 'pixi.lock' for pixi. "
             "Empty when the package manager could not generate them."
         ),
-        examples=[{"requirements.txt": "ewoks==7.0.0\nnetworkx==3.4.2\n"}],
+        examples=[{"requirements.txt": "ewokscore==5.1.0\nnetworkx==3.4.2\n"}],
     )
 
     @model_serializer(mode="wrap")
@@ -57,11 +54,10 @@ class BaseManagerInfo(models.BaseModel):
 
 
 class BaseRequirements(models.BaseModel):
-    ewoks: Optional[models.EwoksInfo] = Field(
+    bootstrap: Optional[models.BootstrapInfo] = Field(
         default=None,
         description=(
-            "Ewoks that generated the requirements. Not set for requirements that "
-            "ewoks did not generate."
+            "What installs the requirements. Not set when the workflow does not say."
         ),
     )
     system: models.SystemInfo = Field(
@@ -129,7 +125,7 @@ class BaseManager:
             manager.install_distributions(requirements, environment)
 
     An implementation provides `version`, `is_active`, `create_environment`,
-    `_files_from_distributions`, `_install_files` and `_add_ewoks`. Package managers
+    `_files_from_distributions`, `_install_files` and `_add_distributions`. Package managers
     that can inspect a python environment also override `_gather_files`. Package
     managers with extra fields in their manager model also override
     `_gather_extra_fields`. Package managers that keep named environments in a
@@ -196,8 +192,7 @@ class BaseManager:
             files=files,
             **self._gather_extra_fields(),
         )
-        ewoks = dict(version=importlib.metadata.version("ewoks"))
-        return self.REQUIREMENTS_MODEL(ewoks=ewoks, manager=manager, **metadata)
+        return self.REQUIREMENTS_MODEL(manager=manager, **metadata)
 
     def environment(self, location: Union[str, Path]) -> Environment:
         """Environment the manager creates at this location."""
@@ -223,8 +218,8 @@ class BaseManager:
         f"""Root directory in which the package manager creates named environments.
 
         Package managers venv, uv and pixi allow the environment location to be
-        specified. For those managers the default location for environments created
-        by `ewoks` is `{EWOKS_ENVIRONMENTS_ROOT}`.
+        specified. For those managers the default location of named environments
+        is `{EWOKS_ENVIRONMENTS_ROOT}`.
         """
         return EWOKS_ENVIRONMENTS_ROOT
 
@@ -305,18 +300,41 @@ class BaseManager:
             )
             raise
 
-    def ensure_ewoks(
-        self, requirements: BaseRequirements, environment: Environment
+    def ensure_distributions(
+        self,
+        requirements: BaseRequirements,
+        environment: Environment,
+        specifiers: Sequence[str],
     ) -> None:
-        """Install ewoks in an existing environment without changing the versions
-        of the requirements.
+        """Install the distributions, described by PEP 508 specifiers, that an
+        existing environment does not have. The installed versions are kept, except
+        when the package manager installed project files that allow other versions:
+        a warning lists the versions that changed.
 
         :raises RuntimeError: installation failed
         """
-        if environment.distribution_version("ewoks"):
+        missing = [
+            specifier
+            for specifier in specifiers
+            if not environment.distribution_version(Requirement(specifier).name)
+        ]
+        if not missing:
             return
-        logger.info("Add ewoks to %s", environment.location)
-        self._add_ewoks(requirements, environment)
+        logger.info("Add %s to %s", ", ".join(missing), environment.location)
+        before = environment.distribution_versions()
+        self._add_distributions(requirements, environment, missing)
+        after = environment.distribution_versions()
+        changed = [
+            f"{name} {version} -> {after[name]}"
+            for name, version in before.items()
+            if after.get(name, version) != version
+        ]
+        if changed:
+            logger.warning(
+                "Adding %s changed installed versions: %s",
+                ", ".join(missing),
+                ", ".join(changed),
+            )
 
     def _owns(self, environment: Environment) -> bool:
         """The environment has the layout this package manager creates."""
@@ -359,11 +377,15 @@ class BaseManager:
         pass
 
     @abstractmethod
-    def _add_ewoks(
-        self, requirements: BaseRequirements, environment: Environment
+    def _add_distributions(
+        self,
+        requirements: BaseRequirements,
+        environment: Environment,
+        specifiers: Sequence[str],
     ) -> None:
-        """Install ewoks in an existing environment without changing the versions
-        of the requirements.
+        """Install distributions, described by PEP 508 specifiers, in an existing
+        environment, keeping the installed versions when the files of the package
+        manager pin them.
 
         :raises RuntimeError: installation failed
         """

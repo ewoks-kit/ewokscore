@@ -156,22 +156,25 @@ class UvManager(BaseManager):
             )
             self._pip_install(environment, "-r", filename)
 
-    def _add_ewoks(
-        self, requirements: BaseRequirements, environment: Environment
+    def _add_distributions(
+        self,
+        requirements: BaseRequirements,
+        environment: Environment,
+        specifiers: Sequence[str],
     ) -> None:
         if self._owns(environment):
-            # The project pins all versions so they cannot change
-            self._check_call("add", "--project", environment.location, "ewoks")
+            # Versions can change when the project does not pin them
+            self._check_call("add", "--project", environment.location, *specifiers)
             return
 
         constraints = requirements_txt.version_constraints(requirements.distributions)
         if not constraints:
-            self._pip_install(environment, "ewoks")
+            self._pip_install(environment, *specifiers)
             return
         with temporary_files({_CONSTRAINTS_FILENAME: "\n".join(constraints)}) as tmpdir:
             self._pip_install(
                 environment,
-                "ewoks",
+                *specifiers,
                 "--constraint",
                 tmpdir / _CONSTRAINTS_FILENAME,
             )

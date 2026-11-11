@@ -13,6 +13,7 @@ from typing import Optional
 from typing import Sequence
 from typing import Union
 
+from packaging.requirements import Requirement
 from pydantic import Field
 
 from ._utils import conda_channel
@@ -175,25 +176,29 @@ class PixiManager(BaseManager):
         write_files(environment.location, files)
         self._install_workspace(environment.location, environment.prefix.name)
 
-    def _add_ewoks(
-        self, requirements: BaseRequirements, environment: Environment
+    def _add_distributions(
+        self,
+        requirements: BaseRequirements,
+        environment: Environment,
+        specifiers: Sequence[str],
     ) -> None:
-        # pixi keeps the locked versions of the workflow requirements, unless ewoks
-        # needs different versions of them.
+        # Versions can change when the workspace does not pin them
         self._check_call(
             "add",
             "--pypi",
-            "ewoks",
+            *specifiers,
             "--manifest-path",
             environment.location,
             "--no-install",
         )
         self._install_workspace(environment.location, environment.prefix.name)
-        if not environment.distribution_version("ewoks"):
-            raise RuntimeError(
-                f"ewoks was not installed in the pixi environment "
-                f"'{environment.prefix.name}': add ewoks to one of its features"
-            )
+        for specifier in specifiers:
+            name = Requirement(specifier).name
+            if not environment.distribution_version(name):
+                raise RuntimeError(
+                    f"{name} was not installed in the pixi environment "
+                    f"'{environment.prefix.name}': add it to one of its features"
+                )
 
     def _install_workspace(self, location: Path, name: str) -> None:
         self._check_call("install", "--manifest-path", location, "--environment", name)

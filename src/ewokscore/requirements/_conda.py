@@ -147,14 +147,17 @@ class CondaManager(BaseManager):
                 directory / _ENVIRONMENT_FILENAME,
             )
 
-    def _add_ewoks(
-        self, requirements: BaseRequirements, environment: Environment
+    def _add_distributions(
+        self,
+        requirements: BaseRequirements,
+        environment: Environment,
+        specifiers: Sequence[str],
     ) -> None:
         # The environment file pins all versions so they cannot change
         pinned = requirements_txt.manifest_requirements(requirements.distributions)
         files = {
             _ENVIRONMENT_FILENAME: _environment_yml(
-                [*pinned, "ewoks"], requirements.python.version
+                [*pinned, *specifiers], requirements.python.version
             )
         }
         self._install_files(files, environment)
