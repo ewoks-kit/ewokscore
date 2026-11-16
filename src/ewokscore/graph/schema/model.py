@@ -21,6 +21,7 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import model_validator
 
+from ...requirements._utils._supported import Requirements
 from . import LATEST_VERSION
 from .parameter_schema import EwoksParameterSchema
 
@@ -121,7 +122,7 @@ class EwoksGraphAttributes(BaseModel):
     id: str
     label: Optional[str] = None
     schema_version: str = str(LATEST_VERSION)
-    requirements: Sequence[str] = []
+    requirements: Union[Requirements, Sequence[str]] = []
     input_nodes: Sequence[EwoksNodeAlias] = []
     output_nodes: Sequence[EwoksNodeAlias] = []
     workflow_input_schema: Optional[EwoksParameterSchema] = None

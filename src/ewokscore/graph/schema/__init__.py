@@ -10,6 +10,7 @@ from .metadata import SchemaMetadata
 from .update import from_v1_0_to_v1_1
 from .update import from_v1_1_to_v1_2
 from .update import from_v1_2_to_v1_3
+from .update import from_v1_3_to_v1_4
 from .update import v0_update
 
 _VERSIONS = None
@@ -25,7 +26,8 @@ def get_versions() -> Dict[Version, SchemaMetadata]:
         parse_version("1.0"): SchemaMetadata(("0.1.0-rc", None), from_v1_0_to_v1_1),
         parse_version("1.1"): SchemaMetadata(("0.1.0-rc", None), from_v1_1_to_v1_2),
         parse_version("1.2"): SchemaMetadata(("0.1.0-rc", None), from_v1_2_to_v1_3),
-        parse_version("1.3"): SchemaMetadata(("0.1.0-rc", None), None),
+        parse_version("1.3"): SchemaMetadata(("0.1.0-rc", None), from_v1_3_to_v1_4),
+        parse_version("1.4"): SchemaMetadata(("0.1.0-rc", None), None),
     }
     return _VERSIONS
 

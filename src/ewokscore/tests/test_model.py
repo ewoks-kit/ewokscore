@@ -4,6 +4,7 @@ from jsonschema.exceptions import SchemaError
 
 from ewokscore import load_graph
 from ewokscore.graph.schema.model import EwoksGraph
+from ewokscore.tests.requirements.utils import manager_requirements
 from ewokscore.tests.test_examples import get_graph
 from ewokscore.tests.test_examples import graph_names
 
@@ -192,3 +193,19 @@ def test_wrong_required_inputs():
         match="1 validation error for EwoksGraph\ngraph.workflow_input_schema\n",
     ):
         EwoksGraph(**graph_dict)
+
+
+@pytest.mark.parametrize(
+    "requirements",
+    [["ewokscore==5.1.0"], manager_requirements("pip-venv")],
+    ids=["list", "package-manager"],
+)
+def test_requirements(requirements):
+    EwoksGraph(graph={"id": "test", "requirements": requirements})
+
+
+def test_requirements_unknown_package_manager():
+    with pytest.raises(pydantic.ValidationError):
+        EwoksGraph(
+            graph={"id": "test", "requirements": manager_requirements("unknown")}
+        )
