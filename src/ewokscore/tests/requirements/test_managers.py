@@ -182,6 +182,25 @@ def test_install_files_failure(fast_manager_case, env_root, monkeypatch):
     assert "package manager failed" in confirmations[1]
 
 
+def test_install_existing_environment(manager_case, env_root):
+    """An existing environment is installed in, not created again."""
+    requirements = _requirements(manager_case, native=False)
+    options = {
+        "env_name": "environment",
+        "env_root": env_root,
+        "manager_name": manager_case.NAME,
+        "manager_command": manager_case.command(),
+    }
+    environment = install_requirements(requirements, **options)
+    marker = environment.location / "marker.txt"
+    marker.touch()
+
+    environment = install_requirements(requirements, **options)
+
+    assert marker.exists()
+    assert_installed(environment, DISTRIBUTIONS)
+
+
 def test_install_not_confirmed(fast_manager_case, env_root):
     """Nothing is created when an installation is not confirmed. The confirmation
     mentions why the python distributions are installed."""

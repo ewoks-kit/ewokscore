@@ -192,7 +192,8 @@ def install_requirements(
                     f"This will remove the existing python environment in '{location}'."
                 )
             shutil.rmtree(location)
-        environment = manager.create_environment(location, python_version)
+        if remove or not environment.exists():
+            environment = manager.create_environment(location, python_version)
 
     installed = False
     if native:
