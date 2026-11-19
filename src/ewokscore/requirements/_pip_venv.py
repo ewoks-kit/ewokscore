@@ -1,4 +1,4 @@
-import importlib.metadata
+import re
 import sys
 from pathlib import Path
 from typing import Dict
@@ -59,9 +59,14 @@ class PipVenvManager(BaseManager):
     def version(self) -> Optional[str]:
         """Returns None when this manager is not available."""
         try:
-            return importlib.metadata.version("pip")
-        except importlib.metadata.PackageNotFoundError:
+            output = self._check_output("-m", "pip", "--version")
+        except RuntimeError:
             return None
+        # For example "pip 24.0 from /usr/lib/python3/dist-packages/pip (python 3.12)"
+        match = re.match(r"pip (\S+)", output)
+        if not match:
+            return None
+        return match.group(1)
 
     def is_active(self) -> bool:
         """Manager is explicitly active."""

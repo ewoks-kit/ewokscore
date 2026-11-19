@@ -2,11 +2,13 @@
 
 import importlib.metadata
 import sys
+import venv
 
 import pytest
 
 from ...requirements._pip_venv import PipVenvManager
 from ...requirements._utils.requirements_txt import REQUIREMENTS_FILENAME
+from ...requirements.environment import python_executable
 from .utils import PYTHON_VERSION
 
 pytestmark = pytest.mark.skipif(
@@ -24,12 +26,10 @@ def test_version():
     assert PipVenvManager().version() == importlib.metadata.version("pip")
 
 
-def test_version_not_available(monkeypatch):
-    def not_found(name: str) -> str:
-        raise importlib.metadata.PackageNotFoundError(name)
-
-    monkeypatch.setattr(importlib.metadata, "version", not_found)
-    assert PipVenvManager().version() is None
+def test_version_not_available(tmp_path):
+    """The python interpreter of the command has no pip."""
+    venv.create(tmp_path, with_pip=False)
+    assert PipVenvManager(str(python_executable(tmp_path))).version() is None
 
 
 def test_never_active():
