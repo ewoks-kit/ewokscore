@@ -8,6 +8,7 @@ from typing import List
 from typing import Mapping
 from typing import Optional
 from typing import Sequence
+from typing import Tuple
 from typing import Union
 
 from packaging.requirements import Requirement
@@ -148,6 +149,11 @@ class BaseManager:
 
     def __repr__(self):
         return f"{type(self).__name__}({', '.join(self._cmd_args)})"
+
+    @property
+    def command(self) -> Tuple[str, ...]:
+        """Shell command associated to this package manager."""
+        return self._cmd_args
 
     @abstractmethod
     def version(self) -> Optional[str]:

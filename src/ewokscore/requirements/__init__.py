@@ -17,10 +17,13 @@ from ..hashing import uhash
 from ._utils import parse
 from ._utils._supported import get_supported_managers
 from ._utils.base_manager import BaseRequirements
+from ._utils.cache import ProcessCache
+from ._utils.detect import _manager_distribution_count
 from ._utils.detect import get_in_place_installer
 from ._utils.detect import get_installer
 from ._utils.detect import get_manager
 from ._utils.metadata import last_resort
+from ._utils.metadata.from_python import current_requirements
 from ._utils.metadata.models import BootstrapInfo
 from .environment import Environment
 
@@ -28,6 +31,9 @@ logger = logging.getLogger(__file__)
 
 _NO_GRAPH_ID = "notspecified"
 """Identifier of a workflow that does not have one."""
+
+_REQUIREMENTS_CACHE: ProcessCache[BaseRequirements] = ProcessCache()
+"""Requirements of the current python environment per package manager."""
 
 
 def supported_managers() -> Dict[str, str]:
@@ -72,12 +78,28 @@ def generate_requirements(
     """Requirements of the current python environment, as stored in the
     `requirements` graph attribute. `bootstrap` gives the version of each
     distribution needed to load the workflow and install its requirements.
+
+    The requirements are generated once per package manager and process. Call
+    `clear_requirements_cache` to generate them again. Concurrent callers wait
+    for a single generation (thread-safe).
     """
     manager = get_manager(manager_name=manager_name, manager_command=manager_command)
-    requirements = manager.gather_requirements()
+    requirements = _REQUIREMENTS_CACHE.get(
+        (manager.NAME, manager.command), manager.gather_requirements
+    )
     if bootstrap:
         requirements.bootstrap = BootstrapInfo(distributions=bootstrap)
     return requirements.model_dump()
+
+
+def clear_requirements_cache() -> None:
+    """The requirements of the current python environment are generated again on
+    the next call of `generate_requirements`, for example after distributions were
+    installed in the current python environment.
+    """
+    _REQUIREMENTS_CACHE.clear()
+    current_requirements.cache_clear()
+    _manager_distribution_count.cache_clear()
 
 
 def get_requirements(graph: TaskGraph) -> BaseRequirements:
