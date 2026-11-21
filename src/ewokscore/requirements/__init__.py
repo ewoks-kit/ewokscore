@@ -54,15 +54,29 @@ def add_requirements(
     bootstrap: Optional[Mapping[str, str]] = None,
 ) -> str:
     """Add requirements to a workflow definition in-place. Returns the name of the
-    package manager that generated them. `bootstrap` gives the version of each
+    package manager that generated them.
+    """
+    requirements = generate_requirements(
+        manager_name=manager_name, manager_command=manager_command, bootstrap=bootstrap
+    )
+    graph.graph.graph["requirements"] = requirements
+    return requirements["manager"]["name"]
+
+
+def generate_requirements(
+    manager_name: Optional[str] = None,
+    manager_command: Tuple[str, ...] = tuple(),
+    bootstrap: Optional[Mapping[str, str]] = None,
+) -> dict:
+    """Requirements of the current python environment, as stored in the
+    `requirements` graph attribute. `bootstrap` gives the version of each
     distribution needed to load the workflow and install its requirements.
     """
     manager = get_manager(manager_name=manager_name, manager_command=manager_command)
     requirements = manager.gather_requirements()
     if bootstrap:
         requirements.bootstrap = BootstrapInfo(distributions=bootstrap)
-    graph.graph.graph["requirements"] = requirements.model_dump()
-    return manager.NAME
+    return requirements.model_dump()
 
 
 def get_requirements(graph: TaskGraph) -> BaseRequirements:
