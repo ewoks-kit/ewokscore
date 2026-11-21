@@ -81,6 +81,7 @@ Representation       Data Types         Notes
 ``"json_string"``    JSON types only    JSON string
 ``"json_module"``    JSON types only    JSON file distributed in a Python package
 ``"yaml"``           YAML types only    YAML file
+``"yaml_string"``    YAML types only    YAML string
 ``"test_core"``      Python types       Demo workflows provided by `ewokscore`
 ==================== ================== ==================================
 

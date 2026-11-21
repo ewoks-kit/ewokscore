@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add the `yaml_string` workflow representation.
+
 ## [5.1.0rc8] - 2026-11-20
 
 ### Added

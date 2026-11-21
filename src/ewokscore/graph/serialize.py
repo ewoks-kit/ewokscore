@@ -30,7 +30,8 @@ class GraphRepresentation(StrEnum):
     json_dict = "json_dict"  # python types
     json_string = "json_string"  # only JSON types
     json_module = "json_module"  # only JSON types
-    yaml = "yaml"  # only YAML types
+    yaml = "yaml"  # only YAML types (file)
+    yaml_string = "yaml_string"  # only YAML types
     yaml_module = "yaml_module"  # only YAML types
     test_core = "test_core"  # python types
 
@@ -106,6 +107,17 @@ def dump(
                 **save_options,
             )
         return destination
+
+    if representation == GraphRepresentation.yaml_string:
+        dictrepr = dump(graph, representation=GraphRepresentation.json_dict)
+
+        return yaml.dumps(
+            dictrepr,
+            item_serializers=_ITEM_SERIALIZERS,
+            serializer=serializer,
+            insert_serialize_info=_insert_serialize_info,
+            **save_options,
+        )
 
     if representation == GraphRepresentation.json_module:
         if destination is None:
@@ -205,6 +217,13 @@ def load(
         graph_dict = _read_yaml_file(source, root_dir=root_dir, root_module=root_module)
         return load(
             graph_dict,
+            representation=GraphRepresentation.json_dict,
+            root_dir=root_dir,
+            root_module=root_module,
+        )
+    elif representation == GraphRepresentation.yaml_string:
+        return load(
+            _yaml_load(source),
             representation=GraphRepresentation.json_dict,
             root_dir=root_dir,
             root_module=root_module,
