@@ -3,6 +3,7 @@
 import logging
 import re
 import shutil
+from functools import lru_cache
 from pathlib import Path
 from typing import Callable
 from typing import Dict
@@ -17,7 +18,6 @@ from ..hashing import uhash
 from ._utils import parse
 from ._utils._supported import get_supported_managers
 from ._utils.base_manager import BaseRequirements
-from ._utils.cache import ProcessCache
 from ._utils.detect import _manager_distribution_count
 from ._utils.detect import get_in_place_installer
 from ._utils.detect import get_installer
@@ -31,9 +31,6 @@ logger = logging.getLogger(__file__)
 
 _NO_GRAPH_ID = "notspecified"
 """Identifier of a workflow that does not have one."""
-
-_REQUIREMENTS_CACHE: ProcessCache[BaseRequirements] = ProcessCache()
-"""Requirements of the current python environment per package manager."""
 
 
 def supported_managers() -> Dict[str, str]:
@@ -79,25 +76,27 @@ def generate_requirements(
     `requirements` graph attribute. `bootstrap` gives the version of each
     distribution needed to load the workflow and install its requirements.
 
-    The requirements are generated once per package manager and process. Call
-    `clear_requirements_cache` to generate them again. Concurrent callers wait
-    for a single generation (thread-safe).
+    The result is cached until `install_requirements` installs in the current
+    environment.
     """
-    manager = get_manager(manager_name=manager_name, manager_command=manager_command)
-    requirements = _REQUIREMENTS_CACHE.get(
-        (manager.NAME, manager.command), manager.gather_requirements
-    )
+    requirements = _gather_requirements(manager_name, manager_command)
     if bootstrap:
-        requirements.bootstrap = BootstrapInfo(distributions=bootstrap)
+        requirements = requirements.model_copy(
+            update={"bootstrap": BootstrapInfo(distributions=bootstrap)}
+        )
     return requirements.model_dump()
 
 
-def clear_requirements_cache() -> None:
-    """The requirements of the current python environment are generated again on
-    the next call of `generate_requirements`, for example after distributions were
-    installed in the current python environment.
-    """
-    _REQUIREMENTS_CACHE.clear()
+@lru_cache
+def _gather_requirements(
+    manager_name: Optional[str], manager_command: Tuple[str, ...]
+) -> BaseRequirements:
+    manager = get_manager(manager_name=manager_name, manager_command=manager_command)
+    return manager.gather_requirements()
+
+
+def _clear_caches() -> None:
+    _gather_requirements.cache_clear()
     current_requirements.cache_clear()
     _manager_distribution_count.cache_clear()
 
@@ -257,6 +256,10 @@ def install_requirements(
         manager.install_distributions(requirements, environment, python_version)
 
     manager.ensure_distributions(requirements, environment, extra_distributions)
+
+    if env_name is None:
+        # The requirements of the current environment changed
+        _clear_caches()
 
     return environment
 
