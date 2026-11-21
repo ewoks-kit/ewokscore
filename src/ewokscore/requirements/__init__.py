@@ -55,6 +55,7 @@ def add_requirements(
 ) -> str:
     """Add requirements to a workflow definition in-place. Returns the name of the
     package manager that generated them.
+    `bootstrap`: see `generate_requirements`.
     """
     requirements = generate_requirements(
         manager_name=manager_name, manager_command=manager_command, bootstrap=bootstrap

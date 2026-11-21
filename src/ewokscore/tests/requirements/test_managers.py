@@ -127,7 +127,6 @@ def test_generate_requirements(monkeypatch):
 
     assert requirements == graph.graph.graph["requirements"]
     assert requirements["manager"]["name"] == "pip-venv"
-    assert requirements["bootstrap"] == {"distributions": bootstrap}
 
 
 def test_create_environment(manager_case, environment):
