@@ -76,7 +76,7 @@ def test_start_nodes():
 
 @pytest.mark.parametrize("graph_name", graph_names())
 @pytest.mark.parametrize(
-    "representation", (None, "json", "json_dict", "json_string", "yaml")
+    "representation", (None, "json", "json_dict", "json_string", "yaml", "yaml_string")
 )
 @pytest.mark.parametrize("path_format", (str, Path))
 def test_serialize_graph(graph_name, representation, path_format, tmp_path):
@@ -129,6 +129,7 @@ def assert_convert_graph(
         (dict(), {"representation": "yaml"}, "yaml"),
         (dict(), {"representation": "json_dict"}, None),
         (dict(), {"representation": "json_string"}, None),
+        ({"representation": "yaml_string"}, {"representation": "yaml_string"}, None),
     ]
     if representations:
         conversion_chain.extend(representations)
