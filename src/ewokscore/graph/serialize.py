@@ -3,6 +3,7 @@ import logging
 import os
 from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 from typing import Optional
 from typing import Tuple
 from typing import Union
@@ -403,7 +404,17 @@ def _package_path(package: str) -> str:
     return package.__path__[0]
 
 
+def _copy_containers(value: Any) -> Any:
+    """Copy nested dicts and lists, but not the values inside them."""
+    if isinstance(value, dict):
+        return {k: _copy_containers(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_copy_containers(v) for v in value]
+    return value
+
+
 def _dict_to_networkx(graph: dict) -> networkx.DiGraph:
+    graph = _copy_containers(graph)
     graph.setdefault("directed", True)
     graph.setdefault("nodes", list())
     graph.setdefault("links", list())
