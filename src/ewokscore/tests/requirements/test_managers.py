@@ -136,25 +136,26 @@ def test_generate_requirements_cached(monkeypatch):
     calls = []
     gather_requirements = base_manager.BaseManager.gather_requirements
 
-    def counted(self):
+    def counted(self, extra=None):
         calls.append(self.NAME)
-        return gather_requirements(self)
+        return gather_requirements(self, extra=extra)
 
     monkeypatch.setattr(base_manager.BaseManager, "gather_requirements", counted)
 
     first = generate_requirements(manager_name="pip-venv", bootstrap={"ewoks": "7"})
-    second = generate_requirements(manager_name="pip-venv")
-
+    second = generate_requirements(manager_name="pip-venv", bootstrap={"ewoks": "7"})
     assert calls == ["pip-venv"]
-    # The bootstrap of one caller is not cached for the next one
-    assert second["bootstrap"] is None
-    first.pop("bootstrap")
-    second.pop("bootstrap")
     assert first == second
+    assert first["bootstrap"] == {"distributions": {"ewoks": "7"}}
+
+    # Another bootstrap is generated again and the first one does not leak
+    third = generate_requirements(manager_name="pip-venv")
+    assert calls == ["pip-venv", "pip-venv"]
+    assert third["bootstrap"] is None
 
     _clear_caches()
     generate_requirements(manager_name="pip-venv")
-    assert calls == ["pip-venv", "pip-venv"]
+    assert calls == ["pip-venv", "pip-venv", "pip-venv"]
 
 
 def test_create_environment(manager_case, environment):

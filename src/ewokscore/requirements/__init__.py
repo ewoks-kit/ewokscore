@@ -24,7 +24,6 @@ from ._utils.detect import get_installer
 from ._utils.detect import get_manager
 from ._utils.metadata import last_resort
 from ._utils.metadata.from_python import current_requirements
-from ._utils.metadata.models import BootstrapInfo
 from .environment import Environment
 
 logger = logging.getLogger(__file__)
@@ -79,20 +78,22 @@ def generate_requirements(
     The result is cached until `install_requirements` installs in the current
     environment.
     """
-    requirements = _gather_requirements(manager_name, manager_command)
-    if bootstrap:
-        requirements = requirements.model_copy(
-            update={"bootstrap": BootstrapInfo(distributions=bootstrap)}
-        )
+    bootstrap = tuple(sorted(bootstrap.items())) if bootstrap else tuple()
+    requirements = _gather_requirements(manager_name, manager_command, bootstrap)
     return requirements.model_dump()
 
 
 @lru_cache
 def _gather_requirements(
-    manager_name: Optional[str], manager_command: Tuple[str, ...]
+    manager_name: Optional[str],
+    manager_command: Tuple[str, ...],
+    bootstrap: Tuple[Tuple[str, str], ...],
 ) -> BaseRequirements:
     manager = get_manager(manager_name=manager_name, manager_command=manager_command)
-    return manager.gather_requirements()
+    extra = None
+    if bootstrap:
+        extra = {"bootstrap": {"distributions": dict(bootstrap)}}
+    return manager.gather_requirements(extra=extra)
 
 
 def _clear_caches() -> None:

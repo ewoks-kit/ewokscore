@@ -171,9 +171,10 @@ class BaseManager:
         """
         return (distribution.installer or "").lower()
 
-    def gather_requirements(self) -> BaseRequirements:
+    def gather_requirements(self, extra: Optional[dict] = None) -> BaseRequirements:
         """
         Return requirements associated to the current python environment.
+        `extra` gives values of other requirement fields, like `bootstrap`.
 
         :raises RuntimeError: package manager not available
         """
@@ -192,7 +193,7 @@ class BaseManager:
             files=files,
             **self._gather_extra_fields(),
         )
-        return self.REQUIREMENTS_MODEL(manager=manager, **metadata)
+        return self.REQUIREMENTS_MODEL(manager=manager, **metadata, **(extra or {}))
 
     def environment(self, location: Union[str, Path]) -> Environment:
         """Environment the manager creates at this location."""
