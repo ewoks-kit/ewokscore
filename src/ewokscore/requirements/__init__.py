@@ -3,6 +3,7 @@
 import logging
 import re
 import shutil
+from functools import lru_cache
 from pathlib import Path
 from typing import Callable
 from typing import Dict
@@ -17,10 +18,12 @@ from ..hashing import uhash
 from ._utils import parse
 from ._utils._supported import get_supported_managers
 from ._utils.base_manager import BaseRequirements
+from ._utils.detect import _manager_distribution_count
 from ._utils.detect import get_in_place_installer
 from ._utils.detect import get_installer
 from ._utils.detect import get_manager
 from ._utils.metadata import last_resort
+from ._utils.metadata.from_python import current_requirements
 from ._utils.metadata.models import BootstrapInfo
 from .environment import Environment
 
@@ -72,12 +75,30 @@ def generate_requirements(
     """Requirements of the current python environment, as stored in the
     `requirements` graph attribute. `bootstrap` gives the version of each
     distribution needed to load the workflow and install its requirements.
+
+    The result is cached until `install_requirements` installs in the current
+    environment.
     """
-    manager = get_manager(manager_name=manager_name, manager_command=manager_command)
-    requirements = manager.gather_requirements()
+    requirements = _gather_requirements(manager_name, manager_command)
     if bootstrap:
-        requirements.bootstrap = BootstrapInfo(distributions=bootstrap)
+        requirements = requirements.model_copy(
+            update={"bootstrap": BootstrapInfo(distributions=bootstrap)}
+        )
     return requirements.model_dump()
+
+
+@lru_cache
+def _gather_requirements(
+    manager_name: Optional[str], manager_command: Tuple[str, ...]
+) -> BaseRequirements:
+    manager = get_manager(manager_name=manager_name, manager_command=manager_command)
+    return manager.gather_requirements()
+
+
+def _clear_caches() -> None:
+    _gather_requirements.cache_clear()
+    current_requirements.cache_clear()
+    _manager_distribution_count.cache_clear()
 
 
 def get_requirements(graph: TaskGraph) -> BaseRequirements:
@@ -235,6 +256,10 @@ def install_requirements(
         manager.install_distributions(requirements, environment, python_version)
 
     manager.ensure_distributions(requirements, environment, extra_distributions)
+
+    if env_name is None:
+        # The requirements of the current environment changed
+        _clear_caches()
 
     return environment
 

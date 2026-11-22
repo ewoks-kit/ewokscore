@@ -5,6 +5,7 @@ from typing import Iterator
 import pytest
 
 from ...graph import load_graph
+from ...requirements import _clear_caches
 from ...requirements import add_requirements
 from ...requirements import generate_requirements
 from ...requirements import install_requirements
@@ -127,6 +128,33 @@ def test_generate_requirements(monkeypatch):
 
     assert requirements == graph.graph.graph["requirements"]
     assert requirements["manager"]["name"] == "pip-venv"
+
+
+def test_generate_requirements_cached(monkeypatch):
+    metadata = current_metadata(DISTRIBUTIONS, PYTHON_VERSION)
+    monkeypatch.setattr(base_manager, "current_requirements", lambda: metadata)
+    calls = []
+    gather_requirements = base_manager.BaseManager.gather_requirements
+
+    def counted(self):
+        calls.append(self.NAME)
+        return gather_requirements(self)
+
+    monkeypatch.setattr(base_manager.BaseManager, "gather_requirements", counted)
+
+    first = generate_requirements(manager_name="pip-venv", bootstrap={"ewoks": "7"})
+    second = generate_requirements(manager_name="pip-venv")
+
+    assert calls == ["pip-venv"]
+    # The bootstrap of one caller is not cached for the next one
+    assert second["bootstrap"] is None
+    first.pop("bootstrap")
+    second.pop("bootstrap")
+    assert first == second
+
+    _clear_caches()
+    generate_requirements(manager_name="pip-venv")
+    assert calls == ["pip-venv", "pip-venv"]
 
 
 def test_create_environment(manager_case, environment):
