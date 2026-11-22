@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `NexusProxy`: items of a `list`, `tuple` or `set` loaded from HDF5 are python scalars again
   instead of numpy scalars.
 - `JsonProxy` and `NexusProxy`: `numpy.bool_` was saved as an integer instead of a boolean.
-- Loading a workflow from a `dict` no longer modifies the `dict`, including its `default_inputs` when `inputs` are provided.
+- Loading a workflow from a `dict` no longer modifies the `dict`.
 
 ## [5.0.0] - 2026-07-01
 
