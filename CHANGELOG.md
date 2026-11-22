@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Loading a workflow from a `dict` no longer modifies the `dict`, including its `default_inputs` when `inputs` are provided.
+
 ## [5.1.0rc8] - 2026-11-20
 
 ### Added
