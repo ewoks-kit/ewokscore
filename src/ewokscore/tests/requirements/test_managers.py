@@ -6,6 +6,7 @@ import pytest
 
 from ...graph import load_graph
 from ...requirements import add_requirements
+from ...requirements import generate_requirements
 from ...requirements import install_requirements
 from ...requirements._utils import base_manager
 from ...requirements._utils import detect
@@ -107,9 +108,25 @@ def test_add_requirements_bootstrap(bootstrap, expected, monkeypatch):
     monkeypatch.setattr(base_manager, "current_requirements", lambda: metadata)
     graph = load_graph({"graph": {"id": "test"}})
 
-    add_requirements(graph, manager_name="pip-venv", bootstrap=bootstrap)
+    assert add_requirements(graph, manager_name="pip-venv", bootstrap=bootstrap) == (
+        "pip-venv"
+    )
 
     assert graph.graph.graph["requirements"]["bootstrap"] == expected
+
+
+def test_generate_requirements(monkeypatch):
+    """The requirements that `add_requirements` adds to a workflow."""
+    metadata = current_metadata(DISTRIBUTIONS, PYTHON_VERSION)
+    monkeypatch.setattr(base_manager, "current_requirements", lambda: metadata)
+    bootstrap = {"ewoks": "7.0.0"}
+    graph = load_graph({"graph": {"id": "test"}})
+
+    requirements = generate_requirements(manager_name="pip-venv", bootstrap=bootstrap)
+    add_requirements(graph, manager_name="pip-venv", bootstrap=bootstrap)
+
+    assert requirements == graph.graph.graph["requirements"]
+    assert requirements["manager"]["name"] == "pip-venv"
 
 
 def test_create_environment(manager_case, environment):
